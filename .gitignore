@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/IxianDLT/.vs/DLTNode/v15
+/IxianDLT/bin/Debug
+/IxianDLT/obj/Debug
+/IxianDLT/packages
+/IxianDLT/DLTNode.psess
+/IxianDLT/DLTNode.csproj.user
+/IxianDLT/DLTNode180413.vsp
+/IxianS2/obj/Debug
