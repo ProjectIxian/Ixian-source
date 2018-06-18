@@ -70,7 +70,7 @@ namespace S2.Network
             netControllerThread.Start(nod);
 
             // Retrieve the public-accessible IP address
-            publicIPAddress = CoreNetworkUtils.GetLocalIPAddress();
+            publicIPAddress = Config.publicServerIP; //CoreNetworkUtils.GetLocalIPAddress();
             Logging.info(string.Format("Public S2 node address: {0} port {1}", publicIPAddress, Config.serverPort));
         }
 
