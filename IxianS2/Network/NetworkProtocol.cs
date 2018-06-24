@@ -342,6 +342,18 @@ namespace DLT.Network
                         }
                         break;
 
+                    case ProtocolMessageCode.keepAlivePresence:
+                        {
+                            bool updated = PresenceList.receiveKeepAlive(data);
+                            // If a presence entry was updated, broadcast this message again
+                            if (updated)
+                            {
+                                broadcastProtocolMessage(ProtocolMessageCode.keepAlivePresence, data, socket);
+                            }
+
+                        }
+                        break;
+
                     default:
                         break;
 

@@ -313,7 +313,7 @@ namespace S2.Network
 
             // TODO: find a better way to detect near-instant disconnects
             byte[] tmp = new byte[1];
-            //client.clientSocket.Blocking = true;
+            client.clientSocket.Blocking = true;
             byte[] ba = ProtocolMessage.prepareProtocolMessage(ProtocolMessageCode.keepAlivePresence, data);
 
             try
