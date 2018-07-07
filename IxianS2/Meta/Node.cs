@@ -87,13 +87,7 @@ namespace DLT.Meta
 
             if (option == -1)
             {
-                Console.Write("Type Manual IP: ");
-                string chosenIP = Console.ReadLine();
-                if (chosenIP != null && chosenIP.Length < 255)
-                {
-                    Config.publicServerIP = chosenIP;
-                    Console.WriteLine("Using option M) {0} as the default external IP for this node.", chosenIP);
-                }
+                showManualIPEntry();
             }
             else
             {
@@ -104,6 +98,41 @@ namespace DLT.Meta
                 Config.publicServerIP = chosenIP;
                 Console.WriteLine("Using option {0}) {1} as the default external IP for this node.", option, chosenIP);
             }
+        }
+
+        static public void showManualIPEntry()
+        {
+            Console.Write("Type Manual IP: ");
+            string chosenIP = Console.ReadLine();
+
+            // Validate the IP
+            if (chosenIP.Length > 255 || validateIPv4(chosenIP) == false)
+            {
+                Console.WriteLine("Incorrect IP. Please try again.");
+                showManualIPEntry();
+                return;
+            }
+
+            Config.publicServerIP = chosenIP;
+            Console.WriteLine("Using option M) {0} as the default external IP for this node.", chosenIP);
+        }
+
+        // Helper for validating IPv4 addresses
+        static private bool validateIPv4(string ipString)
+        {
+            if (String.IsNullOrWhiteSpace(ipString))
+            {
+                return false;
+            }
+
+            string[] splitValues = ipString.Split('.');
+            if (splitValues.Length != 4)
+            {
+                return false;
+            }
+
+            byte tempForParsing;
+            return splitValues.All(r => byte.TryParse(r, out tempForParsing));
         }
     }
 }

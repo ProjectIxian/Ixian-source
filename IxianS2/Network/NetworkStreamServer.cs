@@ -204,13 +204,17 @@ namespace S2.Network
         {
             Socket clientSocket = listener.EndAcceptSocket(ar);
             IPEndPoint clientEndpoint = (IPEndPoint)clientSocket.RemoteEndPoint;
-            Logging.info(String.Format("Stream client connection accepted: {0}", clientEndpoint.ToString()));
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Logging.info(string.Format("Connected stream client: {0}", clientEndpoint.ToString()));
+            Console.ResetColor();
+
             lock (connectedClients)
             {
                 var existing_clients = connectedClients.Where(re => re.remoteIP.Address == clientEndpoint.Address);
                 if (existing_clients.Count() > 0)
                 {
-                    Logging.warn(String.Format("Stream client {0}:{1} already connected as {2}:{3}.",
+                    Logging.warn(String.Format("Stream client {0}:{1} already connected as {2}.",
                         clientEndpoint.Address.ToString(), clientEndpoint.Port, existing_clients.First().ToString()));
                 }
 
@@ -354,11 +358,15 @@ namespace S2.Network
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine("Disconnected stream client: {0}", e.ToString());
+                        //Console.WriteLine("Disconnected stream client: {0}", e.ToString());
                         clientActive = false;
                     }
                 }
             }
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Logging.info(string.Format("Disconnected stream client: {0}", client.remoteIP));
+            Console.ResetColor();
 
             // Remove corresponding address from presence list
             if (client.presence != null && client.presenceAddress != null)

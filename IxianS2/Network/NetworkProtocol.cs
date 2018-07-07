@@ -139,12 +139,13 @@ namespace DLT.Network
                         // Verify the checksum before proceeding
                         if (Crypto.byteArrayCompare(local_checksum, data_checksum) == false)
                         {
-                            Logging.warn("Dropped message (invalid checksum)");
+                            Console.WriteLine(string.Format("S2NET: {0} | {1} | {2}", code, data_length, Crypto.hashToString(data_checksum)));
+                            Logging.warn("^^^ Dropped message (invalid checksum)");
                             continue;
                         }
 
                         // For development purposes, output the proper protocol message
-                        Console.WriteLine(string.Format("S2NET: {0} | {1} | {2}", code, data_length, Crypto.hashToString(data_checksum)));
+                        //Console.WriteLine(string.Format("S2NET: {0} | {1} | {2}", code, data_length, Crypto.hashToString(data_checksum)));
 
                         // Can proceed to parse the data parameter based on the protocol message code.
                         // Data can contain multiple elements.
@@ -185,7 +186,7 @@ namespace DLT.Network
                                     }
 
                                     string hostname = reader.ReadString();
-                                    Console.WriteLine("Received IP: {0}", hostname);
+                                    Logging.info(string.Format("Connected IP: {0}", hostname));
 
                                     // Another layer to catch any incompatible node exceptions for the hello message
                                     try
@@ -206,7 +207,7 @@ namespace DLT.Network
 
                                         }
 
-                                        Console.WriteLine("Received Address: {0} of type {1}", addr, node_type);
+                                        Console.WriteLine("\tReceived PL Address: {0} of type {1}", addr, node_type);
 
                                         if (node_type == 'C')
                                         {
@@ -221,11 +222,9 @@ namespace DLT.Network
 
                                         // Create a temporary presence with the client's address and device id
                                         Presence presence = new Presence(addr, pubkey, meta, client.presenceAddress);
-
                                         
                                         // Retrieve the final presence entry from the list (or create a fresh one)
                                         client.presence = PresenceList.updateEntry(presence);
-
                                     }
                                     catch (Exception e)
                                     {

@@ -28,7 +28,7 @@ namespace DLT
             public static readonly int nodeVersion = 4;
             public static readonly int networkClientReconnectInterval = 10 * 1000; // Time in milliseconds
 
-            public static readonly int keepAliveSecondsInterval = 60; // Standard is 300 (5 minutes)
+            public static readonly int keepAliveSecondsInterval = 45; // Standard expire is 300 (5 minutes)
 
             private static Config singletonInstance;
             private Config()
