@@ -25,6 +25,7 @@ namespace DLT
             public static string device_id = Guid.NewGuid().ToString();
 
             // Read-only values
+            public static readonly string s2Version = "0.1.0";
             public static readonly int nodeVersion = 4;
             public static readonly int networkClientReconnectInterval = 10 * 1000; // Time in milliseconds
 

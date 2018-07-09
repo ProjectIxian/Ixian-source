@@ -15,7 +15,7 @@ namespace S2
 
         static void Main(string[] args)
         {
-            Logging.log(LogSeverity.info, "S2 Node started");
+            Logging.info(string.Format("IXIAN S2 Node {0} started", Config.s2Version));
 
             onStart(args);
 
@@ -28,7 +28,7 @@ namespace S2
 
             onStop();
 
-            Logging.log(LogSeverity.info, "S2 Node stopped");
+            Logging.info(string.Format("IXIAN S2 Node {0} stopped", Config.s2Version));
             Console.ReadKey();
             Console.WriteLine("\nClosing network connections, please wait...\n");
         }
