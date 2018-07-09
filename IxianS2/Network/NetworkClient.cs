@@ -40,10 +40,10 @@ namespace S2.Network
             // Disable the Nagle Algorithm for this tcp socket.
             tcpClient.Client.NoDelay = true;
 
-            tcpClient.Client.ReceiveBufferSize = 1024 * 64;
+            //tcpClient.Client.ReceiveBufferSize = 1024 * 64;
             // tcpClient.Client.ReceiveTimeout = 1000;
 
-            tcpClient.Client.SendBufferSize = 1024 * 64;
+           // tcpClient.Client.SendBufferSize = 1024 * 64;
             // tcpClient.Client.SendTimeout = 1000;
 
             //tcpClient.Client.Ttl = 42;
