@@ -95,7 +95,7 @@ namespace S2.Network
                 running = false;
                 return false;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logging.warn(string.Format("Network client connection to {0}:{1} has failed.", hostname, port));
                 running = false;
@@ -196,7 +196,7 @@ namespace S2.Network
                     // Let the protocol handler receive and handle messages
                     ProtocolMessage.readProtocolMessage(tcpClient.Client, null);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //Console.WriteLine("Client EX: {0}", e.ToString());
                     disconnect();
@@ -284,7 +284,7 @@ namespace S2.Network
 
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("Failed ping to client: {0}. Reconnecting.", address);
                 reconnect();

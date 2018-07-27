@@ -7,9 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace S2.Network
 {
@@ -356,7 +354,7 @@ namespace S2.Network
                     {
                         ProtocolMessage.readProtocolMessage(client.clientSocket, client);
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         //Console.WriteLine("Disconnected stream client: {0}", e.ToString());
                         clientActive = false;
