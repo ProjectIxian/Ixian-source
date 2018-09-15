@@ -299,12 +299,12 @@ namespace DLT.Network
                         }
                         break;
 
-                    case ProtocolMessageCode.updateTransaction:
+                    /*case ProtocolMessageCode.updateTransaction:
                         {
                             // Forward the update transaction message to the DLT network
                             broadcastProtocolMessage(ProtocolMessageCode.updateTransaction, data);
                         }
-                        break;
+                        break;*/
 
                     case ProtocolMessageCode.syncPresenceList:
                         {
