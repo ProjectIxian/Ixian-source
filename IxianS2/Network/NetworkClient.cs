@@ -171,9 +171,15 @@ namespace S2.Network
                     string address = Node.walletStorage.address;
                     writer.Write(address);
 
+                    // Send the testnet designator
+                    writer.Write(Config.isTestNet);
+
                     // Send the node type
                     char node_type = 'R'; // This is a Relay node
                     writer.Write(node_type);
+
+                    // Send the version
+                    writer.Write(Config.version);
 
                     // Send the node device id
                     writer.Write(Config.device_id);

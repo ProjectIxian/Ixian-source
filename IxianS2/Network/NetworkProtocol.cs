@@ -193,6 +193,7 @@ namespace DLT.Network
                                     {
                                         string addr = reader.ReadString();
                                         char node_type = reader.ReadChar();
+                                        string node_version = reader.ReadString();
                                         string device_id = reader.ReadString();
                                         string pubkey = reader.ReadString();
 
@@ -218,7 +219,7 @@ namespace DLT.Network
                                         }
 
                                         // Store the presence address for this remote endpoint
-                                        client.presenceAddress = new PresenceAddress(device_id, hostname, node_type);
+                                        client.presenceAddress = new PresenceAddress(device_id, hostname, node_type, node_version);
 
                                         // Create a temporary presence with the client's address and device id
                                         Presence presence = new Presence(addr, pubkey, meta, client.presenceAddress);
