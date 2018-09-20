@@ -18,7 +18,7 @@ The IXIAN  repository is divided into three main projects:
 
 There are two main development branches:
 * master-mainnet: This branch is used to build the binaries for the official IXIAN DLT network. It should change slowly and be quite well-tested.
-* master: This is the main development branch and the source for testnet binaries. The branch might not always be kept bug-free, if an extensive new feature is being worked on.
+* master: This is the main development branch and the source for testnet binaries. The branch might not always be kept bug-free, if an extensive new feature is being worked on. If you are simply looking to build a current testnet binary yourself, please use one of the release tags which will be associated with the master branch.
 
 ## Building
 
@@ -36,7 +36,7 @@ If you feel like you can contribute to the project, or have questions or comment
 
 ## Pull requests
 
-If you would like to send an improvement or bugfix to this repository, but without premanentely joining the team, follow these approximate steps:
+If you would like to send an improvement or bugfix to this repository, but without permanentely joining the team, follow these approximate steps:
 
 1. Fork this repository
 2. Create a branch (preferably with a name that describes the change)
