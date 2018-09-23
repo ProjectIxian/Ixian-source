@@ -36,7 +36,7 @@ If you feel like you can contribute to the project, or have questions or comment
 
 ## Pull requests
 
-If you would like to send an improvement or bugfix to this repository, but without permanentely joining the team, follow these approximate steps:
+If you would like to send an improvement or bugfix to this repository, but without permanently joining the team, follow these approximate steps:
 
 1. Fork this repository
 2. Create a branch (preferably with a name that describes the change)
