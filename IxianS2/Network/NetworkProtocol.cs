@@ -51,7 +51,7 @@ namespace DLT.Network
                 return;
             }
 
-            NetworkClientManager.broadcastData(code, data);
+            NetworkClientManager.broadcastData(code, data, skipSocket);
             NetworkStreamServer.broadcastData(code, data);
         }
 

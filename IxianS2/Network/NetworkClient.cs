@@ -14,12 +14,13 @@ namespace S2.Network
 {
     class NetworkClient
     {
-        private TcpClient tcpClient = null;
+        public TcpClient tcpClient = null;
         public bool running;
         public string address = "127.0.0.1:10000";
 
         private string tcpHostname = "";
         private int tcpPort = 0;
+        private int failedReconnects = 0;
 
         public NetworkClient()
         {
@@ -40,15 +41,11 @@ namespace S2.Network
             // Disable the Nagle Algorithm for this tcp socket.
             tcpClient.Client.NoDelay = true;
 
-            //tcpClient.Client.ReceiveBufferSize = 1024 * 64;
-            // tcpClient.Client.ReceiveTimeout = 1000;
+            tcpClient.Client.ReceiveTimeout = 5000;
+            tcpClient.Client.SendTimeout = 5000;
 
-           // tcpClient.Client.SendBufferSize = 1024 * 64;
-            // tcpClient.Client.SendTimeout = 1000;
-
-            //tcpClient.Client.Ttl = 42;
-            //tcpClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, 1);
-
+            // Reset the failed reconnects count
+            failedReconnects = 0;
         }
 
         public bool connectToServer(string hostname, int port)
@@ -74,6 +71,7 @@ namespace S2.Network
                         break;
 
                     case SocketError.AddressAlreadyInUse:
+                        Logging.warn(string.Format("Socket exception for {0}:{1} has failed. Address already in use.", hostname, port));
                         break;
 
                     default:
@@ -93,16 +91,21 @@ namespace S2.Network
                     Logging.warn(string.Format("Socket exception when closing. Reason {0}", e.ToString()));
                 }
                 running = false;
+                failedReconnects++;
                 return false;
             }
             catch (Exception)
             {
                 Logging.warn(string.Format("Network client connection to {0}:{1} has failed.", hostname, port));
                 running = false;
+                failedReconnects++;
                 return false;
             }
 
             Logging.info(string.Format("Network client connected to {0}:{1}", hostname, port));
+
+            // Reset the failed reconnects count
+            failedReconnects = 0;
 
             running = true;
             Thread thread = new Thread(new ThreadStart(onUpdate));
@@ -247,6 +250,20 @@ namespace S2.Network
             return string.Format("{0}:{1}", tcpHostname, tcpPort);
         }
 
+        // Broadcasts a keepalive network message for this node PL address
+        public bool sendKeepAlive(byte[] data)
+        {
+            sendData(ProtocolMessageCode.keepAlivePresence, data);
+            return true;
+        }
+
+        // Send a ping message to this server
+        public void sendPing()
+        {
+            byte[] tmp = new byte[1];
+            sendData(ProtocolMessageCode.ping, tmp);
+        }
+
         public bool isConnected()
         {
             try
@@ -269,71 +286,12 @@ namespace S2.Network
             }
         }
 
-        public void sendPing()
+        // Returns the number of failed reconnects
+        public int getFailedReconnectsCount()
         {
-            if (!isConnected())
-            {
-                Logging.info(string.Format("Attempted to ping disconnected client {0}", address));
-                reconnect();
-                return;
-            }
-
-            byte[] tmp = new byte[1];
-            byte[] ba = ProtocolMessage.prepareProtocolMessage(ProtocolMessageCode.ping, tmp);
-            try
-            {
-                tcpClient.Client.Send(ba, SocketFlags.None);
-                if (tcpClient.Client.Connected == false)
-                {
-                    Console.WriteLine("Failed sendping to client: {0}. Reconnecting.", address);
-                    reconnect();
-
-                }
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Failed ping to client: {0}. Reconnecting.", address);
-                reconnect();
-            }
+            return failedReconnects;
         }
 
-        // Broadcasts a keepalive network message for this node PL address
-        public bool sendKeepAlive()
-        {
-            try
-            {
-                using (MemoryStream m = new MemoryStream())
-                {
-                    using (BinaryWriter writer = new BinaryWriter(m))
-                    {
-
-                        string publicHostname = string.Format("{0}:{1}", NetworkStreamServer.publicIPAddress, Config.serverPort);
-                        string wallet = Node.walletStorage.address;
-                        writer.Write(wallet);
-                        writer.Write(Config.device_id);
-                        writer.Write(publicHostname);
-
-                        // Add the unix timestamp
-                        string timestamp = Clock.getTimestamp(DateTime.Now);
-                        writer.Write(timestamp);
-
-                        // Add a verifiable signature
-                        string private_key = Node.walletStorage.privateKey;
-                        string signature = CryptoManager.lib.getSignature(timestamp, private_key);
-                        writer.Write(signature);
-
-                    }
-
-                    sendData(ProtocolMessageCode.keepAlivePresence, m.ToArray());
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return true;
-        }
     }
 
 }

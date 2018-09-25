@@ -33,6 +33,12 @@ namespace DLT
 
             public static readonly int keepAliveSecondsInterval = 45; // Standard expire is 300 (5 minutes)
 
+            public static readonly int maximumNodeReconnectCount = 5; // Number of retries before proceeding to a different dlt node
+            public static readonly int simultaneousConnectedNodes = 4; // Desired number of simulatenously connected dlt nodes
+            public static readonly int maximumStreamServerClients = 5000; // Maximum number of stream clients this s2 node can accept
+
+
+
             private static Config singletonInstance;
             private Config()
             {
