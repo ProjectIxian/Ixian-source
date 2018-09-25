@@ -21,8 +21,9 @@ namespace DLT
 
             public static string walletFile = "wallet.dat";
 
-            // Note: device id is stored in  a cache for reuse in later instances
+            // Store the device id in a cache for reuse in later instances
             public static string device_id = Guid.NewGuid().ToString();
+            public static string externalIp = "";
 
             // Read-only values
             public static readonly string version = "s2-0.1.0"; // S2 Node version
