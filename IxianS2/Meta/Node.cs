@@ -3,6 +3,7 @@ using S2.Network;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,13 +13,68 @@ namespace DLT.Meta
     {
         public static WalletStorage walletStorage;
 
+        public static UPnP upnp;
+
+
         static public void start()
         {
             // Load or Generate the wallet
             walletStorage = new WalletStorage(Config.walletFile);
 
-            // Show the IP selector menu
-            showIPmenu();
+            // Network configuration
+            upnp = new UPnP();
+            if (Config.externalIp != "" && IPAddress.TryParse(Config.externalIp, out _))
+            {
+                Config.publicServerIP = Config.externalIp;
+            }
+            else
+            {
+                Config.publicServerIP = "";
+                List<IPAndMask> local_ips = CoreNetworkUtils.GetAllLocalIPAddressesAndMasks();
+                foreach (IPAndMask local_ip in local_ips)
+                {
+                    if (IPv4Subnet.IsPublicIP(local_ip.Address))
+                    {
+                        Logging.info(String.Format("Public IP detected: {0}, mask {1}.", local_ip.Address.ToString(), local_ip.SubnetMask.ToString()));
+                        Config.publicServerIP = local_ip.Address.ToString();
+                    }
+                }
+                if (Config.publicServerIP == "")
+                {
+                    IPAddress primary_local = CoreNetworkUtils.GetPrimaryIPAddress();
+                    if (primary_local == null)
+                    {
+                        Logging.warn("Unable to determine primary IP address.");
+                        showIPmenu();
+                    }
+                    else
+                    {
+                        Logging.info(String.Format("None of the locally configured IP addresses are public. Attempting UPnP..."));
+                        IPAddress public_ip = upnp.GetExternalIPAddress();
+                        if (public_ip == null)
+                        {
+                            Logging.info("UPnP failed.");
+                            showIPmenu();
+                        }
+                        else
+                        {
+                            Logging.info(String.Format("UPNP-determined public IP: {0}. Attempting to configure a port-forwarding rule.", public_ip.ToString()));
+                            if (upnp.MapPublicPort(Config.serverPort, primary_local))
+                            {
+                                Config.publicServerIP = upnp.getMappedIP();
+                                Logging.info(string.Format("Network configured. Public IP is: {0}", Config.publicServerIP));
+                            }
+                            else
+                            {
+                                Logging.info("UPnP configuration failed.");
+                                // Show the IP selector menu
+                                showIPmenu();
+                            }
+                        }
+                    }
+                }
+            }
+
 
             // Start the node stream server
             NetworkStreamServer.beginNetworkOperations();

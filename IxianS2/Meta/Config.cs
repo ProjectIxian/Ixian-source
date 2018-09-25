@@ -21,8 +21,9 @@ namespace DLT
 
             public static string walletFile = "wallet.dat";
 
-            // Note: device id is stored in  a cache for reuse in later instances
+            // Store the device id in a cache for reuse in later instances
             public static string device_id = Guid.NewGuid().ToString();
+            public static string externalIp = "";
 
             // Read-only values
             public static readonly string version = "s2-0.1.0"; // S2 Node version
@@ -31,6 +32,12 @@ namespace DLT
             public static readonly int networkClientReconnectInterval = 10 * 1000; // Time in milliseconds
 
             public static readonly int keepAliveSecondsInterval = 45; // Standard expire is 300 (5 minutes)
+
+            public static readonly int maximumNodeReconnectCount = 5; // Number of retries before proceeding to a different dlt node
+            public static readonly int simultaneousConnectedNodes = 4; // Desired number of simulatenously connected dlt nodes
+            public static readonly int maximumStreamServerClients = 5000; // Maximum number of stream clients this s2 node can accept
+
+
 
             private static Config singletonInstance;
             private Config()

@@ -1,8 +1,11 @@
-﻿using DLT.Meta;
+﻿using DLT;
+using DLT.Meta;
 using DLT.Network;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,43 +15,45 @@ namespace S2.Network
     class NetworkClientManager
     {
         private static List<NetworkClient> networkClients = new List<NetworkClient>();
+        private static List<string> connectingClients = new List<string>(); // A list of clients that we're currently connecting
+
         private static Thread reconnectThread;
         private static bool autoReconnect = true;
 
         private static Thread keepAliveThread;
         private static bool autoKeepalive = false;
 
-        private static NetworkClientManager singletonInstance = new NetworkClientManager();
-        static NetworkClientManager()
-        {
-        }
+        private static List<string> networkMasterNodes = new List<string>();
 
-        private NetworkClientManager()
-        {
-        }
-
-        public static NetworkClientManager singleton
-        {
-            get
-            {
-                return singletonInstance;
-            }
-        }
-
-
+        // Starts the Network Client Manager. First it connects to one of the seed nodes in order to fetch the Presence List.
+        // Afterwards, it starts the reconnect and keepalive threads
         public static void startClients()
         {
             networkClients = new List<NetworkClient>();
 
-            lock (networkClients)
+
+            List<string> pl_masternodes = PresenceStorage.readPresenceFile();
+            foreach (string addr in pl_masternodes)
             {
-                // Create clients and connect to various nodes
-                for (int i = 0; i < CoreNetworkUtils.seedNodes.Length; i++)
-                {
-                    // Connect client immediately
-                    connectTo(CoreNetworkUtils.seedNodes[i]);
-                }
+                if (networkMasterNodes.Contains(addr) == false)
+                    networkMasterNodes.Add(addr);
             }
+
+            // Now add the seed nodes to the list
+            foreach (string addr in CoreNetworkUtils.seedNodes)
+            {
+                if (networkMasterNodes.Contains(addr) == false)
+                    networkMasterNodes.Add(addr);
+            }
+
+            // Connect to a random node first
+            Random rnd = new Random();
+            bool firstSeedConnected = false;
+            while (firstSeedConnected == false)
+            {
+                firstSeedConnected = connectTo(networkMasterNodes[rnd.Next(networkMasterNodes.Count)]);
+            }
+
 
             // Start the reconnect thread
             reconnectThread = new Thread(reconnectClients);
@@ -63,6 +68,7 @@ namespace S2.Network
 
         public static void stopClients()
         {
+            autoKeepalive = false;
             autoReconnect = false;
             isolate();
 
@@ -101,7 +107,7 @@ namespace S2.Network
         }
 
         // Connects to a specified node, with the syntax host:port
-        private static void threadConnectTo(object data)
+        private static bool threadConnectTo(object data)
         {
             if (data is string)
             {
@@ -117,7 +123,30 @@ namespace S2.Network
             if (server.Count() < 2)
             {
                 Logging.warn(string.Format("Cannot connect to invalid hostname: {0}", host));
-                return;
+                return false;
+            }
+
+            // Resolve the hostname first
+            string resolved_server_name = NetworkUtils.resolveHostname(server[0]);
+
+            // Skip hostnames we can't resolve
+            if (resolved_server_name.Length < 1)
+            {
+                Logging.info(string.Format("Cannot resolve IP for {0}, skipping connection.", server[0]));
+                return false;
+            }
+
+            string resolved_host = string.Format("{0}:{1}", resolved_server_name, server[1]);
+
+            // Verify against the publicly disclosed ip
+            // Don't connect to self
+            if (resolved_server_name.Equals(Config.publicServerIP, StringComparison.Ordinal))
+            {
+                if (server[1].Equals(string.Format("{0}", Config.serverPort), StringComparison.Ordinal))
+                {
+                    Logging.info(string.Format("Skipping connection to public self seed node {0}", host));
+                    return false;
+                }
             }
 
             // Check if nodes is already in the client list
@@ -128,14 +157,29 @@ namespace S2.Network
                     if (client.address.Equals(host, StringComparison.Ordinal))
                     {
                         // Address is already in the client list
-                        return;
+                        return false;
                     }
                 }
             }
 
+            lock (connectingClients)
+            {
+                foreach (string client in connectingClients)
+                {
+                    if (resolved_host.Equals(client, StringComparison.Ordinal))
+                    {
+                        // We're already connecting to this client
+                        return false;
+                    }
+                }
+
+                // The the client to the connecting clients list
+                connectingClients.Add(resolved_host);
+            }
+
             // Connect to the specified node
             NetworkClient new_client = new NetworkClient();
-            bool result = new_client.connectToServer(server[0], Convert.ToInt32(server[1]));
+            bool result = new_client.connectToServer(resolved_server_name, Convert.ToInt32(server[1]));
 
             // Add this node to the client list if connection was successfull
             if (result == true)
@@ -146,19 +190,27 @@ namespace S2.Network
                 }
             }
 
-            Thread.Yield();
+            // Remove this node from the connecting clients list
+            lock (connectingClients)
+            {
+                connectingClients.Remove(resolved_host);
+            }
+
+            //Thread.Yield();
+            return result;
         }
 
         // Connects to a specified node, with the syntax host:port
         // It does so by spawning a temporary thread
-        public static void connectTo(string host)
+        public static bool connectTo(string host)
         {
-            Thread conn_thread = new Thread(threadConnectTo);
-            conn_thread.Start(host);
+            // Thread conn_thread = new Thread(threadConnectTo);
+            // conn_thread.Start(host);
+            return threadConnectTo(host);
         }
 
         // Send data to all connected nodes
-        public static void broadcastData(ProtocolMessageCode code, byte[] data)
+        public static void broadcastData(ProtocolMessageCode code, byte[] data, Socket skipSocket)
         {
             lock (networkClients)
             {
@@ -166,11 +218,33 @@ namespace S2.Network
                 {
                     if (client.isConnected())
                     {
+                        if (skipSocket != null)
+                        {
+                            if (client.tcpClient.Client == skipSocket)
+                                continue;
+                        }
+
                         client.sendData(code, data);
                         //Console.WriteLine("CLNMGR-BROADCAST SENT: {0}", code);
                     }
                 }
             }
+        }
+
+        public static bool sendToClient(string neighbor, ProtocolMessageCode code, byte[] data)
+        {
+            lock (networkClients)
+            {
+                foreach (NetworkClient c in networkClients)
+                {
+                    if (c.getFullAddress() == neighbor)
+                    {
+                        c.sendData(code, data);
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         // Returns all the connected clients
@@ -200,10 +274,123 @@ namespace S2.Network
             return result.ToArray();
         }
 
+        // Scans the Presence List for a new potential neighbor. Returns null if no new neighbor is found.
+        public static string scanForNeighbor()
+        {
+            // Cache the connected clients string array first for faster comparisons
+            string[] connectedClients = getConnectedClients();
+
+            // Prepare a list of candidate nodes
+            List<string> candidates = new List<string>();
+            Random rnd = new Random();
+
+            lock (PresenceList.presences)
+            {
+                foreach (Presence presence in PresenceList.presences)
+                {
+                    // Find only masternodes
+                    foreach (PresenceAddress addr in presence.addresses)
+                    {
+                        if (addr.type == 'M')
+                        {
+                            // Check if the address format is correct
+                            string[] server = addr.address.Split(':');
+                            if (server.Count() < 2)
+                            {
+                                continue;
+                            }
+
+                            bool addr_valid = true;
+
+                            // Check if we are already connected to this address
+                            lock (networkClients)
+                            {
+                                foreach (NetworkClient client in networkClients)
+                                {
+                                    if (client.address.Equals(addr.address, StringComparison.Ordinal))
+                                    {
+                                        // Address is already in the client list
+                                        addr_valid = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (addr_valid == false)
+                                continue;
+
+                            // Check against connecting clients list as well
+                            lock (connectingClients)
+                            {
+                                foreach (string client in connectingClients)
+                                {
+                                    if (addr.address.Equals(client, StringComparison.Ordinal))
+                                    {
+                                        // Address is already in the connecting client list
+                                        addr_valid = false;
+                                        break;
+                                    }
+                                }
+
+                            }
+
+                            if (addr_valid == false)
+                                continue;
+
+                            // Next, check if we're connecting to a self address of this node
+
+                            // Resolve the hostname first
+                            string resolved_server_name = NetworkUtils.resolveHostname(server[0]);
+
+                            // Get all self addresses and run through them
+                            List<string> self_addresses = CoreNetworkUtils.GetAllLocalIPAddresses();
+                            foreach (string self_address in self_addresses)
+                            {
+                                // Don't connect to self
+                                if (resolved_server_name.Equals(self_address, StringComparison.Ordinal))
+                                {
+                                    if (server[1].Equals(string.Format("{0}", Config.serverPort), StringComparison.Ordinal))
+                                    {
+                                        addr_valid = false;
+                                    }
+                                }
+                            }
+
+                            // If the address is valid, add it to the candidates
+                            if (addr_valid)
+                            {
+                                candidates.Add(addr.address);
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            if (candidates.Count < 1)
+                return null;
+
+            string candidate = candidates[rnd.Next(candidates.Count)];
+            return candidate;
+        }
+
+        // Scan for and connect to a new neighbor
+        private static void connectToRandomNeighbor()
+        {
+            string neighbor = scanForNeighbor();
+            if (neighbor != null)
+            {
+                Logging.info(string.Format("Attempting to add new neighbor: {0}", neighbor));
+                connectTo(neighbor);
+            }
+        }
+
 
         // Checks for missing clients
         private static void reconnectClients()
         {
+            Random rnd = new Random();
+
             // Wait 5 seconds before starting the loop
             Thread.Sleep(Config.networkClientReconnectInterval);
 
@@ -211,9 +398,47 @@ namespace S2.Network
             {
                 lock (networkClients)
                 {
+                    // Check if we need to connect to more neighbors
+                    if (networkClients.Count < Config.simultaneousConnectedNodes)
+                    {
+                        // Scan for and connect to a new neighbor
+                        connectToRandomNeighbor();
+                    }
+                    else if (networkClients.Count > Config.simultaneousConnectedNodes)
+                    {
+                        // Disconnect the oldest connected node
+                        networkClients[0].disconnect();
+                        networkClients.RemoveAt(0);
+                    }
+
+                    // Connect randomly to a new node. Currently a 5% chance to reconnect during this iteration
+                    if (rnd.Next(20) == 1)
+                    {
+                        connectToRandomNeighbor();
+                    }
+
+                    // Prepare a list of failed clients
+                    List<NetworkClient> failed_clients = new List<NetworkClient>();
+
                     foreach (NetworkClient client in networkClients)
                     {
-                        client.sendPing();
+                        // Check if we exceeded the maximum reconnect count
+                        if (client.getFailedReconnectsCount() >= Config.maximumNodeReconnectCount)
+                        {
+                            // Remove this client so we can search for a new neighbor
+                            failed_clients.Add(client);
+                        }
+                        else
+                        {
+                            // Everything is in order, send a ping message
+                            client.sendPing();
+                        }
+                    }
+
+                    // Go through the list of failed clients and remove them
+                    foreach (NetworkClient client in failed_clients)
+                    {
+                        networkClients.Remove(client);
                     }
                 }
 
@@ -241,15 +466,50 @@ namespace S2.Network
                     Thread.Sleep(1000);
                 }
 
-                lock (networkClients)
+                try
                 {
-                    foreach (NetworkClient client in networkClients)
+                    // Prepare the keepalive message
+                    using (MemoryStream m = new MemoryStream())
                     {
-                        if (client.isConnected())
+                        using (BinaryWriter writer = new BinaryWriter(m))
                         {
-                            client.sendKeepAlive();
+
+                            string publicHostname = string.Format("{0}:{1}", Config.publicServerIP, Config.serverPort);
+                            string wallet = Node.walletStorage.address;
+                            writer.Write(wallet);
+                            writer.Write(Config.device_id);
+                            writer.Write(publicHostname);
+
+                            // Add the unix timestamp
+                            string timestamp = Clock.getTimestamp(DateTime.Now);
+                            writer.Write(timestamp);
+
+                            // Add a verifiable signature
+                            string private_key = Node.walletStorage.privateKey;
+                            string signature = CryptoManager.lib.getSignature(timestamp, private_key);
+                            writer.Write(signature);
+
+                        }
+
+                        // Update self presence
+                        PresenceList.receiveKeepAlive(m.ToArray());
+
+                        // Send this keepalive message to all connected clients
+                        lock (networkClients)
+                        {
+                            foreach (NetworkClient client in networkClients)
+                            {
+                                if (client.isConnected())
+                                {
+                                    client.sendKeepAlive(m.ToArray());
+                                }
+                            }
                         }
                     }
+                }
+                catch (Exception)
+                {
+                    continue;
                 }
             }
 
