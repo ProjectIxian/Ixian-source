@@ -80,52 +80,54 @@ namespace DLT.Network
             {
                 int data_length = 0;
                 int header_length = 41; // start byte + int32 (4 bytes) + int32 (4 bytes) + checksum (32 bytes)
-
-                var current_byte = new Byte[1];
-                var byteCounter = socket.Receive(current_byte, current_byte.Length, SocketFlags.None);
-
-                if (byteCounter.Equals(1))
+                while (message_found == false && socket.Connected)
                 {
-                    if (big_buffer.Count > 0)
+                    var current_byte = new Byte[1];
+                    var byteCounter = socket.Receive(current_byte, current_byte.Length, SocketFlags.None);
+
+                    if (byteCounter.Equals(1))
                     {
-                        big_buffer.Add(current_byte[0]);
-                        if (big_buffer.Count == header_length) // 41 is the header length
+                        if (big_buffer.Count > 0)
                         {
-                            // we should have the full header, save the data length
-                            using (MemoryStream m = new MemoryStream(big_buffer.ToArray()))
+                            big_buffer.Add(current_byte[0]);
+                            if (big_buffer.Count == header_length) // 41 is the header length
                             {
-                                using (BinaryReader reader = new BinaryReader(m))
+                                // we should have the full header, save the data length
+                                using (MemoryStream m = new MemoryStream(big_buffer.ToArray()))
                                 {
-                                    reader.ReadByte(); // skip start byte
-                                    reader.ReadInt32(); // skip message code
-                                    data_length = reader.ReadInt32(); // finally read data length
-                                    if (data_length <= 0)
+                                    using (BinaryReader reader = new BinaryReader(m))
                                     {
-                                        data_length = 0;
-                                        big_buffer.Clear();
+                                        reader.ReadByte(); // skip start byte
+                                        reader.ReadInt32(); // skip message code
+                                        data_length = reader.ReadInt32(); // finally read data length
+                                        if (data_length <= 0)
+                                        {
+                                            data_length = 0;
+                                            big_buffer.Clear();
+                                        }
                                     }
                                 }
                             }
+                            else if (big_buffer.Count == data_length + header_length)
+                            {
+                                // we have everything that we need, save the last byte and break
+                                message_found = true;
+                            }
                         }
-                        else if (big_buffer.Count == data_length + header_length)
+                        else
                         {
-                            // we have everything that we need, save the last byte and break
-                            message_found = true;
+                            if (current_byte[0] == 'X') // X is the message start byte
+                            {
+                                big_buffer.Add(current_byte[0]);
+                            }
                         }
                     }
                     else
                     {
-                        if (current_byte[0] == 'X') // X is the message start byte
-                        {
-                            big_buffer.Add(current_byte[0]);
-                        }
+                        // sleep a litte while waiting for bytes
+                        Thread.Sleep(50);
+                        // TODO TODO TODO, should reset the big_buffer if a timeout occurs
                     }
-                }
-                else
-                {
-                    // sleep a litte while waiting for bytes
-                    Thread.Sleep(50);
-                    // TODO TODO TODO, should reset the big_buffer if a timeout occurs
                 }
             }           
             catch (Exception e)
@@ -146,6 +148,8 @@ namespace DLT.Network
                     // Check for multi-message packets. One packet can contain multiple network messages.
                     while (reader.BaseStream.Position < reader.BaseStream.Length)
                     {
+                        byte startByte = reader.ReadByte();
+
                         int message_code = reader.ReadInt32();
                         code = (ProtocolMessageCode)message_code;
 
@@ -180,7 +184,7 @@ namespace DLT.Network
                         if (Crypto.byteArrayCompare(local_checksum, data_checksum) == false)
                         {
                             Console.WriteLine(string.Format("S2NET: {0} | {1} | {2}", code, data_length, Crypto.hashToString(data_checksum)));
-                            Logging.warn("^^^ Dropped message (invalid checksum)");
+                            Logging.warn("Dropped message (invalid checksum)");
                             continue;
                         }
 
@@ -232,10 +236,27 @@ namespace DLT.Network
                                     try
                                     {
                                         string addr = reader.ReadString();
+                                        bool test_net = reader.ReadBoolean();
                                         char node_type = reader.ReadChar();
                                         string node_version = reader.ReadString();
                                         string device_id = reader.ReadString();
                                         string pubkey = reader.ReadString();
+
+                                        // Check the testnet designator and disconnect on mismatch
+                                        if (test_net != Config.isTestNet)
+                                        {
+                                            using (MemoryStream m2 = new MemoryStream())
+                                            {
+                                                using (BinaryWriter writer = new BinaryWriter(m2))
+                                                {
+                                                    writer.Write(string.Format("Incorrect testnet designator: {0}. Should be {1}", test_net, Config.isTestNet));
+                                                    Logging.info(string.Format("Rejected node {0} due to incorrect testnet designator: {1}", hostname, test_net));
+                                                    socket.Send(prepareProtocolMessage(ProtocolMessageCode.bye, m2.ToArray()), SocketFlags.None);
+                                                    socket.Disconnect(true);
+                                                    return;
+                                                }
+                                            }
+                                        }
 
                                         // Read the metadata and provide backward compatibility with older nodes
                                         string meta = " ";
@@ -270,6 +291,16 @@ namespace DLT.Network
                                     catch (Exception e)
                                     {
                                         Console.WriteLine("Non compliant node connected. {0}", e.ToString());
+                                        using (MemoryStream m2 = new MemoryStream())
+                                        {
+                                            using (BinaryWriter writer = new BinaryWriter(m2))
+                                            {
+                                                writer.Write(string.Format("Please update your Ixian node to connect."));
+                                                socket.Send(prepareProtocolMessage(ProtocolMessageCode.bye, m2.ToArray()), SocketFlags.None);
+                                                socket.Disconnect(true);
+                                                return;
+                                            }
+                                        }
                                     }
 
 
@@ -307,7 +338,14 @@ namespace DLT.Network
                                     return;
                                 }
 
-                                Console.WriteLine("Connected version : {0}", node_version);
+                                Console.WriteLine("Hello data received");
+                                ulong last_block_num = reader.ReadUInt64();
+                                string block_checksum = reader.ReadString();
+                                string walletstate_checksum = reader.ReadString();
+                                int consensus = reader.ReadInt32();
+
+                                Logging.info(String.Format("Connected node version: {0}. Last block num: {1}", node_version, last_block_num));
+
 
                                 // Get presences
                                 socket.Send(prepareProtocolMessage(ProtocolMessageCode.syncPresenceList, new byte[1]), SocketFlags.None);
@@ -391,6 +429,20 @@ namespace DLT.Network
                                 broadcastProtocolMessage(ProtocolMessageCode.keepAlivePresence, data, socket);
                             }
 
+                        }
+                        break;
+
+                    case ProtocolMessageCode.bye:
+                        {
+                            using (MemoryStream m = new MemoryStream(data))
+                            {
+                                using (BinaryReader reader = new BinaryReader(m))
+                                {
+                                    // Retrieve the message
+                                    string message = reader.ReadString();
+                                    Logging.error(string.Format("Disconnected with message: {0}", message));
+                                }
+                            }
                         }
                         break;
 

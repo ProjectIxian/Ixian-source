@@ -151,9 +151,9 @@ namespace S2.Network
             {
                 tcpClient.Client.Send(ba, SocketFlags.None);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Console.WriteLine("CLN: Socket exception, attempting to reconnect");
+                Console.WriteLine("CLN: Socket exception, attempting to reconnect {0}", e.Message);
                 reconnect();
             }
         }
@@ -194,7 +194,6 @@ namespace S2.Network
                     writer.Write(Node.walletStorage.publicKey);
 
                     sendData(ProtocolMessageCode.hello, m.ToArray());
-
                 }
             }
 
