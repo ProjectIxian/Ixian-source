@@ -407,19 +407,6 @@ namespace DLT.Network
                         }
                         break;
 
-                    case ProtocolMessageCode.removePresence:
-                        {
-                            // Parse the data and remove the entry from the presence list
-                            Presence presence = new Presence(data);
-                            if(presence.wallet.Equals(Node.walletStorage.address, StringComparison.Ordinal))
-                            {
-                                Console.WriteLine("[PL] Received removal of self from PL, ignoring.");
-                                return;
-                            }
-                            PresenceList.removeEntry(presence);
-                        }
-                        break;
-
                     case ProtocolMessageCode.keepAlivePresence:
                         {
                             bool updated = PresenceList.receiveKeepAlive(data);
