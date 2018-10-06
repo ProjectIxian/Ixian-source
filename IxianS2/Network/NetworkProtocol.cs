@@ -133,7 +133,7 @@ namespace DLT.Network
             catch (Exception e)
             {
                 Console.WriteLine("NET: endpoint disconnected " + e);
-                throw e;
+                throw;
             }
 
             byte[] recv_buffer = big_buffer.ToArray();
