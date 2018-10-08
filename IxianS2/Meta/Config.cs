@@ -37,6 +37,7 @@ namespace DLT
             public static readonly int simultaneousConnectedNodes = 4; // Desired number of simulatenously connected dlt nodes
             public static readonly int maximumStreamServerClients = 5000; // Maximum number of stream clients this s2 node can accept
 
+            public static readonly int defaultRsaKeySize = 4096;
 
 
             private static Config singletonInstance;
