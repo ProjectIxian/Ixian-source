@@ -15,6 +15,9 @@ namespace S2
 
         static void Main(string[] args)
         {
+            // Start logging
+            Logging.start();
+
             Logging.info(string.Format("IXIAN S2 Node {0} started", Config.version));
 
             onStart(args);
@@ -73,6 +76,9 @@ namespace S2
 
             // Stop the DLT
             Node.stop();
+
+            // Stop logging
+            Logging.stop();
 
             Console.WriteLine("\n");
         }
