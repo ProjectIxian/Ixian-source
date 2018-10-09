@@ -28,6 +28,9 @@ namespace DLT
             // Read-only values
             public static readonly string version = "s2-0.1.0"; // S2 Node version
             public static readonly bool isTestNet = true; // Testnet designator
+
+            public static readonly int maxLogFileSize = 1024; // 50MB
+
             public static readonly int nodeVersion = 4;
             public static readonly int networkClientReconnectInterval = 10 * 1000; // Time in milliseconds
 
