@@ -22,6 +22,8 @@ namespace S2.Network
         private int tcpPort = 0;
         private int failedReconnects = 0;
 
+        public object NetDump { get; private set; }
+
         public NetworkClient()
         {
             prepareClient();
