@@ -16,3 +16,5 @@
 /IxianDLT/obj/Release
 /IxianS2/obj/Release
 /IxianS2/bin/Release
+/Argon2_C/*.user
+Debug
