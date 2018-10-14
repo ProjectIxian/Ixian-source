@@ -40,7 +40,7 @@ namespace S2.Network
             }
 
             // Now add the seed nodes to the list
-            foreach (string addr in CoreNetworkUtils.seedNodes)
+            foreach (string addr in CoreNetworkUtils.getSeedNodes(Config.isTestNet))
             {
                 if (networkMasterNodes.Contains(addr) == false)
                     networkMasterNodes.Add(addr);
