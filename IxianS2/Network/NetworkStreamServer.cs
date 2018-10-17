@@ -203,9 +203,7 @@ namespace S2.Network
             Socket clientSocket = listener.EndAcceptSocket(ar);
             IPEndPoint clientEndpoint = (IPEndPoint)clientSocket.RemoteEndPoint;
 
-            Console.ForegroundColor = ConsoleColor.Green;
             Logging.info(string.Format("Connected stream client: {0}", clientEndpoint.ToString()));
-            Console.ResetColor();
 
             lock (connectedClients)
             {
@@ -362,9 +360,7 @@ namespace S2.Network
                 }
             }
 
-            Console.ForegroundColor = ConsoleColor.Red;
             Logging.info(string.Format("Disconnected stream client: {0}", client.remoteIP));
-            Console.ResetColor();
 
             // Remove corresponding address from presence list
             if (client.presence != null && client.presenceAddress != null)
