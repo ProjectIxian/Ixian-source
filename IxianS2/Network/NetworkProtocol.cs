@@ -22,7 +22,7 @@ namespace DLT.Network
 
             // Prepare the protocol sections
             int data_length = data.Length;
-            byte[] data_checksum = Crypto.sha256(data);
+            byte[] data_checksum = Crypto.sha512sqTrunc(data);
 
             using (MemoryStream m = new MemoryStream())
             {
@@ -178,10 +178,10 @@ namespace DLT.Network
                             return;
                         }
                         // Compute checksum of received data
-                        byte[] local_checksum = Crypto.sha256(data);
+                        byte[] local_checksum = Crypto.sha512sqTrunc(data);
 
                         // Verify the checksum before proceeding
-                        if (Crypto.byteArrayCompare(local_checksum, data_checksum) == false)
+                        if (local_checksum.SequenceEqual(data_checksum) == false)
                         {
                             Console.WriteLine(string.Format("S2NET: {0} | {1} | {2}", code, data_length, Crypto.hashToString(data_checksum)));
                             Logging.warn("Dropped message (invalid checksum)");
