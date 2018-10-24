@@ -19,7 +19,7 @@ namespace DLT
             public static int apiPort = 8001;
             public static string publicServerIP = "127.0.0.1";
 
-            public static string walletFile = "wallet.dat";
+            public static string walletFile = "ixian.wal";
 
             // Store the device id in a cache for reuse in later instances
             public static string device_id = Guid.NewGuid().ToString();
