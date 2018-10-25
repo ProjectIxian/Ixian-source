@@ -1,6 +1,7 @@
 ﻿using DLT.Meta;
 using DLT.Network;
 using DLTNode.Network;
+using IXICore;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -206,7 +207,7 @@ namespace DLT
                 // Sleep a while to throttle the client
                 // Check if there are too many messages
                 // TODO TODO TODO this can be handled way better
-                if (NetworkQueue.getQueuedMessageCount() + NetworkQueue.getTxQueuedMessageCount() > Config.maxNetworkQueue)
+                if (NetworkQueue.getQueuedMessageCount() + NetworkQueue.getTxQueuedMessageCount() > CoreConfig.maxNetworkQueue)
                 {
                     Thread.Sleep(50);
                 }else
@@ -252,7 +253,7 @@ namespace DLT
             while (running)
             {
                 long curTime = Clock.getTimestamp(DateTime.Now);
-                if (curTime - lastDataReceivedTime > Config.pingInterval)
+                if (curTime - lastDataReceivedTime > CoreConfig.pingInterval)
                 {
                     if (lastPing == 0)
                     {
@@ -261,10 +262,10 @@ namespace DLT
                         sendDataInternal(ProtocolMessageCode.ping, pingBytes, Crypto.sha512sqTrunc(pingBytes));
                         Thread.Sleep(1);
                         continue;
-                    }else if(curTime - lastPing > Config.pingTimeout)
+                    }else if(curTime - lastPing > CoreConfig.pingTimeout)
                     {
                         // haven't received any data for 10 seconds, stop running
-                        Logging.error(String.Format("Node {0} hasn't received any data from remote endpoint for over {1} seconds, disconnecting.", getFullAddress(), Config.pingInterval + Config.pingTimeout));
+                        Logging.error(String.Format("Node {0} hasn't received any data from remote endpoint for over {1} seconds, disconnecting.", getFullAddress(), CoreConfig.pingInterval + CoreConfig.pingTimeout));
                         running = false;
                         break;
                     }
@@ -471,7 +472,7 @@ namespace DLT
                     else
                     {
                         // Check if there are too many messages
-                        if (sendQueueMessagesHighPriority.Count > Config.maxSendQueue)
+                        if (sendQueueMessagesHighPriority.Count > CoreConfig.maxSendQueue)
                         {
                             sendQueueMessagesHighPriority.RemoveAt(10);
                         }
@@ -490,7 +491,7 @@ namespace DLT
                     else
                     {
                         // Check if there are too many messages
-                        if (sendQueueMessagesNormalPriority.Count > Config.maxSendQueue)
+                        if (sendQueueMessagesNormalPriority.Count > CoreConfig.maxSendQueue)
                         {
                             sendQueueMessagesNormalPriority.RemoveAt(10);
                         }
@@ -508,7 +509,7 @@ namespace DLT
                     else
                     {
                         // Check if there are too many messages
-                        if (sendQueueMessagesLowPriority.Count > Config.maxSendQueue)
+                        if (sendQueueMessagesLowPriority.Count > CoreConfig.maxSendQueue)
                         {
                             sendQueueMessagesLowPriority.RemoveAt(10);
                         }
@@ -592,7 +593,7 @@ namespace DLT
                         return -1;
                     }
 
-                    if (data_length > Config.maxMessageSize)
+                    if (data_length > CoreConfig.maxMessageSize)
                     {
                         Logging.warn(String.Format("Received data length was bigger than max allowed message size - {0}, code {1}.", data_length, code));
                         return -1;
