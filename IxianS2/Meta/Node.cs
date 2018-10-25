@@ -12,6 +12,7 @@ namespace DLT.Meta
     class Node
     {
         public static WalletStorage walletStorage;
+        public static WalletState walletState;
 
         public static UPnP upnp;
 
