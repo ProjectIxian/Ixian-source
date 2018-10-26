@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using IXICore;
 
 namespace S2
 {
@@ -13,12 +14,15 @@ namespace S2
     {
         private static Timer mainLoopTimer;
 
+        public static bool noStart = false;
+
         static void Main(string[] args)
         {
+            // Clear the console first
+            Console.Clear();
+
             // Start logging
             Logging.start();
-
-            Logging.info(string.Format("IXIAN S2 Node {0} started", Config.version));
 
             onStart(args);
 
@@ -38,6 +42,8 @@ namespace S2
 
         static void onStart(string[] args)
         {
+            Logging.info(string.Format("IXIAN S2 Node {0} started", Config.version));
+
             // Read configuration from command line
             Config.readFromCommandLine(args);
 

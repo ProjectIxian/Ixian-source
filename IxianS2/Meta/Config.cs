@@ -24,36 +24,18 @@ namespace DLT
             public static readonly string version = "s2-0.1.0"; // S2 Node version
             public static readonly bool isTestNet = true; // Testnet designator
 
-            public static readonly int maxLogFileSize = 1024; // 50MB
 
             public static readonly int nodeVersion = 4;
-            public static readonly int networkClientReconnectInterval = 10 * 1000; // Time in milliseconds
-
-            public static readonly int keepAliveSecondsInterval = 45; // Standard expire is 300 (5 minutes)
-
-            public static readonly int maximumNodeReconnectCount = 5; // Number of retries before proceeding to a different dlt node
-            public static readonly int simultaneousConnectedNodes = 4; // Desired number of simulatenously connected dlt nodes
-            public static readonly int maximumStreamServerClients = 5000; // Maximum number of stream clients this s2 node can accept
-
-            public static readonly int defaultRsaKeySize = 4096;
 
 
-            private static Config singletonInstance;
+
+
+            // internal
+            public static bool changePass = false;
+
             private Config()
             {
 
-            }
-
-            public static Config singleton
-            {
-                get
-                {
-                    if (singletonInstance == null)
-                    {
-                        singletonInstance = new Config();
-                    }
-                    return singletonInstance;
-                }
             }
 
             public static void readFromCommandLine(string[] args)

@@ -448,12 +448,12 @@ namespace DLT
                 }
 
                 // Check if we need to connect to more neighbors
-                if (netClients.Count < Config.simultaneousConnectedNeighbors)
+                if (netClients.Count < CoreConfig.simultaneousConnectedNeighbors)
                 {
                     // Scan for and connect to a new neighbor
                     connectToRandomNeighbor();
                 }
-                else if (netClients.Count > Config.simultaneousConnectedNeighbors)
+                else if (netClients.Count > CoreConfig.simultaneousConnectedNeighbors)
                 {
                     // Disconnect the oldest connected node
                     netClients[0].stop();
@@ -500,7 +500,7 @@ namespace DLT
                     continue;
                 }
                 // Check if we exceeded the maximum reconnect count
-                if (client.getTotalReconnectsCount() >= Config.maximumNeighborReconnectCount || client.fullyStopped)
+                if (client.getTotalReconnectsCount() >= CoreConfig.maximumNeighborReconnectCount || client.fullyStopped)
                 {
                     // Remove this client so we can search for a new neighbor
                     failed_clients.Add(client);
