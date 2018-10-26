@@ -7,7 +7,7 @@
     <ProjectGuid>{F408F9F2-C3A1-4FE2-8443-6D9E251924A8}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>S2</RootNamespace>
-    <AssemblyName>S2</AssemblyName>
+    <AssemblyName>IxianS2</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
