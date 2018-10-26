@@ -291,7 +291,7 @@ namespace S2.Network
                     // Find only masternodes
                     foreach (PresenceAddress addr in presence.addresses)
                     {
-                        if (addr.type == 'M')
+                        if (addr.type == 'M' || addr.type == 'H')
                         {
                             // Check if the address format is correct
                             string[] server = addr.address.Split(':');
