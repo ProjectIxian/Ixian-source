@@ -15,44 +15,54 @@ namespace DLT.Network
 {
     public class ProtocolMessage
     {
-        // Prepare a network protocol message. Works for both client-side and server-side
-        public static byte[] prepareProtocolMessage(ProtocolMessageCode code, byte[] data)
-        {
-            byte[] result = null;
-
-            // Prepare the protocol sections
-            int data_length = data.Length;
-            byte[] data_checksum = Crypto.sha512sqTrunc(data);
-
-            using (MemoryStream m = new MemoryStream())
-            {
-                using (BinaryWriter writer = new BinaryWriter(m))
-                {
-                    // Protocol sections are code, length, checksum, data
-                    // Write each section in binary, in that specific order
-                    writer.Write((byte)'X');
-                    writer.Write((int)code);
-                    writer.Write(data_length);
-                    writer.Write(data_checksum);
-                    writer.Write(data);
-                }
-                result = m.ToArray();
-            }
-
-            return result;
-        }
 
         // Broadcast a protocol message across clients and nodes
-        public static void broadcastProtocolMessage(ProtocolMessageCode code, byte[] data, Socket skipSocket = null)
+        // Returns true if it sent the message at least one endpoint. Returns false if the message couldn't be sent to any endpoints
+        public static bool broadcastProtocolMessage(ProtocolMessageCode code, byte[] data, RemoteEndpoint skipEndpoint = null, bool sendToSingleRandomNode = false)
         {
             if (data == null)
             {
                 Logging.warn(string.Format("Invalid protocol message data for {0}", code));
-                return;
+                return false;
             }
 
-            NetworkClientManager.broadcastData(code, data, skipSocket);
-            NetworkStreamServer.broadcastData(code, data);
+            if (sendToSingleRandomNode)
+            {
+                int serverCount = NetworkClientManager.getConnectedClients().Count();
+                int clientCount = 0;// NetworkStreamServer.getConnectedClients().Count();
+
+                Random r = new Random();
+                int rIdx = r.Next(serverCount + clientCount);
+
+                RemoteEndpoint re = null;
+
+                if (rIdx < serverCount)
+                {
+                    re = NetworkClientManager.getClient(rIdx);
+                }
+                else
+                {
+             //       re = NetworkStreamServer.getClient(rIdx - serverCount);
+                }
+                if (re != null && re.isConnected())
+                {
+                    re.sendData(code, data);
+                    return true;
+                }
+                return false;
+            }
+            else
+            {
+                bool c_result = NetworkClientManager.broadcastData(code, data, skipEndpoint);
+                bool s_result = false;// NetworkStreamServer.broadcastData(code, data, skipEndpoint);
+
+                if (!c_result && !s_result)
+                    return false;
+            }
+
+
+
+            return true;
         }
 
         // Server-side protocol reading

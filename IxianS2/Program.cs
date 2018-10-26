@@ -7,12 +7,14 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using IXICore;
+using System.Threading;
 
 namespace S2
 {
     class Program
     {
-        private static Timer mainLoopTimer;
+        private static System.Timers.Timer mainLoopTimer;
+        private static APIServer apiServer;
 
         public static bool noStart = false;
 
@@ -26,13 +28,18 @@ namespace S2
 
             onStart(args);
 
-            // For testing purposes, wait for the Escape key to be pressed before stopping execution
-            // In production this will be changed, as the dlt will run in the background
-            while (Console.ReadKey().Key != ConsoleKey.Escape)
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                apiServer.forceShutdown = true;
+            };
+
+            if (apiServer != null)
             {
-
+                while (apiServer.forceShutdown == false)
+                {
+                    Thread.Sleep(1000);
+                }
             }
-
             onStop();
 
             Logging.info(string.Format("IXIAN S2 Node {0} stopped", Config.version));
@@ -47,46 +54,76 @@ namespace S2
             // Read configuration from command line
             Config.readFromCommandLine(args);
 
+            if (noStart)
+            {
+                Thread.Sleep(1000);
+                return;
+            }
+
+            // Log the parameters to notice any changes
+            Logging.info(String.Format("Mainnet: {0}", !Config.isTestNet));
+            Logging.info(String.Format("Server Port: {0}", Config.serverPort));
+            Logging.info(String.Format("API Port: {0}", Config.apiPort));
+            Logging.info(String.Format("Wallet File: {0}", Config.walletFile));
+
             // Initialize the crypto manager
             CryptoManager.initLib();
-
-            // Start the HTTP JSON API server
-            //apiServer = new APIServer();
 
             // Start the actual DLT node
             Node.start();
 
+            if (noStart)
+            {
+                Thread.Sleep(1000);
+                return;
+            }
+
+            // Start the HTTP JSON API server
+            apiServer = new APIServer();
+
             // Setup a timer to handle routine updates
-            mainLoopTimer = new Timer(1000);
+            mainLoopTimer = new System.Timers.Timer(500);
             mainLoopTimer.Elapsed += new ElapsedEventHandler(onUpdate);
             mainLoopTimer.Start();
 
-
-            Console.WriteLine("-----------\nPress Escape to stop the IXIAN S2 Node at any time.\n");
-
+            Console.WriteLine("-----------\nPress Ctrl-C or use the /shutdown API to stop the S2 process at any time.\n");
         }
 
         static void onUpdate(object source, ElapsedEventArgs e)
         {
-            Node.update();
-
-            //Console.Write(".");
+            if (Node.update() == false)
+            {
+                apiServer.forceShutdown = true;
+            }
         }
 
         static void onStop()
         {
-            mainLoopTimer.Stop();
+            if (mainLoopTimer != null)
+            {
+                mainLoopTimer.Stop();
+            }
 
             // Stop the API server
-            //apiServer.stop();
+            if (apiServer != null)
+            {
+                apiServer.stop();
+            }
 
-            // Stop the DLT
-            Node.stop();
+            if (noStart == false)
+            {
+                // Stop the DLT
+                Node.stop();
+            }
 
             // Stop logging
             Logging.stop();
 
-            Console.WriteLine("\n");
+            if (noStart == false)
+            {
+                Console.WriteLine("");
+                Console.WriteLine("Ixian S2 Node stopped.");
+            }
         }
     }
 }

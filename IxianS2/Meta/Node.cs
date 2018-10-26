@@ -3,25 +3,46 @@ using IXICore;
 using S2.Network;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DLT.Meta
 {
     class Node
     {
+        // Public
         public static WalletStorage walletStorage;
         public static WalletState walletState;
 
         public static UPnP upnp;
 
+        public static int keepAliveVersion = 0;
+
+        // Private data
+        private static Thread keepAliveThread;
+        private static bool autoKeepalive = false;
+        private static bool running = false;
 
         static public void start()
         {
+            running = true;
+
             // Load or Generate the wallet
             walletStorage = new WalletStorage(Config.walletFile);
+            if (walletStorage.publicKey == null)
+            {
+                running = false;
+                S2.Program.noStart = true;
+                return;
+            }
+
+            // Initialize the wallet state
+            walletState = new WalletState();
+
 
             // Network configuration
             upnp = new UPnP();
@@ -77,29 +98,57 @@ namespace DLT.Meta
                 }
             }
 
+            // Start the network queue
+            NetworkQueue.start();
 
             // Start the node stream server
             NetworkStreamServer.beginNetworkOperations();
 
             // Start the network client manager
-            NetworkClientManager.startClients();
+            NetworkClientManager.start();
 
+            // Start the keepalive thread
+            autoKeepalive = true;
+            keepAliveThread = new Thread(keepAlive);
+            keepAliveThread.Start();
         }
 
-        static public void update()
+        static public bool update()
         {
 
+            // Cleanup the presence list
+            // TODO: optimize this by using a different thread perhaps
+            PresenceList.performCleanup();
+
+            return running;
         }
 
         static public void stop()
         {
-            NetworkClientManager.stopClients();
+            // Stop the keepalive thread
+            autoKeepalive = false;
+            if (keepAliveThread != null)
+            {
+                keepAliveThread.Abort();
+                keepAliveThread = null;
+            }
+
+            // Stop the network queue
+            NetworkQueue.stop();
+
+            // Stop all network clients
+            NetworkClientManager.stop();
+
             // Stop the network server
             NetworkStreamServer.stopNetworkOperations();
         }
 
         static public void reconnect()
         {
+
+            // Reset the network receive queue
+            NetworkQueue.reset();
+
             // Reconnect server and clients
             NetworkStreamServer.restartNetworkOperations();
             NetworkClientManager.restartClients();
@@ -191,6 +240,90 @@ namespace DLT.Meta
 
             byte tempForParsing;
             return splitValues.All(r => byte.TryParse(r, out tempForParsing));
+        }
+
+        // Cleans the storage cache and logs
+        public static bool cleanCacheAndLogs()
+        {
+            PeerStorage.deletePeersFile();
+
+            Logging.clear();
+
+            Logging.info("Cleaned cache and logs.");
+            return true;
+        }
+
+        // Sends perioding keepalive network messages
+        private static void keepAlive()
+        {
+            while (autoKeepalive)
+            {
+                // Wait x seconds before rechecking
+                for (int i = 0; i < CoreConfig.keepAliveInterval; i++)
+                {
+                    if (autoKeepalive == false)
+                    {
+                        Thread.Yield();
+                        return;
+                    }
+                    // Sleep for one second
+                    Thread.Sleep(1000);
+                }
+
+
+                try
+                {
+                    // Prepare the keepalive message
+                    using (MemoryStream m = new MemoryStream())
+                    {
+                        using (BinaryWriter writer = new BinaryWriter(m))
+                        {
+                            writer.Write(keepAliveVersion);
+
+                            byte[] wallet = walletStorage.address;
+                            writer.Write(wallet.Length);
+                            writer.Write(wallet);
+
+                            writer.Write(Config.device_id);
+
+                            // Add the unix timestamp
+                            long timestamp = Core.getCurrentTimestamp();
+                            writer.Write(timestamp);
+
+                            string hostname = Node.getFullAddress();
+                            writer.Write(hostname);
+
+                            // Add a verifiable signature
+                            byte[] private_key = walletStorage.privateKey;
+                            byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + Config.device_id + "-" + timestamp + "-" + hostname), private_key);
+                            writer.Write(signature.Length);
+                            writer.Write(signature);
+
+                            PresenceList.curNodePresenceAddress.lastSeenTime = timestamp;
+                            PresenceList.curNodePresenceAddress.signature = signature;
+                        }
+
+
+                        // Update self presence
+                        PresenceList.receiveKeepAlive(m.ToArray());
+
+                        // Send this keepalive message to all connected clients
+                        ProtocolMessage.broadcastProtocolMessage(ProtocolMessageCode.keepAlivePresence, m.ToArray());
+                    }
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+
+            }
+
+            Thread.Yield();
+        }
+
+        public static string getFullAddress()
+        {
+            return Config.publicServerIP + ":" + Config.serverPort;
         }
     }
 }
