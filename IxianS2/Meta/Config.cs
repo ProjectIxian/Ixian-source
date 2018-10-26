@@ -27,6 +27,7 @@ namespace DLT
 
             public static readonly int nodeVersion = 4;
 
+            public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
 
 
 

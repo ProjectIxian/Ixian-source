@@ -8,6 +8,22 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
+
+// Dummy Network server for IXICore
+namespace DLT.Network
+{
+    public class NetworkServer
+    {
+        // Returns all the connected clients
+        public static string[] getConnectedClients(bool useIncomingPort = false)
+        {
+            List<String> result = new List<String>();
+            return result.ToArray();
+        }
+    }
+}
+
+
 namespace S2.Network
 {
     class StreamKeyPair
@@ -25,12 +41,11 @@ namespace S2.Network
     }
 
 
-
     class StreamProcessor
     {
         static List<StreamKeyPair> keypairs = new List<StreamKeyPair>();
 
-        public static void receiveData(byte[] bytes, Socket socket, StreamClient client)
+        public static void receiveData(byte[] bytes, RemoteEndpoint endpoint)
         {
             Console.WriteLine("NET: Receiving S2 data!");
             using (MemoryStream m = new MemoryStream(bytes))
@@ -38,10 +53,12 @@ namespace S2.Network
                 using (BinaryReader reader = new BinaryReader(m))
                 {
                     // Send the message, the onetime public key and the transaction id
-                    string from = client.presence.wallet;
+                    byte[] from = endpoint.presence.wallet;
 
                     string message_id = reader.ReadString();
-                    string recipient = reader.ReadString();
+
+                    int recipientLen = reader.ReadInt32();
+                    byte[] recipient = reader.ReadBytes(recipientLen);
                     string transaction_id = reader.ReadString();
 
                     int encrypted_bytes_count = reader.ReadInt32();
@@ -64,13 +81,13 @@ namespace S2.Network
                     // If no keypair is found, abort the procedure
                     if(msgKeys == null)
                     {
-                        Logging.warn(string.Format("Missing keypair for message {0} from {1}", message_id, from));
+                        Logging.warn(string.Format("Missing keypair for message {0} from {1}", message_id, Base58Check.Base58CheckEncoding.EncodePlain(from)));
                         return;
                     }
 
 
                     string private_key = msgKeys.privateKey;
-                    Console.WriteLine("Encrypted message recp {0} | tx {1} | priv {2}", recipient, transaction_id, private_key);
+                    Console.WriteLine("Encrypted message recp {0} | tx {1} | priv {2}", Base58Check.Base58CheckEncoding.EncodePlain(recipient), transaction_id, private_key);
 
                     // Forward message to the receiver
                     using (MemoryStream mw = new MemoryStream())
@@ -94,15 +111,16 @@ namespace S2.Network
         }
 
         // Called when receiving a prepare message
-        public static void prepareSend(byte[] bytes, Socket socket, StreamClient client)
+        public static void prepareSend(byte[] bytes, RemoteEndpoint client)
         {
             // Deprecated for now
         }
 
         // Called when a client wants to send a new message. First it has to receive an encryption key
-        public static void generateKeys(byte[] bytes, Socket socket, StreamClient client)
+        public static void generateKeys(byte[] bytes, RemoteEndpoint client)
         {
-            string messageID = Encoding.UTF8.GetString(bytes);
+            // TODO: implement this according to the recent changed in the Crypto lib
+     /*       string messageID = Encoding.UTF8.GetString(bytes);
             Console.WriteLine("Generating keys for messageid: {0}", messageID);
 
             List<string> gen_keys = CryptoManager.lib.generateEncryptionKeys();
@@ -131,7 +149,7 @@ namespace S2.Network
                     NetworkStreamServer.sendData(client, DLT.Network.ProtocolMessageCode.s2keys, mw.ToArray());
                 }
             }
-
+            */
 
         }
 
