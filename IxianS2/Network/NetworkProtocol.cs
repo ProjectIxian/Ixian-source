@@ -76,6 +76,147 @@ namespace DLT.Network
                 return false;
             }
 
+            // Another layer to catch any incompatible node exceptions for the hello message
+            try
+            {
+                int protocol_version = reader.ReadInt32();
+
+                Logging.info(string.Format("Received Hello: Node version {0}", protocol_version));
+                // Check for incompatible nodes
+                if (protocol_version < CoreConfig.protocolVersion)
+                {
+                    using (MemoryStream m2 = new MemoryStream())
+                    {
+                        using (BinaryWriter writer = new BinaryWriter(m2))
+                        {
+                            Logging.warn(String.Format("Hello: Connected node version ({0}) is too old! Upgrade the node.", protocol_version));
+                            writer.Write(string.Format("Your node version is too old. Should be at least {0} is {1}", CoreConfig.protocolVersion, protocol_version));
+                            endpoint.sendData(ProtocolMessageCode.bye, m2.ToArray());
+                            return false;
+                        }
+                    }
+                }
+
+                int addrLen = reader.ReadInt32();
+                byte[] addr = reader.ReadBytes(addrLen);
+
+                bool test_net = reader.ReadBoolean();
+                char node_type = reader.ReadChar();
+                string node_version = reader.ReadString();
+                string device_id = reader.ReadString();
+
+                int pkLen = reader.ReadInt32();
+                byte[] pubkey = reader.ReadBytes(pkLen);
+
+                int port = reader.ReadInt32();
+                long timestamp = reader.ReadInt64();
+
+                int sigLen = reader.ReadInt32();
+                byte[] signature = reader.ReadBytes(sigLen);
+
+                // Check the testnet designator and disconnect on mismatch
+                if (test_net != Config.isTestNet)
+                {
+                    using (MemoryStream m2 = new MemoryStream())
+                    {
+                        using (BinaryWriter writer = new BinaryWriter(m2))
+                        {
+                            writer.Write(string.Format("Incorrect testnet designator: {0}. Should be {1}", test_net, Config.isTestNet));
+                            Logging.warn(string.Format("Rejected node {0} due to incorrect testnet designator: {1}", endpoint.fullAddress, test_net));
+                            endpoint.sendData(ProtocolMessageCode.bye, m2.ToArray());
+                            return false;
+                        }
+                    }
+                }
+
+                // TODO TODO TODO verify pubkey against address
+                endpoint.incomingPort = port;
+
+                // Verify the signature
+                if (CryptoManager.lib.verifySignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + device_id + "-" + timestamp + "-" + endpoint.getFullAddress(true)), pubkey, signature) == false)
+                {
+                    using (MemoryStream m2 = new MemoryStream())
+                    {
+                        using (BinaryWriter writer = new BinaryWriter(m2))
+                        {
+                            writer.Write(string.Format("Verify signature failed in hello message, likely an incorrect IP was specified. Detected IP: {0}", endpoint.getFullAddress(true)));
+                            Logging.warn(string.Format("Verify signature failed in hello message, likely an incorrect IP was specified. Detected IP: {0}", endpoint.getFullAddress(true)));
+                            endpoint.sendData(ProtocolMessageCode.bye, m2.ToArray());
+                            return false;
+                        }
+                    }
+                }
+
+                // if we're a client update the network time difference
+                if (endpoint.GetType() == typeof(NetworkClient))
+                {
+                    long curTime = Clock.getTimestamp(DateTime.Now);
+
+                    long timeDiff = 0;
+
+                    // amortize +- 5 seconds
+                    if (curTime - timestamp < -5 || curTime - timestamp > 5)
+                    {
+                        timeDiff = curTime - timestamp;
+                    }
+                    else
+                    {
+                        timeDiff = 0;
+                    }
+
+                    ((NetworkClient)endpoint).timeDifference = timeDiff;
+                }
+
+                // Store the presence address for this remote endpoint
+                endpoint.presenceAddress = new PresenceAddress(device_id, endpoint.getFullAddress(true), node_type, node_version, Core.getCurrentTimestamp(), null);
+
+                // Create a temporary presence with the client's address and device id
+                Presence presence = new Presence(addr, pubkey, null, endpoint.presenceAddress);
+
+
+
+                // Connect to this node only if it's a master node or a full history node
+                if (node_type == 'M' || node_type == 'H')
+                {
+                    if (endpoint.GetType() == typeof(RemoteEndpoint))
+                    {
+                        // Check the wallet balance for the minimum amount of coins
+                        IxiNumber balance = Node.walletState.getWalletBalance(addr);
+                        if (balance < CoreConfig.minimumMasterNodeFunds)
+                        {
+                            using (MemoryStream m2 = new MemoryStream())
+                            {
+                                using (BinaryWriter writer = new BinaryWriter(m2))
+                                {
+                                    writer.Write(string.Format("Insufficient funds. Minimum is {0}", CoreConfig.minimumMasterNodeFunds));
+                                    Logging.warn(string.Format("Rejected master node {0} due to insufficient funds: {1}", endpoint.getFullAddress(), balance.ToString()));
+                                    endpoint.sendData(ProtocolMessageCode.bye, m2.ToArray());
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                // Retrieve the final presence entry from the list (or create a fresh one)
+                endpoint.presence = PresenceList.updateEntry(presence);
+
+            }
+            catch (Exception e)
+            {
+                // Disconnect the node in case of any reading errors
+                Logging.warn(string.Format("Older node connected. {0}", e.ToString()));
+                using (MemoryStream m2 = new MemoryStream())
+                {
+                    using (BinaryWriter writer = new BinaryWriter(m2))
+                    {
+                        writer.Write(string.Format("Please update your Ixian node to connect."));
+                        endpoint.sendData(ProtocolMessageCode.bye, m2.ToArray());
+                        return false;
+                    }
+                }
+            }
             return true;
         }
 
