@@ -1,5 +1,6 @@
 ﻿using DLT.Network;
 using IXICore;
+using S2;
 using S2.Network;
 using System;
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace DLT.Meta
         // Private data
         private static Thread keepAliveThread;
         private static bool autoKeepalive = false;
-        private static bool running = false;
+        public static bool running = false;
 
         static public void start()
         {
@@ -101,6 +102,13 @@ namespace DLT.Meta
             // Start the network queue
             NetworkQueue.start();
 
+            // Check for test client mode
+            if(Config.isTestClient)
+            {
+                TestClientNode.start();
+                return;
+            }
+
             // Start the node stream server
             NetworkStreamServer.beginNetworkOperations();
 
@@ -120,6 +128,12 @@ namespace DLT.Meta
             // TODO: optimize this by using a different thread perhaps
             PresenceList.performCleanup();
 
+            // Check for test client mode
+            if (Config.isTestClient)
+            {
+                TestClientNode.update();
+            }
+
             return running;
         }
 
@@ -136,6 +150,13 @@ namespace DLT.Meta
             // Stop the network queue
             NetworkQueue.stop();
 
+            // Check for test client mode
+            if (Config.isTestClient)
+            {
+                TestClientNode.stop();
+                return;
+            }
+
             // Stop all network clients
             NetworkClientManager.stop();
 
@@ -148,6 +169,13 @@ namespace DLT.Meta
 
             // Reset the network receive queue
             NetworkQueue.reset();
+
+            // Check for test client mode
+            if (Config.isTestClient)
+            {
+                TestClientNode.reconnect();
+                return;
+            }
 
             // Reconnect server and clients
             NetworkStreamServer.restartNetworkOperations();
