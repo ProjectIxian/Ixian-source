@@ -133,6 +133,11 @@ namespace DLT.Network
                 endpoint.incomingPort = port;
 
                 // Verify the signature
+                if (node_type == 'C')
+                {
+                    // TODO: verify signature for client nodes, where the IP is not accessible
+                }
+                else
                 if (CryptoManager.lib.verifySignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + device_id + "-" + timestamp + "-" + endpoint.getFullAddress(true)), pubkey, signature) == false)
                 {
                     using (MemoryStream m2 = new MemoryStream())
@@ -146,7 +151,7 @@ namespace DLT.Network
                         }
                     }
                 }
-
+                
                 // if we're a client update the network time difference
                 if (endpoint.GetType() == typeof(NetworkClient))
                 {
@@ -409,17 +414,17 @@ namespace DLT.Network
                             {
                                 if (processHelloMessage(endpoint, reader))
                                 {
-                                    ulong last_block_num = reader.ReadUInt64();
-                                    int bcLen = reader.ReadInt32();
-                                    byte[] block_checksum = reader.ReadBytes(bcLen);
-                                    int wsLen = reader.ReadInt32();
-                                    byte[] walletstate_checksum = reader.ReadBytes(wsLen);
-                                    int consensus = reader.ReadInt32();
+                                    /*      ulong last_block_num = reader.ReadUInt64();
+                                          int bcLen = reader.ReadInt32();
+                                          byte[] block_checksum = reader.ReadBytes(bcLen);
+                                          int wsLen = reader.ReadInt32();
+                                          byte[] walletstate_checksum = reader.ReadBytes(wsLen);
+                                          int consensus = reader.ReadInt32();
 
-                                    long myTimestamp = Core.getCurrentTimestamp();
+                                          long myTimestamp = Core.getCurrentTimestamp();*/
 
                                     // Check for legacy level
-                                    ulong legacy_level = last_block_num;
+                                    ulong legacy_level = 0;// last_block_num;
                                     try
                                     {
                                         ulong level = reader.ReadUInt64();
