@@ -60,6 +60,7 @@
     <Compile Include="Meta\Node.cs" />
     <Compile Include="Network\NetworkProtocol.cs" />
     <Compile Include="Network\NetworkStreamServer.cs" />
+    <Compile Include="Network\StreamMessage.cs" />
     <Compile Include="Network\StreamProcessor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

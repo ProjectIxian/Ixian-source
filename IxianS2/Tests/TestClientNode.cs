@@ -53,7 +53,31 @@ namespace S2
 
             friends.Add(friend);
 
+            // For testing purposes, we also initiate a key exchange by sending a message
+            // In a normal client, we'd wait for an accept friend request-type message first
+            sendTestMessage(friend);
+
             return false;
+        }
+
+        // Sends a test message to a specified friend
+        static public bool sendTestMessage(TestFriend friend)
+        {
+            // Check the relay ip
+            string relayip = friend.getRelayIP();
+
+            // Check if we're connected to the relay node
+            if (TestStreamClientManager.isConnectedTo(relayip) == false)
+            {
+                // In a normal client, this should be done in a different thread and wait for the
+                // connection to be established
+                TestStreamClientManager.connectTo(relayip);
+            }
+
+
+
+
+            return true;
         }
 
 

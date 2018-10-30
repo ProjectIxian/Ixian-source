@@ -191,5 +191,23 @@ namespace S2
 
             return result;
         }
+
+        // Check if we're connected to a certain host address
+        // Returns true if connected
+        public static bool isConnectedTo(string address)
+        {
+            lock (streamClients)
+            {
+                foreach (TestStreamClient client in streamClients)
+                {
+                    if (client.address.Equals(address, StringComparison.Ordinal))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+
     }
 }
