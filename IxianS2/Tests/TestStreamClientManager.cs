@@ -83,21 +83,23 @@ namespace S2
         }
 
         // Connects to a specified node, with the syntax host:port
-        public static bool connectTo(string host)
+        // Returns the connected stream client
+        // Returns null if connection failed
+        public static TestStreamClient connectTo(string host)
         {
             Logging.info(String.Format("Connecting to S2 node: {0}", host));
 
             if (host == null || host.Length < 3)
             {
                 Logging.error(String.Format("Invalid host address {0}", host));
-                return false;
+                return null;
             }
 
             string[] server = host.Split(':');
             if (server.Count() < 2)
             {
                 Logging.warn(string.Format("Cannot connect to invalid hostname: {0}", host));
-                return false;
+                return null;
             }
 
             // Resolve the hostname first
@@ -107,7 +109,7 @@ namespace S2
             if (resolved_server_name.Length < 1)
             {
                 Logging.warn(string.Format("Cannot resolve IP for {0}, skipping connection.", server[0]));
-                return false;
+                return null;
             }
 
             string resolved_host = string.Format("{0}:{1}", resolved_server_name, server[1]);
@@ -119,7 +121,7 @@ namespace S2
                 if (server[1].Equals(string.Format("{0}", Config.serverPort), StringComparison.Ordinal))
                 {
                     Logging.info(string.Format("Skipping connection to public self seed node {0}", host));
-                    return false;
+                    return null;
                 }
             }
 
@@ -133,7 +135,7 @@ namespace S2
                     if (server[1].Equals(string.Format("{0}", Config.serverPort), StringComparison.Ordinal))
                     {
                         Logging.info(string.Format("Skipping connection to self seed node {0}", host));
-                        return false;
+                        return null;
                     }
                 }
             }
@@ -145,7 +147,7 @@ namespace S2
                     if (resolved_host.Equals(client, StringComparison.Ordinal))
                     {
                         // We're already connecting to this client
-                        return false;
+                        return null;
                     }
                 }
 
@@ -161,7 +163,7 @@ namespace S2
                     if (client.getFullAddress(true).Equals(resolved_host, StringComparison.Ordinal))
                     {
                         // Address is already in the client list
-                        return false;
+                        return null;
                     }
                 }
             }
@@ -189,23 +191,23 @@ namespace S2
                 connectingClients.Remove(resolved_host);
             }
 
-            return result;
+            return new_client;
         }
 
         // Check if we're connected to a certain host address
-        // Returns true if connected
-        public static bool isConnectedTo(string address)
+        // Returns TestStreamClient or null if not found
+        public static TestStreamClient isConnectedTo(string address)
         {
             lock (streamClients)
             {
                 foreach (TestStreamClient client in streamClients)
                 {
                     if (client.address.Equals(address, StringComparison.Ordinal))
-                        return true;
+                        return client;
                 }
             }
 
-            return false;
+            return null;
         }
 
 

@@ -457,17 +457,6 @@ namespace DLT.Network
                         }
                         break;
 
-                    case ProtocolMessageCode.s2prepareSend:
-                        {
-                            StreamProcessor.prepareSend(data, endpoint);
-                        }
-                        break;
-
-                    case ProtocolMessageCode.s2generateKeys:
-                        {
-                            StreamProcessor.generateKeys(data, endpoint);
-                        }
-                        break;
 
                     case ProtocolMessageCode.newTransaction:
                         {
