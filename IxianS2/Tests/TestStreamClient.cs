@@ -25,6 +25,8 @@ namespace S2
         private object reconnectLock = new object();
 
 
+        public string ip_address = "127.0.0.1";  // TODO replace with getfulladdress?
+
         byte[] chachaKey = null;
         string aesPassword = null;
 
@@ -61,6 +63,7 @@ namespace S2
             tcpHostname = hostname;
             tcpPort = port;
             address = string.Format("{0}:{1}", hostname, port);
+            ip_address = address;
             incomingPort = port;
 
             // Prepare the TCP client

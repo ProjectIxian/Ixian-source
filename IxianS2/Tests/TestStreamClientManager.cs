@@ -202,7 +202,7 @@ namespace S2
             {
                 foreach (TestStreamClient client in streamClients)
                 {
-                    if (client.address.Equals(address, StringComparison.Ordinal))
+                    if (client.ip_address.Equals(address, StringComparison.Ordinal))
                         return client;
                 }
             }

@@ -87,6 +87,12 @@ namespace S2
                             }
                         }
                     }
+                    else
+                    // Check for R nodes for testing purposes
+                    if(addr.type == 'R')
+                    {
+                        return addr.address;
+                    }
 
                     // If we find a valid node ip, don't continue searching
                     if (ip != null)
