@@ -64,6 +64,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests\TestClientNode.cs" />
+    <Compile Include="Tests\TestFriend.cs" />
     <Compile Include="Tests\TestStreamClient.cs" />
     <Compile Include="Tests\TestStreamClientManager.cs" />
   </ItemGroup>

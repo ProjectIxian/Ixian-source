@@ -1,6 +1,7 @@
 ﻿using DLT.Meta;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace S2
 {
     class TestClientNode
     {
-
+        List<TestFriend> friends = new List<TestFriend>();
 
         static public void start()
         {
@@ -36,6 +37,21 @@ namespace S2
 
             TestStreamClientManager.restartClients();
         }
+
+        // Handles extended protocol messages
+        static public void handleExtendProtocol(byte[] data)
+        {
+            using (MemoryStream m = new MemoryStream(data))
+            {
+                using (BinaryReader reader = new BinaryReader(m))
+                {
+                    int code = reader.ReadInt32();
+
+                }
+            }
+        }
+
+
 
     }
 }

@@ -24,6 +24,11 @@ namespace S2
 
         private object reconnectLock = new object();
 
+
+        byte[] chachaKey = null;
+        string aesPassword = null;
+
+
         public TestStreamClient()
         {
             prepareClient();
@@ -143,6 +148,57 @@ namespace S2
         public int getTotalReconnectsCount()
         {
             return totalReconnects;
+        }
+
+        // Generate a random password string of a specified length
+        // Used when generating aes password
+        private static string randomPassword(int length)
+        {
+            Random random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        // Generates a random chacha key and a random aes key
+        // Returns the two keys encrypted using the supplied public key
+        // Returns null if an error was encountered
+        public byte[] generateKeys(byte[] publicKey)
+        {
+            try
+            {
+                // Generate random chacha key
+                Random random = new Random();
+                Byte[] rbytes = new Byte[256];
+                random.NextBytes(rbytes);
+                chachaKey = rbytes.ToArray();
+
+                // Generate random password for AES
+                aesPassword = randomPassword(256);
+
+                byte[] data = null;
+
+                // Store both keys in a byte array
+                using (MemoryStream m = new MemoryStream())
+                {
+                    using (BinaryWriter writer = new BinaryWriter(m))
+                    {
+                        writer.Write(chachaKey.Length);
+                        writer.Write(chachaKey);
+                        writer.Write(aesPassword);
+                        data = m.ToArray();
+                    }
+                }
+
+                // Encrypt the data using RSA with the supplied public key
+                return CryptoManager.lib.encryptWithRSA(data, publicKey);
+            }
+            catch (Exception e)
+            {
+                Logging.error(String.Format("Exception during generate keys: {0}", e.Message));
+            }
+
+            return null;
         }
 
 

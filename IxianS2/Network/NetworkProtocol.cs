@@ -2,6 +2,7 @@
 using DLT.Meta;
 using DLT.Network;
 using IXICore;
+using S2;
 using S2.Network;
 using System;
 using System.Collections.Generic;
@@ -564,6 +565,16 @@ namespace DLT.Network
                     case ProtocolMessageCode.pong:
                         {
                             // do nothing
+                        }
+                        break;
+
+
+                    case ProtocolMessageCode.extend:
+                        {
+                            if(Config.isTestClient)
+                            {
+                                TestClientNode.handleExtendProtocol(data);
+                            }
                         }
                         break;
 
