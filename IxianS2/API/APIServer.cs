@@ -121,6 +121,24 @@ namespace S2
                 return true;
             }
 
+            if (methodName.Equals("testadd", StringComparison.OrdinalIgnoreCase))
+            {
+                byte[] wallet = Base58Check.Base58CheckEncoding.DecodePlain(request.QueryString["wallet"]);
+
+                string responseString = JsonConvert.SerializeObject("Friend added successfully");
+
+                if(TestClientNode.addFriend(wallet) == false)
+                {
+                    responseString = JsonConvert.SerializeObject("Could not find wallet id or add friend");
+                }
+
+                sendResponse(context.Response, responseString);
+
+                return true;
+            }
+
+
+
             return false;
         }
     }

@@ -1,4 +1,5 @@
-﻿using DLT.Meta;
+﻿using DLT;
+using DLT.Meta;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +11,7 @@ namespace S2
 {
     class TestClientNode
     {
-        List<TestFriend> friends = new List<TestFriend>();
+        public static List<TestFriend> friends = new List<TestFriend>();
 
         static public void start()
         {
@@ -38,6 +39,24 @@ namespace S2
             TestStreamClientManager.restartClients();
         }
 
+        // Adds a friend based on a wallet address
+        // Returns false if the wallet address could not be found in the Presence List
+        static public bool addFriend(byte[] wallet)
+        {
+            Presence presence = PresenceList.containsWalletAddress(wallet);
+            if (presence == null)
+                return false;
+
+            TestFriend friend = new TestFriend();
+            friend.walletAddress = presence.wallet;
+            friend.publicKey = presence.pubkey;
+
+            friends.Add(friend);
+
+            return false;
+        }
+
+
         // Handles extended protocol messages
         static public void handleExtendProtocol(byte[] data)
         {
@@ -50,6 +69,8 @@ namespace S2
                 }
             }
         }
+
+
 
 
 
