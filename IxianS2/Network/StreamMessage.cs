@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DLT;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -88,6 +89,16 @@ namespace S2.Network
         {
             return id;
         }
+
+        // Encrypts a provided message with aes, then chacha based on the keys provided
+        public bool encryptMessage(byte[] message, string aesPassword, byte[] chachaKey)
+        {
+            byte[] aes_encrypted = CryptoManager.lib.encryptWithPassword(message, aesPassword);
+            byte[] chacha_encrypted = CryptoManager.lib.encryptWithChacha(aes_encrypted, chachaKey);
+            data = chacha_encrypted.ToArray();
+            return true;
+        }
+
 
     }
 }

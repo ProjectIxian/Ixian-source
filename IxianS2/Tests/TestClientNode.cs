@@ -88,11 +88,17 @@ namespace S2
                 }
             }
 
+            // Generate encryption keys
+            byte[] keys_data = friend.generateKeys();
+
+
             StreamMessage message = new StreamMessage();
             message.recipient = friend.walletAddress;
             message.sender = Node.walletStorage.getWalletAddress();
             message.transactionID = "none";
-            message.data = Encoding.UTF8.GetBytes("Hello Ixian World!");
+
+            byte[] text_message = Encoding.UTF8.GetBytes("Hello Ixian World!");
+            message.encryptMessage(text_message, friend.aesPassword, friend.chachaKey);
 
             stream_client.sendData(ProtocolMessageCode.s2data, message.getBytes());
 

@@ -14,8 +14,49 @@ namespace S2
         public byte[] walletAddress;
         public byte[] publicKey;
 
-        public byte[] cachaKey = null;
+        public byte[] chachaKey = null;
         public string aesPassword = null;
+
+        // Generates a random chacha key and a random aes key
+        // Returns the two keys encrypted using the supplied public key
+        // Returns null if an error was encountered
+        public byte[] generateKeys()
+        {
+            try
+            {
+                // Generate random chacha key
+                Random random = new Random();
+                Byte[] rbytes = new Byte[32];
+                random.NextBytes(rbytes);
+                chachaKey = rbytes.ToArray();
+
+                // Generate random password for AES
+                aesPassword = randomPassword(32);
+
+                byte[] data = null;
+
+                // Store both keys in a byte array
+                using (MemoryStream m = new MemoryStream())
+                {
+                    using (BinaryWriter writer = new BinaryWriter(m))
+                    {
+                        writer.Write(chachaKey.Length);
+                        writer.Write(chachaKey);
+                        writer.Write(aesPassword);
+                        data = m.ToArray();
+                    }
+                }
+
+                // Encrypt the data using RSA with the supplied public key
+                return CryptoManager.lib.encryptWithRSA(data, publicKey);
+            }
+            catch (Exception e)
+            {
+                Logging.error(String.Format("Exception during generate keys: {0}", e.Message));
+            }
+
+            return null;
+        }
 
         // Handles receiving and decryption of keys
         public bool receiveKeys(byte[] data)
@@ -34,7 +75,7 @@ namespace S2
                         byte[] chacha = reader.ReadBytes(length);
                         
                         // Assign the cacha key
-                        cachaKey = chacha.ToArray();
+                        chachaKey = chacha.ToArray();
 
                         // Read and assign the aes password
                         aesPassword = reader.ReadString();
@@ -104,5 +145,15 @@ namespace S2
             return ip;
         }
 
+
+        // Generate a random password string of a specified length
+        // Used when generating aes password
+        private static string randomPassword(int length)
+        {
+            Random random = new Random();
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
     }
 }
