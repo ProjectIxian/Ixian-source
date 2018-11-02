@@ -36,3 +36,6 @@ Debug
 /Argon2_C/x64/Release/vc141.pdb
 /IxianS2/S2Node.csproj.user
 /SPIXI/.vs/SPIXI/v15
+/SPIXI/SPIXI/SPIXI.csproj.user
+/SPIXI/SPIXI.Android/SPIXI.Droid.csproj.user
+/SPIXI/SPIXI/obj
