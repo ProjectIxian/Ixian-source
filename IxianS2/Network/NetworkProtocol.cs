@@ -539,6 +539,8 @@ namespace DLT.Network
                                 {
                                     // Retrieve the message
                                     string message = reader.ReadString();
+                                    endpoint.stop();
+
                                     Logging.error(string.Format("Disconnected with message: {0}", message));
                                 }
                             }
