@@ -4,10 +4,7 @@ using IXICore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace S2
 {
@@ -19,13 +16,11 @@ namespace S2
             start(String.Format("http://localhost:{0}/", Config.apiPort));
         }
 
-        protected override void onUpdate()
+        protected override void onUpdate(HttpListenerContext context)
         {
             try
             {
                 Console.Write("*");
-
-                HttpListenerContext context = listener.GetContext();
 
                 if (context.Request.Url.Segments.Length < 2)
                 {
