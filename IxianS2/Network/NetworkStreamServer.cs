@@ -294,7 +294,7 @@ namespace S2.Network
 
                     if(client_wallet != null && address.SequenceEqual(client_wallet))
                     {
-                        Logging.info(">>>> Sending message");
+                        Logging.info(">>>> Forwarding message");
                         endpoint.sendData(code, message);
 
                     }
@@ -302,7 +302,7 @@ namespace S2.Network
                 }
             }
 
-            // TODO: broadcast to network if no connect clients found
+            // TODO: broadcast to network if no connect clients found?
 
             return false;
         }
