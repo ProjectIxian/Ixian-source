@@ -1,6 +1,7 @@
 ﻿using DLT;
 using DLT.Meta;
 using DLT.Network;
+using IXICore;
 using S2.Network;
 using System;
 using System.Collections.Generic;
@@ -63,8 +64,8 @@ namespace S2
         // Sends a test message to a specified friend
         static public bool sendTestMessage(TestFriend friend)
         {
-            // Check the relay ip
-            string relayip = friend.getRelayIP();
+            // Search for the relay ip
+            string relayip = friend.searchForRelay();
 
             if (relayip == null)
             {
@@ -91,14 +92,31 @@ namespace S2
             // Generate encryption keys
             byte[] keys_data = friend.generateKeys();
 
+            // Generate the transaction
+            Transaction transaction = new Transaction();
+            transaction.to = friend.relayWallet;
+            transaction.from = Node.walletStorage.address;
+            transaction.amount = CoreConfig.relayPriceInitial;
+            transaction.fee = CoreConfig.transactionPrice;
+            // transaction.blockHeight = ?; // TODO: set the block height here?
+            transaction.pubKey = Node.walletStorage.publicKey; // TODO: check if it's in the walletstate already
+            transaction.checksum = Transaction.calculateChecksum(transaction);
 
+
+            // Prepare the stream message
             StreamMessage message = new StreamMessage();
             message.recipient = friend.walletAddress;
             message.sender = Node.walletStorage.getWalletAddress();
-            message.transactionID = "none";
+            message.transaction = transaction.getBytes();
 
+
+            // Encrypt the message
             byte[] text_message = Encoding.UTF8.GetBytes("Hello Ixian World!");
             message.encryptMessage(text_message, friend.aesPassword, friend.chachaKey);
+
+            // Encrypt the transaction signature
+            byte[] tx_signature = Transaction.getSignature(transaction.checksum);
+            message.encryptSignature(tx_signature, friend.aesPassword, friend.chachaKey);
 
             stream_client.sendData(ProtocolMessageCode.s2data, message.getBytes());
 

@@ -17,6 +17,10 @@ namespace S2
         public byte[] chachaKey = null;
         public string aesPassword = null;
 
+        public string relayIP = null;
+        public byte[] relayWallet = null;
+
+
         // Generates a random chacha key and a random aes key
         // Returns the two keys encrypted using the supplied public key
         // Returns null if an error was encountered
@@ -94,9 +98,10 @@ namespace S2
         }
 
         // Retrieve the friend's connected S2 node address. Returns null if not found
-        public string getRelayIP()
+        public string searchForRelay()
         {
             string ip = null;
+            byte[] wallet = null;
             Presence presence = PresenceList.containsWalletAddress(walletAddress);
             if (presence == null)
                 return ip;
@@ -123,6 +128,7 @@ namespace S2
                                 {
                                     // We found the friend's connected s2 node
                                     ip = s2addr.address;
+                                    wallet = s2presence.wallet;
                                     break;
                                 }
                             }
@@ -132,7 +138,8 @@ namespace S2
                     // Check for R nodes for testing purposes
                     if(addr.type == 'R')
                     {
-                        return addr.address;
+                        ip = addr.address;
+                        wallet = presence.wallet;
                     }
 
                     // If we find a valid node ip, don't continue searching
@@ -141,8 +148,12 @@ namespace S2
                 }
             }
 
+            // Store the last relay ip and wallet for this friend
+            relayIP = ip;
+            relayWallet = wallet;
+
             // Finally, return the ip address of the node
-            return ip;
+            return relayIP;
         }
 
 

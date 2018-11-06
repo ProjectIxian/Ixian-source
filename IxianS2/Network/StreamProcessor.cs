@@ -53,6 +53,9 @@ namespace S2.Network
 
             StreamMessage message = new StreamMessage(bytes);
 
+            // Extract the transaction and store it
+            Transaction transaction = new Transaction(message.transaction);
+
             if(message.recipient.SequenceEqual(Node.walletStorage.getWalletAddress()))
             {
                 // This is the recipient
@@ -64,15 +67,12 @@ namespace S2.Network
 
 
 
-       /*     Console.WriteLine("NET: Receiving S2 data!");
-
+       /*    Logging.info("NET: Receiving S2 data!");
                             NetworkStreamServer.forwardMessage(recipient, DLT.Network.ProtocolMessageCode.s2data, mw.ToArray());
-
             */
      
 
         }
-
 
         // Sends a stream message
         public static void sendMessage(StreamMessage message, string hostname = null)

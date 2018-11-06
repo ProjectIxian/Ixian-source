@@ -13,14 +13,15 @@ namespace S2.Network
         public byte[] sender;           // Sender wallet
         public byte[] recipient;        // Recipient wallet 
 
-        public string transactionID;    // Transaction ID used to validate payment for this message
+        public byte[] transaction;      // Unsigned transaction
         public byte[] data;             // Actual message data, encrypted
+        public byte[] sigdata;          // Signature data, encrypted
 
         private string id;              // Message unique id
 
         public StreamMessage()
         {
-            id = Guid.NewGuid().ToString();
+            id = Guid.NewGuid().ToString(); // Generate a new unique id
         }
 
         public StreamMessage(byte[] bytes)
@@ -39,6 +40,12 @@ namespace S2.Network
 
                     int data_length = reader.ReadInt32();
                     data = reader.ReadBytes(data_length);
+
+                    int tx_length = reader.ReadInt32();
+                    transaction = reader.ReadBytes(tx_length);
+
+                    int sig_length = reader.ReadInt32();
+                    sigdata = reader.ReadBytes(sig_length);
                 }
             }
         }
@@ -80,11 +87,31 @@ namespace S2.Network
                     else
                         writer.Write(0);
 
+                    // Write the tx
+                    int tx_length = transaction.Length;
+                    writer.Write(tx_length);
+
+                    if (tx_length > 0)
+                        writer.Write(transaction);
+                    else
+                        writer.Write(0);
+
+
+                    // Write the sig
+                    int sig_length = sigdata.Length;
+                    writer.Write(sig_length);
+
+                    if (sig_length > 0)
+                        writer.Write(sigdata);
+                    else
+                        writer.Write(0);
+
                 }
                 return m.ToArray();
             }
         }
 
+        // Returns the stream message id
         public string getID()
         {
             return id;
@@ -99,6 +126,14 @@ namespace S2.Network
             return true;
         }
 
+        // Encrypts a provided signature with aes, then chacha based on the keys provided
+        public bool encryptSignature(byte[] signature, string aesPassword, byte[] chachaKey)
+        {
+            byte[] aes_encrypted = CryptoManager.lib.encryptWithPassword(signature, aesPassword);
+            byte[] chacha_encrypted = CryptoManager.lib.encryptWithChacha(aes_encrypted, chachaKey);
+            sigdata = chacha_encrypted.ToArray();
+            return true;
+        }
 
     }
 }
