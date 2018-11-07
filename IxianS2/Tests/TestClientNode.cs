@@ -98,7 +98,7 @@ namespace S2
             transaction.from = Node.walletStorage.address;
             transaction.amount = CoreConfig.relayPriceInitial;
             transaction.fee = CoreConfig.transactionPrice;
-            // transaction.blockHeight = ?; // TODO: set the block height here?
+            transaction.blockHeight = Node.blockHeight;
             transaction.pubKey = Node.walletStorage.publicKey; // TODO: check if it's in the walletstate already
             transaction.checksum = Transaction.calculateChecksum(transaction);
 

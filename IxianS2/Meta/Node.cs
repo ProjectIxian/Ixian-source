@@ -21,6 +21,9 @@ namespace DLT.Meta
 
         public static UPnP upnp;
 
+
+        public static ulong blockHeight = 0;      // Stores the last known block height 
+
         public static int keepAliveVersion = 0;
 
         // Private data

@@ -415,17 +415,22 @@ namespace DLT.Network
                             {
                                 if (processHelloMessage(endpoint, reader))
                                 {
-                                    /*      ulong last_block_num = reader.ReadUInt64();
-                                          int bcLen = reader.ReadInt32();
-                                          byte[] block_checksum = reader.ReadBytes(bcLen);
-                                          int wsLen = reader.ReadInt32();
-                                          byte[] walletstate_checksum = reader.ReadBytes(wsLen);
-                                          int consensus = reader.ReadInt32();
+                                    ulong last_block_num = reader.ReadUInt64();
 
-                                          long myTimestamp = Core.getCurrentTimestamp();*/
+                                    // Update the node's block height
+                                    if (Node.blockHeight < last_block_num)
+                                        Node.blockHeight = last_block_num;
+
+                                    int bcLen = reader.ReadInt32();
+                                    byte[] block_checksum = reader.ReadBytes(bcLen);
+                                    int wsLen = reader.ReadInt32();
+                                    byte[] walletstate_checksum = reader.ReadBytes(wsLen);
+                                    int consensus = reader.ReadInt32();
+
+                                    long myTimestamp = Core.getCurrentTimestamp();
 
                                     // Check for legacy level
-                                    ulong legacy_level = 0;// last_block_num;
+                                    ulong legacy_level = last_block_num;
                                     try
                                     {
                                         ulong level = reader.ReadUInt64();
