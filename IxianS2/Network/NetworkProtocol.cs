@@ -462,6 +462,23 @@ namespace DLT.Network
                         }
                         break;
 
+                    case ProtocolMessageCode.s2failed:
+                        {
+                            using (MemoryStream m = new MemoryStream(data))
+                            {
+                                using (BinaryReader reader = new BinaryReader(m))
+                                {
+                                    Logging.error("Failed to send s2 data");
+                                }
+                            }
+                        }
+                        break;
+
+                    case ProtocolMessageCode.s2signature:
+                        {
+                            StreamProcessor.receivedTransactionSignature(data, endpoint);
+                        }
+                        break;
 
                     case ProtocolMessageCode.newTransaction:
                         {
@@ -469,13 +486,6 @@ namespace DLT.Network
                             broadcastProtocolMessage(ProtocolMessageCode.newTransaction, data);
                         }
                         break;
-
-                    /*case ProtocolMessageCode.updateTransaction:
-                        {
-                            // Forward the update transaction message to the DLT network
-                            broadcastProtocolMessage(ProtocolMessageCode.updateTransaction, data);
-                        }
-                        break;*/
 
                     case ProtocolMessageCode.syncPresenceList:
                         {
@@ -487,7 +497,7 @@ namespace DLT.Network
 
                     case ProtocolMessageCode.presenceList:
                         {
-                            Console.WriteLine("NET: Receiving complete presence list");
+                            Logging.info("Receiving complete presence list");
                             PresenceList.syncFromBytes(data);
                         }
                         break;

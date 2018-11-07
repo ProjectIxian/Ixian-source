@@ -40,6 +40,8 @@ namespace S2.Network
         static List<StreamMessage> messages = new List<StreamMessage>(); // List that stores stream messages
         static List<StreamTransaction> transactions = new List<StreamTransaction>(); // List that stores stream transactions
 
+        static Dictionary<byte[], int> dataRelays = new Dictionary<byte[], int>();
+
         // Called when receiving S2 data from clients
         public static void receiveData(byte[] bytes, RemoteEndpoint endpoint)
         {
@@ -55,6 +57,7 @@ namespace S2.Network
             if(transaction.from.SequenceEqual(message.sender) == false)
             {
                 Logging.error("Relayed message transaction mismatch");
+
                 return;
             }
 
@@ -71,6 +74,22 @@ namespace S2.Network
                 Logging.error("Relayed message transaction receiver is not this S2 node");
                 return;
             }
+
+            // Update the recipient dictionary
+            if (dataRelays.ContainsKey(message.recipient))
+            {
+                dataRelays[message.recipient]++;
+                if(dataRelays[message.recipient] > 3)
+                {
+                    Logging.error("Exceeded amount of unpaid relay messages.");
+                    //return;
+                }
+            }
+            else
+            {
+                dataRelays.Add(message.recipient, 1);
+            }
+
 
             // Store the transaction
             StreamTransaction streamTransaction = new StreamTransaction();
@@ -94,7 +113,7 @@ namespace S2.Network
             NetworkStreamServer.forwardMessage(message.recipient, DLT.Network.ProtocolMessageCode.s2data, bytes);           
         }
 
-        // Caled when receiving a transaction signature from a client
+        // Called when receiving a transaction signature from a client
         public static void receivedTransactionSignature(byte[] bytes, RemoteEndpoint endpoint)
         {
             using (MemoryStream m = new MemoryStream(bytes))
@@ -131,7 +150,7 @@ namespace S2.Network
                         if (transaction.verifySignature(transaction.pubKey))
                         {
                             // Broadcast the transaction
-                            ProtocolMessage.broadcastProtocolMessage(ProtocolMessageCode.newTransaction, transaction.getBytes(), false);
+                            ProtocolMessage.broadcastProtocolMessage(ProtocolMessageCode.newTransaction, transaction.getBytes(), endpoint, false);
                         }
                         return;
                                                  
@@ -140,6 +159,12 @@ namespace S2.Network
             }
         }
 
+
+        // Called periodically to clear the black list
+        public static void update()
+        {
+
+        }
 
 
     }

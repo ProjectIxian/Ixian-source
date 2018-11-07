@@ -131,6 +131,9 @@ namespace DLT.Meta
             // TODO: optimize this by using a different thread perhaps
             PresenceList.performCleanup();
 
+            // Update the stream processor
+            StreamProcessor.update();
+
             // Check for test client mode
             if (Config.isTestClient)
             {
