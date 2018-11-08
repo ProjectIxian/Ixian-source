@@ -8,13 +8,15 @@ Ixian DLT is a revolutionary blockchain that brings several innovative advantage
 
 **Discord**: [Ixian Community](https://discord.gg/P493UN9)
 
+**Bitcointalk**: [ANN Thread](https://bitcointalk.org/index.php?topic=4631942.0)
+
 ## The repository
 
-The IXIAN  repository is divided into three main projects:
+The IXIAN repository is divided into four main parts:
 
-* IxianCore: Functionality common to both DLT and S2.
-* IxianDLT: Implementation of the blockchain-processing part of the project.
+* IxianDLT: Implementation of the blockchain-processing part.
 * IxianS2: Implementation of the streaming network.
+* IxianCore: Functionality common to both IxianDLT and IxianS2.
 * SPIXI: Implementation of the mobile messaging client.
 
 ## Development branches
