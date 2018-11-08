@@ -65,11 +65,11 @@ We recommend you install the **mono-complete** package.
 Now open a terminal.
 For Debian based distributions such as Ubuntu, type
 ```
-sudo apt install nuget msbuild
+sudo apt install nuget msbuild git
 ```
 or if you have a Redhat based distribution, type
 ```
-sudo yum install nuget msbuild
+sudo yum install nuget msbuild git
 ```
 
 Next you'll need to build the Ixian solution. You can do this by typing the following commands in the terminal:
