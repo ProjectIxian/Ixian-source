@@ -6,13 +6,16 @@ Ixian DLT is a revolutionary blockchain that brings several innovative advantage
 
 **Homepage**: [IXIAN Project Homepage](https://www.ixian.io "IXIAN")
 
+**Discord**: [Ixian Community](https://discord.gg/P493UN9)
+
 ## The repository
 
 The IXIAN  repository is divided into three main projects:
 
-* IxianCore: Functionality common to both DLT and S2
+* IxianCore: Functionality common to both DLT and S2.
 * IxianDLT: Implementation of the blockchain-processing part of the project.
 * IxianS2: Implementation of the streaming network.
+* SPIXI: Implementation of the mobile messaging client.
 
 ## Development branches
 
@@ -20,15 +23,77 @@ There are two main development branches:
 * master-mainnet: This branch is used to build the binaries for the official IXIAN DLT network. It should change slowly and be quite well-tested.
 * master: This is the main development branch and the source for testnet binaries. The branch might not always be kept bug-free, if an extensive new feature is being worked on. If you are simply looking to build a current testnet binary yourself, please use one of the release tags which will be associated with the master branch.
 
-## Building
+## Running
+Download the latest binary release or you can compile the code yourself.
+### Windows
+Double-click the corresponding .bat file in the IxianDLT directory to quickly start.
 
+or
+
+Open a terminal in the IxianDLT directory and type
+```
+IxianDLT.exe -h
+```
+to find out how to configure and run the IxianDLT node.
+
+### Linux
+Download and install the latest Mono release for your Linux distribution. The default Mono versions shipped with most common distributions are outdated.
+
+Go to the [Mono official website](https://www.mono-project.com/download/stable/#download-lin) and follow the steps for your Linux distribution.
+We recommend you install the **mono-complete** package.
+
+Open a terminal and navigate to the IxianDLT folder, then type
+```
+mono IxianDLT.exe -h
+```
+to find out how to configure and run the IxianDLT node.
+
+## Building
+### Windows
 Visual Studio 2017 is required (Community Edition is fine), you can get it from here: [Visual Studio](https://visualstudio.microsoft.com/)
 
 Several NuGetPackages are downloaded automatically during the build process.
 
+### Linux
+Download and install the latest Mono release for your Linux distribution. The default Mono versions shipped with most common distributions are outdated.
+
+Go to the [Mono official website](https://www.mono-project.com/download/stable/#download-lin) and follow the steps for your Linux distribution.
+We recommend you install the **mono-complete** package.
+
+Now open a terminal.
+For Debian based distributions such as Ubuntu, type
+```
+sudo apt install nuget msbuild
+```
+or if you have a Redhat based distribution, type
+```
+sudo yum install nuget msbuild
+```
+
+Next you'll need to build the Ixian solution. You can do this by typing the following commands in the terminal:
+```
+git clone https://github.com/ProjectIxian/Ixian-source.git
+cd Ixian-source/IxianDLT
+nuget restore DLTNode.sln
+msbuild DLTNode.sln
+```
+The IxianDLT will be compiled and placed in the bin/Debug/ folder.
+
+For the IxianDLT node to work correctly, you'll need to copy the libargon2.so shared library in the bin/Debug/ folder. 
+You can use the library provided in the latest Ixian Binary release.
+
+
+If you want to build the libargon2 shared library yourself, you can do this by typing the following commands in the terminal:
+```
+git clone https://github.com/P-H-C/phc-winner-argon2.git
+cd phc-winner-argon2
+make
+```
+Copy the resulting libargon2.so file to the IxianDLT /bin/Debug folder.
+
 ## DLT Hybrid PoW Miner
 
-The mining section of the code expects an Argon2 DLL in the DLL search path. You can build one using this project: [Argon2 Reference implementation](https://github.com/P-H-C/phc-winner-argon2)
+The DLT project expects an argon2 shared library in the run path. You can build one using this project: [Argon2 Reference implementation](https://github.com/P-H-C/phc-winner-argon2)
 
 ## Get in touch / Contributing
 
