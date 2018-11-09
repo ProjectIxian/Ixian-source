@@ -102,6 +102,8 @@ namespace DLT.Meta
                 }
             }
 
+            PresenceList.generatePresenceList(Config.publicServerIP, 'R');
+
             // Start the network queue
             NetworkQueue.start();
 
@@ -304,7 +306,6 @@ namespace DLT.Meta
                     Thread.Sleep(1000);
                 }
 
-
                 try
                 {
                     // Prepare the keepalive message
@@ -317,13 +318,11 @@ namespace DLT.Meta
                             byte[] wallet = walletStorage.address;
                             writer.Write(wallet.Length);
                             writer.Write(wallet);
-
                             writer.Write(Config.device_id);
 
                             // Add the unix timestamp
                             long timestamp = Core.getCurrentTimestamp();
                             writer.Write(timestamp);
-
                             string hostname = Node.getFullAddress();
                             writer.Write(hostname);
 
@@ -332,7 +331,6 @@ namespace DLT.Meta
                             byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + Config.device_id + "-" + timestamp + "-" + hostname), private_key);
                             writer.Write(signature.Length);
                             writer.Write(signature);
-
                             PresenceList.curNodePresenceAddress.lastSeenTime = timestamp;
                             PresenceList.curNodePresenceAddress.signature = signature;
                         }
@@ -340,13 +338,13 @@ namespace DLT.Meta
 
                         // Update self presence
                         PresenceList.receiveKeepAlive(m.ToArray());
-
                         // Send this keepalive message to all connected clients
                         ProtocolMessage.broadcastProtocolMessage(ProtocolMessageCode.keepAlivePresence, m.ToArray());
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Logging.error(String.Format("KeepAlive: {0}", ex.Message));
                     continue;
                 }
 
