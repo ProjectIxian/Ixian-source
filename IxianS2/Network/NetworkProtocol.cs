@@ -555,6 +555,33 @@ namespace DLT.Network
                         }
                         break;
 
+
+                    case ProtocolMessageCode.balance:
+                        {
+                            // TODO: make sure this is received from a DLT node only.
+                            using (MemoryStream m = new MemoryStream(data))
+                            {
+                                using (BinaryReader reader = new BinaryReader(m))
+                                {
+                                    int address_length = reader.ReadInt32();
+                                    byte[] address = reader.ReadBytes(address_length);
+
+                                    // Retrieve the latest balance
+                                    IxiNumber balance = reader.ReadString();
+
+                                    if (address.SequenceEqual(Node.walletStorage.address))
+                                    {
+                                        Node.balance = balance;
+                                    }
+
+                                    // Retrieve the blockheight for the balance
+                                    ulong blockheight = reader.ReadUInt64();
+                                    Node.blockHeight = blockheight;
+                                }
+                            }
+                        }
+                        break;
+
                     case ProtocolMessageCode.bye:
                         {
                             using (MemoryStream m = new MemoryStream(data))

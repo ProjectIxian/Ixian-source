@@ -8,8 +8,19 @@ using System.Threading.Tasks;
 
 namespace S2.Network
 {
+    public enum StreamMessageCode
+    {
+        chat,
+        getNick,
+        nick,
+        requestAdd,
+        acceptAdd,
+        requestFunds
+    }
+
     class StreamMessage
     {
+        public StreamMessageCode type;  // Stream Message type
         public byte[] sender;           // Sender wallet
         public byte[] recipient;        // Recipient wallet 
 
@@ -22,6 +33,7 @@ namespace S2.Network
         public StreamMessage()
         {
             id = Guid.NewGuid().ToString(); // Generate a new unique id
+            type = StreamMessageCode.chat;
         }
 
         public StreamMessage(byte[] bytes)
@@ -31,6 +43,9 @@ namespace S2.Network
                 using (BinaryReader reader = new BinaryReader(m))
                 {
                     id = reader.ReadString();
+
+                    int message_type = reader.ReadInt32();
+                    type = (StreamMessageCode) message_type;
 
                     int sender_length = reader.ReadInt32();
                     sender = reader.ReadBytes(sender_length);
@@ -57,6 +72,9 @@ namespace S2.Network
                 using (BinaryWriter writer = new BinaryWriter(m))
                 {
                     writer.Write(id);
+
+                    // Write the type
+                    writer.Write((int)type);
 
                     // Write the sender
                     int sender_length = sender.Length;
@@ -134,6 +152,7 @@ namespace S2.Network
             sigdata = chacha_encrypted.ToArray();
             return true;
         }
+
 
     }
 }

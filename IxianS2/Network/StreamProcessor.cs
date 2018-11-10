@@ -50,6 +50,14 @@ namespace S2.Network
 
             StreamMessage message = new StreamMessage(bytes);
 
+            // Relay certain messages without transaction
+            // TODO: always true for development purposes ONLY!
+          //  if(message.type == StreamMessageCode.requestAdd || message.type == StreamMessageCode.acceptAdd)
+            {
+                NetworkStreamServer.forwardMessage(message.recipient, DLT.Network.ProtocolMessageCode.s2data, bytes);
+                return;
+            }
+
             // Extract the transaction
             Transaction transaction = new Transaction(message.transaction);
 
