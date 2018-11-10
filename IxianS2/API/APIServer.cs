@@ -116,6 +116,22 @@ namespace S2
                 return true;
             }
 
+            if (methodName.Equals("pl", StringComparison.OrdinalIgnoreCase))
+            {
+                string responseString = "None";
+
+                // Show a list of presences
+                lock (PresenceList.presences)
+                {
+                    var json = PresenceList.presences;
+                    responseString = JsonConvert.SerializeObject(json, Formatting.None, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore, Formatting = Formatting.Indented });
+                }
+
+                sendResponse(context.Response, responseString);
+
+                return true;
+            }
+
             if (methodName.Equals("testadd", StringComparison.OrdinalIgnoreCase))
             {
                 byte[] wallet = Base58Check.Base58CheckEncoding.DecodePlain(request.QueryString["wallet"]);

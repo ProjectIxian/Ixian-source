@@ -137,6 +137,7 @@ namespace DLT.Network
                 if (node_type == 'C')
                 {
                     // TODO: verify signature for client nodes, where the IP is not accessible
+                    Logging.info(string.Format("Stream Client connected: {0}", Base58Check.Base58CheckEncoding.EncodePlain(addr)));
                 }
                 else
                 if (CryptoManager.lib.verifySignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + device_id + "-" + timestamp + "-" + endpoint.getFullAddress(true)), pubkey, signature) == false)
@@ -174,7 +175,15 @@ namespace DLT.Network
                 }
 
                 // Store the presence address for this remote endpoint
-                endpoint.presenceAddress = new PresenceAddress(device_id, endpoint.getFullAddress(true), node_type, node_version, Core.getCurrentTimestamp(), null);
+                string node_address = endpoint.getFullAddress(true);
+                if (node_type == 'C')
+                {
+                    // For C client nodes, force set the node address to this node's full address
+                    // This is done to prevent relay tampering on KA messages
+                    node_address = Node.getFullAddress();
+                }
+
+                endpoint.presenceAddress = new PresenceAddress(device_id, node_address, node_type, node_version, Core.getCurrentTimestamp(), null);
 
                 // Create a temporary presence with the client's address and device id
                 Presence presence = new Presence(addr, pubkey, null, endpoint.presenceAddress);
