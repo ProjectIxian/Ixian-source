@@ -102,10 +102,10 @@ namespace S2
             byte[] keys_data = friend.generateKeys();
 
             // Generate the transaction
-            Transaction transaction = new Transaction();
-            transaction.to = friend.relayWallet;
-            transaction.from = Node.walletStorage.address;
+            Transaction transaction = new Transaction((int)Transaction.Type.Normal);
             transaction.amount = CoreConfig.relayPriceInitial;
+            transaction.toList.Add(friend.relayWallet, transaction.amount);
+            transaction.from = Node.walletStorage.address;
             transaction.fee = CoreConfig.transactionPrice;
             transaction.blockHeight = Node.blockHeight;
             transaction.pubKey = Node.walletStorage.publicKey; // TODO: check if it's in the walletstate already

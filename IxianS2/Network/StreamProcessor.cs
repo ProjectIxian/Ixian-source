@@ -77,7 +77,7 @@ namespace S2.Network
             }
 
             // Validate transaction receiver
-            if (transaction.to.SequenceEqual(Node.walletStorage.address) == false)
+            if (transaction.toList.Keys.First().SequenceEqual(Node.walletStorage.address) == false)
             {
                 Logging.error("Relayed message transaction receiver is not this S2 node");
                 return;
