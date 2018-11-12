@@ -23,6 +23,7 @@ namespace DLT.Meta
 
 
         public static ulong blockHeight = 0;      // Stores the last known block height 
+        public static IxiNumber balance = 0;      // Stores the last known balance for this node
 
         public static int keepAliveVersion = 0;
 
