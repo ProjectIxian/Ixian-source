@@ -56,7 +56,7 @@ namespace DLT.Network
             else
             {
                 bool c_result = NetworkClientManager.broadcastData(code, data, skipEndpoint);
-                bool s_result = false;// NetworkStreamServer.broadcastData(code, data, skipEndpoint);
+                bool s_result = NetworkStreamServer.broadcastData(code, data, skipEndpoint);
 
                 if (!c_result && !s_result)
                     return false;
