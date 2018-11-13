@@ -33,6 +33,7 @@ namespace DLT
             public static bool isTestClient = false;
             public static string testS2Node = "";
 
+            public static int forceTimeOffset = int.MaxValue;
 
             // internal
             public static bool changePass = false;
@@ -80,6 +81,7 @@ namespace DLT
                 cmd_parser.Setup<bool>('c', "test").Callback(value => Config.isTestClient = true).Required();
                 cmd_parser.Setup<string>('n', "s2node").Callback(value => Config.testS2Node = value).Required();
 
+                cmd_parser.Setup<int>("forceTimeOffset").Callback(value => forceTimeOffset = value).SetDefault(int.MaxValue);
 
                 cmd_parser.Parse(args);
 
