@@ -74,7 +74,7 @@ sudo yum install nuget msbuild git
 
 Next you'll need to build the Ixian solution. You can do this by typing the following commands in the terminal:
 ```
-git clone https://github.com/ProjectIxian/Ixian-source.git
+git clone -b master-mainnet https://github.com/ProjectIxian/Ixian-source.git
 cd Ixian-source/IxianDLT
 nuget restore DLTNode.sln
 msbuild DLTNode.sln
