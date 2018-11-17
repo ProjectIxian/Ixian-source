@@ -65,7 +65,7 @@ namespace S2.Network
             if(transaction.from.SequenceEqual(message.sender) == false)
             {
                 Logging.error("Relayed message transaction mismatch");
-
+                sendError(message.sender);
                 return;
             }
 
@@ -73,6 +73,7 @@ namespace S2.Network
             if(transaction.amount < CoreConfig.relayPriceInitial || transaction.fee < CoreConfig.transactionPrice)
             {
                 Logging.error("Relayed message transaction amount too low");
+                sendError(message.sender);
                 return;
             }
 
@@ -80,6 +81,7 @@ namespace S2.Network
             if (transaction.toList.Keys.First().SequenceEqual(Node.walletStorage.address) == false)
             {
                 Logging.error("Relayed message transaction receiver is not this S2 node");
+                sendError(message.sender);
                 return;
             }
 
@@ -90,7 +92,8 @@ namespace S2.Network
                 if(dataRelays[message.recipient] > 3)
                 {
                     Logging.error("Exceeded amount of unpaid relay messages.");
-                    //return;
+                    sendError(message.sender);
+                    return;
                 }
             }
             else
@@ -174,6 +177,18 @@ namespace S2.Network
 
         }
 
+        // Sends an error stream message to a recipient
+        // TODO: add additional data for error details
+        public static void sendError(byte[] recipient)
+        {
+            StreamMessage message = new StreamMessage();
+            message.type = StreamMessageCode.error;
+            message.recipient = recipient;
+            message.transaction = new byte[1];
+            message.sigdata = new byte[1];
+            message.data = new byte[1];
 
+            NetworkStreamServer.forwardMessage(recipient, DLT.Network.ProtocolMessageCode.s2data, message.getBytes());
+        }
     }
 }

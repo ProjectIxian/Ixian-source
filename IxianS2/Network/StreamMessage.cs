@@ -8,8 +8,11 @@ using System.Threading.Tasks;
 
 namespace S2.Network
 {
+    // TODO: unify SPIXI-related messages into a generic message type
+    // Add support for free message code types, but add quotas to prevent abuse
     public enum StreamMessageCode
     {
+        error,
         chat,
         getNick,
         nick,
