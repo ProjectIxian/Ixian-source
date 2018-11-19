@@ -50,9 +50,16 @@ namespace S2.Network
 
             StreamMessage message = new StreamMessage(bytes);
 
+            // Don't allow clients to send error stream messages, as it's reserved for S2 nodes only
+            if(message.type == StreamMessageCode.error)
+            {
+                Logging.warn(string.Format("Discarding error message type from {0}", Base58Check.Base58CheckEncoding.EncodePlain(endpoint.presence.wallet)));
+                return;
+            }
+
             // Relay certain messages without transaction
             // TODO: always true for development purposes ONLY!
-          //  if(message.type == StreamMessageCode.requestAdd || message.type == StreamMessageCode.acceptAdd)
+          //  if(message.type == StreamMessageCode.info)
             {
                 NetworkStreamServer.forwardMessage(message.recipient, DLT.Network.ProtocolMessageCode.s2data, bytes);
                 return;
