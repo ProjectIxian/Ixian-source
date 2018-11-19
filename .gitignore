@@ -38,9 +38,8 @@ Debug
 /SPIXI/.vs/SPIXI/v15
 /SPIXI/SPIXI/SPIXI.csproj.user
 /SPIXI/SPIXI.Android/SPIXI.Droid.csproj.user
-/SPIXI/SPIXI/obj
 /SPIXI/SPIXI/SPIXI.Android/bin/Release
-/SPIXI/SPIXI/SPIXI.Android/obj/Release
-/SPIXI/SPIXI/SPIXI.iOS/obj/iPhone/Release
-/SPIXI/SPIXI/SPIXI/obj/Release/netstandard2.0
+/SPIXI/SPIXI/SPIXI.Android/obj
+/SPIXI/SPIXI/SPIXI.iOS/obj
+/SPIXI/SPIXI/SPIXI/obj
 /SPIXI/SPIXI/SPIXI/bin/Release/netstandard2.0
