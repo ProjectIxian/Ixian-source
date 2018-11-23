@@ -43,3 +43,4 @@ Debug
 /SPIXI/SPIXI/SPIXI.iOS/obj
 /SPIXI/SPIXI/SPIXI/obj
 /SPIXI/SPIXI/SPIXI/bin/Release/netstandard2.0
+*.DS_Store
