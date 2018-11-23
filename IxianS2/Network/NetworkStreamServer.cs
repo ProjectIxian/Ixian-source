@@ -219,7 +219,7 @@ namespace S2.Network
                 connectedClients.Add(remoteEndpoint);
             }
 
-            Logging.info(String.Format("Client connection accepted: {0} | #{1}/{2}", clientEndpoint.ToString(), connectedClients.Count + 1, CoreConfig.maximumServerClients));
+            Logging.info(String.Format("Client connection accepted: {0} | #{1}/{2}", clientEndpoint.ToString(), connectedClients.Count + 1, CoreConfig.maximumServerMasterNodes));
 
             remoteEndpoint.start(clientSocket);
         }
