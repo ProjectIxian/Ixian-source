@@ -97,6 +97,14 @@ namespace DLT
                     forceNextBlock = true;
                 }
 
+                // if the node is stuck on the same block for too long, discard the block
+                if(localNewBlock != null && timeSinceLastBlock.TotalSeconds > (blockGenerationInterval * 20))
+                {
+                    blacklistBlock(localNewBlock);
+                    localNewBlock = null;
+                    lastBlockStartTime = DateTime.Now.AddSeconds(blockGenerationInterval * 10);
+                }
+
                 //Logging.info(String.Format("Waiting for {0} to generate the next block #{1}. offset {2}", Node.blockChain.getLastElectedNodePubKey(getElectedNodeOffset()), Node.blockChain.getLastBlockNum()+1, getElectedNodeOffset()));
                 if ((localNewBlock == null && (Node.isElectedToGenerateNextBlock(getElectedNodeOffset()) && timeSinceLastBlock.TotalSeconds >= blockGenerationInterval)) || forceNextBlock)
                 {
@@ -758,7 +766,7 @@ namespace DLT
                 }
                 else
                 {
-                    blacklistedBlocks = new Dictionary<byte[], DateTime>();
+                    blacklistedBlocks = new Dictionary<byte[], DateTime>(new ByteArrayComparer());
                 }
                 blacklistedBlocks.AddOrReplace(b.blockChecksum, DateTime.Now);
                 blockBlacklist.AddOrReplace(b.blockNum, blacklistedBlocks);
@@ -776,7 +784,7 @@ namespace DLT
                     if (bbl.ContainsKey(b.blockChecksum))
                     {
                         DateTime dt = bbl[b.blockChecksum];
-                        if ((DateTime.Now - dt).TotalSeconds > blockGenerationInterval * 4)
+                        if ((DateTime.Now - dt).TotalSeconds > blockGenerationInterval * 10)
                         {
                             blockBlacklist[b.blockNum].Remove(b.blockChecksum);
                             if (blockBlacklist[b.blockNum].Count() == 0)
@@ -835,6 +843,7 @@ namespace DLT
                             {
                                 blacklistBlock(localNewBlock);
                                 localNewBlock = null;
+                                lastBlockStartTime = DateTime.Now.AddSeconds(blockGenerationInterval * 10);
                             }
                             return;
                         }
