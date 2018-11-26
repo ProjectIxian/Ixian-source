@@ -41,26 +41,43 @@ namespace S2.Network
         static List<StreamTransaction> transactions = new List<StreamTransaction>(); // List that stores stream transactions
 
         static Dictionary<byte[], int> dataRelays = new Dictionary<byte[], int>();
+        static Dictionary<byte[], int> infoRelays = new Dictionary<byte[], int>();
 
         // Called when receiving S2 data from clients
         public static void receiveData(byte[] bytes, RemoteEndpoint endpoint)
         {
-            Logging.info(string.Format("Receiving S2 data from {0}", 
-                Base58Check.Base58CheckEncoding.EncodePlain(endpoint.presence.wallet)));
+            string endpoint_wallet_string = Base58Check.Base58CheckEncoding.EncodePlain(endpoint.presence.wallet);
+            Logging.info(string.Format("Receiving S2 data from {0}", endpoint_wallet_string));
 
             StreamMessage message = new StreamMessage(bytes);
 
             // Don't allow clients to send error stream messages, as it's reserved for S2 nodes only
             if(message.type == StreamMessageCode.error)
             {
-                Logging.warn(string.Format("Discarding error message type from {0}", Base58Check.Base58CheckEncoding.EncodePlain(endpoint.presence.wallet)));
+                Logging.warn(string.Format("Discarding error message type from {0}", endpoint_wallet_string));
                 return;
             }
 
             // Relay certain messages without transaction
             // TODO: always true for development purposes ONLY!
-          //  if(message.type == StreamMessageCode.info)
+            //if(message.type == StreamMessageCode.info)
             {
+                // Update the recipient dictionary
+                /*if (infoRelays.ContainsKey(endpoint.presence.wallet))
+                {
+                    infoRelays[endpoint.presence.wallet]++;
+                    if (infoRelays[endpoint.presence.wallet] > Config.relayInfoMessageQuota)
+                    {
+                        Logging.error(string.Format("Exceeded quota of info relay messages for {0}", endpoint_wallet_string));
+                        sendError(endpoint.presence.wallet);
+                        return;
+                    }
+                }
+                else
+                {
+                    infoRelays.Add(endpoint.presence.wallet, 1);
+                }*/
+
                 NetworkStreamServer.forwardMessage(message.recipient, DLT.Network.ProtocolMessageCode.s2data, bytes);
                 return;
             }
@@ -71,7 +88,7 @@ namespace S2.Network
             // Validate transaction sender
             if(transaction.from.SequenceEqual(message.sender) == false)
             {
-                Logging.error("Relayed message transaction mismatch");
+                Logging.error(string.Format("Relayed message transaction mismatch for {0}", endpoint_wallet_string));
                 sendError(message.sender);
                 return;
             }
@@ -79,7 +96,7 @@ namespace S2.Network
             // Validate transaction amount and fee
             if(transaction.amount < CoreConfig.relayPriceInitial || transaction.fee < CoreConfig.transactionPrice)
             {
-                Logging.error("Relayed message transaction amount too low");
+                Logging.error(string.Format("Relayed message transaction amount too low for {0}", endpoint_wallet_string));
                 sendError(message.sender);
                 return;
             }
@@ -96,9 +113,9 @@ namespace S2.Network
             if (dataRelays.ContainsKey(message.recipient))
             {
                 dataRelays[message.recipient]++;
-                if(dataRelays[message.recipient] > 3)
+                if(dataRelays[message.recipient] > Config.relayDataMessageQuota)
                 {
-                    Logging.error("Exceeded amount of unpaid relay messages.");
+                    Logging.error(string.Format("Exceeded amount of unpaid data relay messages for {0}", endpoint_wallet_string));
                     sendError(message.sender);
                     return;
                 }
