@@ -27,8 +27,10 @@ namespace DLT
             public static readonly string version = "s2-0.1.0"; // S2 Node version
             public static bool isTestNet = true; // Testnet designator
 
-
             public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
+            public static readonly int relayInfoMessageQuota = 10;  // Allow 10 info messages per 1 data message
+            public static readonly int relayDataMessageQuota = 3; // Allow up to 3 data messages before receiving a transaction signature
+
 
             public static bool isTestClient = false;
             public static string testS2Node = "";
