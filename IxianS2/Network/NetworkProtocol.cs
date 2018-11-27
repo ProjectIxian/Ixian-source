@@ -592,7 +592,10 @@ namespace DLT.Network
                                     string message = reader.ReadString();
                                     endpoint.stop();
 
-                                    Logging.error(string.Format("Disconnected with message: {0}", message));
+                                    if (message.Length > 0)
+                                        Logging.error(string.Format("Disconnected with message: {0}", message));
+                                    else
+                                        Logging.error("Disconnected");
                                 }
                             }
                         }
