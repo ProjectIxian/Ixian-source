@@ -19,12 +19,17 @@ namespace DLT
 
             public static string walletFile = "ixian.wal";
 
+            public static bool verboseConsoleOutput = false; // Flag for verbose console output
+
+            public static int maxLogSize = 50;
+            public static int maxLogCount = 10;
+
             // Store the device id in a cache for reuse in later instances
             public static string device_id = Guid.NewGuid().ToString();
             public static string externalIp = "";
 
             // Read-only values
-            public static readonly string version = "s2-0.1.0"; // S2 Node version
+            public static readonly string version = "s2-0.1.1"; // S2 Node version
             public static bool isTestNet = true; // Testnet designator
 
             public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
