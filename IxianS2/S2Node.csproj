@@ -58,6 +58,7 @@
     <Compile Include="API\APIServer.cs" />
     <Compile Include="Meta\Config.cs" />
     <Compile Include="Meta\Node.cs" />
+    <Compile Include="Meta\StatsConsoleScreen.cs" />
     <Compile Include="Network\NetworkProtocol.cs" />
     <Compile Include="Network\NetworkStreamServer.cs" />
     <Compile Include="Network\StreamMessage.cs" />

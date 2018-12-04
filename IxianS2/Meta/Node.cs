@@ -21,6 +21,8 @@ namespace DLT.Meta
 
         public static UPnP upnp;
 
+        public static StatsConsoleScreen statsConsoleScreen = null;
+
 
         public static ulong blockHeight = 0;      // Stores the last known block height 
         public static IxiNumber balance = 0;      // Stores the last known balance for this node
@@ -48,6 +50,11 @@ namespace DLT.Meta
             // Initialize the wallet state
             walletState = new WalletState();
 
+            // Setup the stats console
+            if (Config.verboseConsoleOutput == false)
+            {
+                statsConsoleScreen = new StatsConsoleScreen();
+            }
 
             // Network configuration
             upnp = new UPnP();
@@ -171,6 +178,12 @@ namespace DLT.Meta
 
             // Stop the network server
             NetworkStreamServer.stopNetworkOperations();
+
+            // Stop the console stats screen
+            if (Config.verboseConsoleOutput == false)
+            {
+                statsConsoleScreen.stop();
+            }
         }
 
         static public void reconnect()

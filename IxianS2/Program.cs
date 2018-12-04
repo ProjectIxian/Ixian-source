@@ -60,6 +60,9 @@ namespace S2
                 return;
             }
 
+            // Set the logging options
+            Logging.setOptions(Config.maxLogSize, Config.maxLogCount, Config.verboseConsoleOutput);
+
             // Log the parameters to notice any changes
             Logging.info(String.Format("Mainnet: {0}", !Config.isTestNet));
             Logging.info(String.Format("Server Port: {0}", Config.serverPort));
@@ -68,6 +71,28 @@ namespace S2
 
             // Initialize the crypto manager
             CryptoManager.initLib();
+
+/*
+            string start_string = "HELLO WORLD!";
+
+            byte[] start_bytes = Encoding.UTF8.GetBytes(start_string);
+
+            byte[] key = Crypto.sha256(Encoding.UTF8.GetBytes("HASHING"));
+
+            byte[] encrypted = CryptoManager.lib.encryptWithChacha(start_bytes, key);
+            Logging.info(string.Format("ENC LEN: {0}", encrypted.Length));
+
+            byte[] decrypted = CryptoManager.lib.decryptWithChacha(encrypted, key);
+            Logging.info(string.Format("DEC LEN: {0}", decrypted.Length));
+
+            string end_string = Encoding.UTF8.GetString(decrypted);
+            Logging.info(string.Format("End string: {0}", end_string));
+
+
+            Console.WriteLine("DONE.");
+            Console.ReadLine();
+            return;*/
+
 
             // Start the actual DLT node
             Node.start();
@@ -86,11 +111,35 @@ namespace S2
             mainLoopTimer.Elapsed += new ElapsedEventHandler(onUpdate);
             mainLoopTimer.Start();
 
-            Console.WriteLine("-----------\nPress Ctrl-C or use the /shutdown API to stop the S2 process at any time.\n");
+            //Console.WriteLine("-----------\nPress Ctrl-C or use the /shutdown API to stop the S2 process at any time.\n");
         }
 
         static void onUpdate(object source, ElapsedEventArgs e)
         {
+            if (Console.KeyAvailable)
+            {
+                ConsoleKeyInfo key = Console.ReadKey();
+
+                if (key.Key == ConsoleKey.W)
+                {
+                    string ws_checksum = Crypto.hashToString(Node.walletState.calculateWalletStateChecksum());
+                    Logging.info(String.Format("WalletState checksum: ({0} wallets, {1} snapshots) : {2}",
+                        Node.walletState.numWallets, Node.walletState.hasSnapshot, ws_checksum));
+                }
+                else if (key.Key == ConsoleKey.V)
+                {
+                    Config.verboseConsoleOutput = !Config.verboseConsoleOutput;
+                    Logging.consoleOutput = Config.verboseConsoleOutput;
+                    Console.CursorVisible = Config.verboseConsoleOutput;
+                    if (Config.verboseConsoleOutput == false)
+                        Node.statsConsoleScreen.clearScreen();
+                }
+                else if (key.Key == ConsoleKey.Escape)
+                {
+                    Environment.Exit(-1);
+                }
+
+            }
             if (Node.update() == false)
             {
                 apiServer.forceShutdown = true;

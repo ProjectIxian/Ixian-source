@@ -1,0 +1,112 @@
+﻿using DLT.Network;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace DLT.Meta
+{
+    public class StatsConsoleScreen
+    {
+        private DateTime startTime;
+
+        private Thread thread = null;
+        private bool running = false;
+
+        private int consoleWidth = 50;
+
+        public StatsConsoleScreen()
+        {
+            Console.Clear();
+
+            Console.CursorVisible = Config.verboseConsoleOutput;
+
+            // Start thread
+            running = true;
+            thread = new Thread(new ThreadStart(threadLoop));
+            thread.Start();
+
+            startTime = DateTime.Now;
+        }
+
+        // Shutdown console thread
+        public void stop()
+        {
+            running = false;
+        }
+
+        private void threadLoop()
+        {
+            while (running)
+            {
+                if (Config.verboseConsoleOutput == false)
+                    drawScreen();
+
+                Thread.Sleep(2000);
+                Thread.Yield();
+            }
+        }
+
+        public void clearScreen()
+        {
+            //Console.BackgroundColor = ConsoleColor.DarkGreen;
+            Console.Clear();
+            drawScreen();
+        }
+
+        public void drawScreen()
+        {
+            Console.SetCursorPosition(0, 0);
+
+
+
+            writeLine("  _______   _______          _   _    _____ ___  ");
+            writeLine(" |_   _\\ \\ / /_   _|   /\\   | \\ | |  / ____|__ \\ ");
+            writeLine("   | |  \\ V /  | |    /  \\  |  \\| | | (___    ) |");
+            writeLine("   | |   > <   | |   / /\\ \\ | . ` |  \\___ \\  / / ");
+            writeLine("  _| |_ / . \\ _| |_ / ____ \\| |\\  |  ____) |/ /_ ");
+            writeLine(" |_____/_/ \\_\\_____/_/    \\_\\_| \\_| |_____/|____|");
+            writeLine("\n                              {0}", Config.version);
+            writeLine("_________________________________________________\n");
+
+            writeLine(" Thank you for running an Ixian S2 node.\n For help please visit www.ixian.io");
+            writeLine("_________________________________________________\n");
+
+
+            /*
+                        if (Node.serverStarted == false)
+                        {
+                            return;
+                        }*/
+
+            // Node status
+            string dltStatus = "active       ";
+
+            int connectionsIn = NetworkServer.getConnectedClients().Count();
+            int connectionsOut = NetworkClientManager.getConnectedClients().Count();
+            if (connectionsIn + connectionsOut < 1)
+                dltStatus = "connecting   ";
+
+
+            writeLine("\tStatus:\t\t{0}\n", dltStatus);
+            writeLine("\tConnections (I/O):\t{0}", connectionsIn + "/" + connectionsOut);
+            writeLine("\tPresences:\t\t{0}", PresenceList.getTotalPresences());
+
+            writeLine("_________________________________________________");
+
+            TimeSpan elapsed = DateTime.Now - startTime;
+
+            writeLine(" Running for {0} days {1}h {2}m {3}s", elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
+            writeLine("");
+            writeLine(" Press V to toggle stats. Ctrl-C to exit.");
+
+        }
+
+        private void writeLine(string str, params object[] arguments)
+        {
+            Console.WriteLine(string.Format(str, arguments).PadRight(consoleWidth));
+        }
+    }
+}
