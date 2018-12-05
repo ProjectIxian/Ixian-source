@@ -539,16 +539,19 @@ namespace DLT.Network
                                 {
                                     int walletLen = reader.ReadInt32();
                                     byte[] wallet = reader.ReadBytes(walletLen);
-                                    // TODO re-verify this
-                                    Presence p = PresenceList.presences.Find(x => x.wallet.SequenceEqual(wallet));
-                                    if (p != null)
+                                    lock(PresenceList.presences)
                                     {
-                                        endpoint.sendData(ProtocolMessageCode.updatePresence, p.getBytes());
-                                    }
-                                    else
-                                    {
-                                        // TODO blacklisting point
-                                        Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", Base58Check.Base58CheckEncoding.EncodePlain(wallet)));
+                                        // TODO re-verify this
+                                        Presence p = PresenceList.presences.Find(x => x.wallet.SequenceEqual(wallet));
+                                        if (p != null)
+                                        {
+                                            endpoint.sendData(ProtocolMessageCode.updatePresence, p.getBytes());
+                                        }
+                                        else
+                                        {
+                                            // TODO blacklisting point
+                                            Logging.warn(string.Format("Node has requested presence information about {0} that is not in our PL.", Base58Check.Base58CheckEncoding.EncodePlain(wallet)));
+                                        }
                                     }
                                 }
                             }
