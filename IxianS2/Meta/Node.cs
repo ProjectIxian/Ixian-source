@@ -32,9 +32,12 @@ namespace DLT.Meta
         // Private data
         private static Thread keepAliveThread;
         private static bool autoKeepalive = false;
+
+        private static Thread cleanupThread;
+
         public static bool running = false;
 
-        static public void start()
+        static public void start(bool verboseConsoleOutput)
         {
             running = true;
 
@@ -51,7 +54,7 @@ namespace DLT.Meta
             walletState = new WalletState();
 
             // Setup the stats console
-            if (Config.verboseConsoleOutput == false)
+            if (verboseConsoleOutput == false)
             {
                 statsConsoleScreen = new StatsConsoleScreen();
             }
@@ -96,7 +99,7 @@ namespace DLT.Meta
                             Logging.info(String.Format("UPNP-determined public IP: {0}. Attempting to configure a port-forwarding rule.", public_ip.ToString()));
                             if (upnp.MapPublicPort(Config.serverPort, primary_local))
                             {
-                                Config.publicServerIP = upnp.getMappedIP();
+                                Config.publicServerIP = public_ip.ToString();
                                 Logging.info(string.Format("Network configured. Public IP is: {0}", Config.publicServerIP));
                             }
                             else
@@ -115,8 +118,17 @@ namespace DLT.Meta
             // Start the network queue
             NetworkQueue.start();
 
+            // Prepare stats screen
+            Config.verboseConsoleOutput = verboseConsoleOutput;
+            Logging.consoleOutput = verboseConsoleOutput;
+            Logging.flush();
+            if (Config.verboseConsoleOutput == false)
+            {
+                statsConsoleScreen.clearScreen();
+            }
+
             // Check for test client mode
-            if(Config.isTestClient)
+            if (Config.isTestClient)
             {
                 TestClientNode.start();
                 return;
@@ -132,15 +144,14 @@ namespace DLT.Meta
             autoKeepalive = true;
             keepAliveThread = new Thread(keepAlive);
             keepAliveThread.Start();
+
+            // Start the cleanup thread
+            cleanupThread = new Thread(performCleanup);
+            cleanupThread.Start();
         }
 
         static public bool update()
         {
-
-            // Cleanup the presence list
-            // TODO: optimize this by using a different thread perhaps
-            PresenceList.performCleanup();
-
             // Update the stream processor
             StreamProcessor.update();
 
@@ -161,6 +172,12 @@ namespace DLT.Meta
             {
                 keepAliveThread.Abort();
                 keepAliveThread = null;
+            }
+
+            if (cleanupThread != null)
+            {
+                cleanupThread.Abort();
+                cleanupThread = null;
             }
 
             // Stop the network queue
@@ -301,6 +318,19 @@ namespace DLT.Meta
 
             Logging.info("Cleaned cache and logs.");
             return true;
+        }
+
+        // Perform periodic cleanup tasks
+        private static void performCleanup()
+        {
+            while (running)
+            {
+                // Sleep a while to prevent cpu usage
+                Thread.Sleep(1000);
+
+                // Cleanup the presence list
+                PresenceList.performCleanup();
+            }
         }
 
         // Sends perioding keepalive network messages

@@ -42,14 +42,14 @@ namespace S2
             }
             onStop();
 
-            Logging.info(string.Format("IXIAN S2 Node {0} stopped", Config.version));
-            Console.ReadKey();
-            Console.WriteLine("\nClosing network connections, please wait...\n");
         }
 
         static void onStart(string[] args)
         {
-            Logging.info(string.Format("IXIAN S2 Node {0} started", Config.version));
+            bool verboseConsoleOutputSetting = Config.verboseConsoleOutput;
+            Config.verboseConsoleOutput = true;
+
+            Console.WriteLine(string.Format("IXIAN S2 {0}", Config.version));
 
             // Read configuration from command line
             Config.readFromCommandLine(args);
@@ -61,7 +61,9 @@ namespace S2
             }
 
             // Set the logging options
-            Logging.setOptions(Config.maxLogSize, Config.maxLogCount, Config.verboseConsoleOutput);
+            Logging.setOptions(Config.maxLogSize, Config.maxLogCount);
+
+            Logging.info(string.Format("Starting IXIAN S2 {0}", Config.version));
 
             // Log the parameters to notice any changes
             Logging.info(String.Format("Mainnet: {0}", !Config.isTestNet));
@@ -72,30 +74,8 @@ namespace S2
             // Initialize the crypto manager
             CryptoManager.initLib();
 
-/*
-            string start_string = "HELLO WORLD!";
-
-            byte[] start_bytes = Encoding.UTF8.GetBytes(start_string);
-
-            byte[] key = Crypto.sha256(Encoding.UTF8.GetBytes("HASHING"));
-
-            byte[] encrypted = CryptoManager.lib.encryptWithChacha(start_bytes, key);
-            Logging.info(string.Format("ENC LEN: {0}", encrypted.Length));
-
-            byte[] decrypted = CryptoManager.lib.decryptWithChacha(encrypted, key);
-            Logging.info(string.Format("DEC LEN: {0}", decrypted.Length));
-
-            string end_string = Encoding.UTF8.GetString(decrypted);
-            Logging.info(string.Format("End string: {0}", end_string));
-
-
-            Console.WriteLine("DONE.");
-            Console.ReadLine();
-            return;*/
-
-
             // Start the actual DLT node
-            Node.start();
+            Node.start(verboseConsoleOutputSetting);
 
             if (noStart)
             {
@@ -107,11 +87,12 @@ namespace S2
             apiServer = new APIServer();
 
             // Setup a timer to handle routine updates
-            mainLoopTimer = new System.Timers.Timer(500);
+            mainLoopTimer = new System.Timers.Timer(1000);
             mainLoopTimer.Elapsed += new ElapsedEventHandler(onUpdate);
             mainLoopTimer.Start();
 
-            //Console.WriteLine("-----------\nPress Ctrl-C or use the /shutdown API to stop the S2 process at any time.\n");
+            if (Config.verboseConsoleOutput)
+                Console.WriteLine("-----------\nPress Ctrl-C or use the /shutdown API to stop the S2 process at any time.\n");
         }
 
         static void onUpdate(object source, ElapsedEventArgs e)
@@ -136,6 +117,7 @@ namespace S2
                 }
                 else if (key.Key == ConsoleKey.Escape)
                 {
+                    Node.stop();
                     Environment.Exit(-1);
                 }
 
