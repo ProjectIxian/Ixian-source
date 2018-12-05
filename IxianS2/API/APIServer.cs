@@ -91,7 +91,7 @@ namespace S2
                     netType = "testnet";
                 }
                 networkArray.Add("Network type", netType);
-                networkArray.Add("My time", Clock.getTimestamp(DateTime.Now));
+                networkArray.Add("My time", Clock.getTimestamp());
                 networkArray.Add("Network time difference", Core.networkTimeDifference);
                 networkArray.Add("My External IP", Config.publicServerIP);
 
