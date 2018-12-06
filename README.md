@@ -77,11 +77,11 @@ Next you'll need to build the Ixian solution. You can do this by typing the foll
 git clone -b master-mainnet https://github.com/ProjectIxian/Ixian-source.git
 cd Ixian-source/IxianDLT
 nuget restore DLTNode.sln
-msbuild DLTNode.sln
+msbuild DLTNode.sln /p:Configuration=Release
 ```
-The IxianDLT will be compiled and placed in the bin/Debug/ folder.
+The IxianDLT will be compiled and placed in the bin/Release/ folder.
 
-For the IxianDLT node to work correctly, you'll need to copy the libargon2.so shared library in the bin/Debug/ folder. 
+For the IxianDLT node to work correctly, you'll need to copy the libargon2.so shared library in the bin/Release/ folder. 
 You can use the library provided in the latest Ixian Binary release.
 
 
