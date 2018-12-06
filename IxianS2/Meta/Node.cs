@@ -33,7 +33,7 @@ namespace DLT.Meta
         private static Thread keepAliveThread;
         private static bool autoKeepalive = false;
 
-        private static Thread cleanupThread;
+        private static Thread maintenanceThread;
 
         public static bool running = false;
 
@@ -145,9 +145,9 @@ namespace DLT.Meta
             keepAliveThread = new Thread(keepAlive);
             keepAliveThread.Start();
 
-            // Start the cleanup thread
-            cleanupThread = new Thread(performCleanup);
-            cleanupThread.Start();
+            // Start the maintenance thread
+            maintenanceThread = new Thread(performMaintenance);
+            maintenanceThread.Start();
         }
 
         static public bool update()
@@ -174,10 +174,10 @@ namespace DLT.Meta
                 keepAliveThread = null;
             }
 
-            if (cleanupThread != null)
+            if (maintenanceThread != null)
             {
-                cleanupThread.Abort();
-                cleanupThread = null;
+                maintenanceThread.Abort();
+                maintenanceThread = null;
             }
 
             // Stop the network queue
@@ -321,7 +321,7 @@ namespace DLT.Meta
         }
 
         // Perform periodic cleanup tasks
-        private static void performCleanup()
+        private static void performMaintenance()
         {
             while (running)
             {
