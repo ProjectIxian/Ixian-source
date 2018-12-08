@@ -46,3 +46,4 @@ Debug
 *.DS_Store
 /SPIXI/SPIXI/SPIXI.Android/SPIXI.Droid.csproj.user
 /SPIXI/packages
+/SPIXI/SPIXI/SPIXI.WPF/bin
