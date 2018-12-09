@@ -33,8 +33,11 @@ namespace DLT
             public static bool isTestNet = true; // Testnet designator
 
             public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
-            public static readonly int relayInfoMessageQuota = 10;  // Allow 10 info messages per 1 data message
-            public static readonly int relayDataMessageQuota = 3; // Allow up to 3 data messages before receiving a transaction signature
+
+            // Quotas
+            public static readonly long lastPaidTimeQuota = 10 * 60; // Allow 10 minutes after payment before checking quotas
+            public static readonly int infoMessageQuota = 10;  // Allow 10 info messages per 1 data message
+            public static readonly int dataMessageQuota = 3; // Allow up to 3 data messages before receiving a transaction signature
 
 
             public static bool isTestClient = false;

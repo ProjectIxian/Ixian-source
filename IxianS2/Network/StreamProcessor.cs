@@ -40,8 +40,6 @@ namespace S2.Network
         static List<StreamMessage> messages = new List<StreamMessage>(); // List that stores stream messages
         static List<StreamTransaction> transactions = new List<StreamTransaction>(); // List that stores stream transactions
 
-        static Dictionary<byte[], int> dataRelays = new Dictionary<byte[], int>();
-        static Dictionary<byte[], int> infoRelays = new Dictionary<byte[], int>();
 
         // Called when receiving S2 data from clients
         public static void receiveData(byte[] bytes, RemoteEndpoint endpoint)
@@ -58,94 +56,90 @@ namespace S2.Network
                 return;
             }
 
+            // TODO: commented for development purposes ONLY!
+            /*if (QuotaManager.exceededQuota(endpoint.presence.wallet))
+            {
+                Logging.error(string.Format("Exceeded quota of info relay messages for {0}", endpoint_wallet_string));
+                sendError(endpoint.presence.wallet);
+                return;
+            }*/
+
+            bool data_message = false;
+            if (message.type == StreamMessageCode.data)
+                data_message = true;
+
+            QuotaManager.addActivity(endpoint.presence.wallet, data_message);
+
             // Relay certain messages without transaction
-            // TODO: always true for development purposes ONLY!
-            //if(message.type == StreamMessageCode.info)
-            {
-                // Update the recipient dictionary
-                /*if (infoRelays.ContainsKey(endpoint.presence.wallet))
-                {
-                    infoRelays[endpoint.presence.wallet]++;
-                    if (infoRelays[endpoint.presence.wallet] > Config.relayInfoMessageQuota)
-                    {
-                        Logging.error(string.Format("Exceeded quota of info relay messages for {0}", endpoint_wallet_string));
-                        sendError(endpoint.presence.wallet);
-                        return;
-                    }
-                }
-                else
-                {
-                    infoRelays.Add(endpoint.presence.wallet, 1);
-                }*/
+            NetworkStreamServer.forwardMessage(message.recipient, ProtocolMessageCode.s2data, bytes);
 
-                NetworkStreamServer.forwardMessage(message.recipient, DLT.Network.ProtocolMessageCode.s2data, bytes);
-                return;
-            }
+            // TODO: commented for development purposes ONLY!
+            /*
+                        // Extract the transaction
+                        Transaction transaction = new Transaction(message.transaction);
 
-            // Extract the transaction
-            Transaction transaction = new Transaction(message.transaction);
+                        // Validate transaction sender
+                        if(transaction.from.SequenceEqual(message.sender) == false)
+                        {
+                            Logging.error(string.Format("Relayed message transaction mismatch for {0}", endpoint_wallet_string));
+                            sendError(message.sender);
+                            return;
+                        }
 
-            // Validate transaction sender
-            if(transaction.from.SequenceEqual(message.sender) == false)
-            {
-                Logging.error(string.Format("Relayed message transaction mismatch for {0}", endpoint_wallet_string));
-                sendError(message.sender);
-                return;
-            }
+                        // Validate transaction amount and fee
+                        if(transaction.amount < CoreConfig.relayPriceInitial || transaction.fee < CoreConfig.transactionPrice)
+                        {
+                            Logging.error(string.Format("Relayed message transaction amount too low for {0}", endpoint_wallet_string));
+                            sendError(message.sender);
+                            return;
+                        }
 
-            // Validate transaction amount and fee
-            if(transaction.amount < CoreConfig.relayPriceInitial || transaction.fee < CoreConfig.transactionPrice)
-            {
-                Logging.error(string.Format("Relayed message transaction amount too low for {0}", endpoint_wallet_string));
-                sendError(message.sender);
-                return;
-            }
+                        // Validate transaction receiver
+                        if (transaction.toList.Keys.First().SequenceEqual(Node.walletStorage.address) == false)
+                        {
+                            Logging.error("Relayed message transaction receiver is not this S2 node");
+                            sendError(message.sender);
+                            return;
+                        }
 
-            // Validate transaction receiver
-            if (transaction.toList.Keys.First().SequenceEqual(Node.walletStorage.address) == false)
-            {
-                Logging.error("Relayed message transaction receiver is not this S2 node");
-                sendError(message.sender);
-                return;
-            }
-
-            // Update the recipient dictionary
-            if (dataRelays.ContainsKey(message.recipient))
-            {
-                dataRelays[message.recipient]++;
-                if(dataRelays[message.recipient] > Config.relayDataMessageQuota)
-                {
-                    Logging.error(string.Format("Exceeded amount of unpaid data relay messages for {0}", endpoint_wallet_string));
-                    sendError(message.sender);
-                    return;
-                }
-            }
-            else
-            {
-                dataRelays.Add(message.recipient, 1);
-            }
+                        // Update the recipient dictionary
+                        if (dataRelays.ContainsKey(message.recipient))
+                        {
+                            dataRelays[message.recipient]++;
+                            if(dataRelays[message.recipient] > Config.relayDataMessageQuota)
+                            {
+                                Logging.error(string.Format("Exceeded amount of unpaid data relay messages for {0}", endpoint_wallet_string));
+                                sendError(message.sender);
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            dataRelays.Add(message.recipient, 1);
+                        }
 
 
-            // Store the transaction
-            StreamTransaction streamTransaction = new StreamTransaction();
-            streamTransaction.messageID = message.getID();
-            streamTransaction.transaction = transaction;
-            lock (transactions)
-            {
-                transactions.Add(streamTransaction);
-            }
+                        // Store the transaction
+                        StreamTransaction streamTransaction = new StreamTransaction();
+                        streamTransaction.messageID = message.getID();
+                        streamTransaction.transaction = transaction;
+                        lock (transactions)
+                        {
+                            transactions.Add(streamTransaction);
+                        }
 
-            // For testing purposes, allow the S2 node to receive relay data itself
-            if (message.recipient.SequenceEqual(Node.walletStorage.getWalletAddress()))
-            {               
-                string test = Encoding.UTF8.GetString(message.data);
-                Logging.info(test);
+                        // For testing purposes, allow the S2 node to receive relay data itself
+                        if (message.recipient.SequenceEqual(Node.walletStorage.getWalletAddress()))
+                        {               
+                            string test = Encoding.UTF8.GetString(message.data);
+                            Logging.info(test);
 
-                return;
-            }
+                            return;
+                        }
 
-            Logging.info("NET: Forwarding S2 data");
-            NetworkStreamServer.forwardMessage(message.recipient, DLT.Network.ProtocolMessageCode.s2data, bytes);           
+                        Logging.info("NET: Forwarding S2 data");
+                        NetworkStreamServer.forwardMessage(message.recipient, DLT.Network.ProtocolMessageCode.s2data, bytes);      
+                        */
         }
 
         // Called when receiving a transaction signature from a client
