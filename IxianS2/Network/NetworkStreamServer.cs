@@ -4,7 +4,6 @@ using DLT.Network;
 using IXICore;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -310,23 +309,35 @@ namespace S2.Network
 
         // Send data to all connected clients
         // Returns true if the data was sent to at least one client
-        public static bool broadcastData(ProtocolMessageCode code, byte[] data, RemoteEndpoint skipEndpoint = null)
+        public static bool broadcastData(char[] types, ProtocolMessageCode code, byte[] data, RemoteEndpoint skipEndpoint = null)
         {
             bool result = false;
             lock (connectedClients)
             {
                 foreach (RemoteEndpoint endpoint in connectedClients)
                 {
-                    // TODO: filter messages based on presence node type
                     if (skipEndpoint != null)
                     {
                         if (endpoint == skipEndpoint)
                             continue;
                     }
 
+                    if (!endpoint.isConnected())
+                    {
+                        continue;
+                    }
+
                     if (endpoint.helloReceived == false)
                     {
                         continue;
+                    }
+
+                    if (types != null)
+                    {
+                        if (endpoint.presenceAddress == null || !types.Contains(endpoint.presenceAddress.type))
+                        {
+                            continue;
+                        }
                     }
 
                     endpoint.sendData(code, data);

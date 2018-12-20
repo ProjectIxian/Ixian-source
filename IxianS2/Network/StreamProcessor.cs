@@ -179,7 +179,7 @@ namespace S2.Network
                         if (transaction.verifySignature(transaction.pubKey))
                         {
                             // Broadcast the transaction
-                            ProtocolMessage.broadcastProtocolMessage(ProtocolMessageCode.newTransaction, transaction.getBytes(), endpoint, false);
+                            ProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, transaction.getBytes(), endpoint);
                         }
                         return;
                                                  

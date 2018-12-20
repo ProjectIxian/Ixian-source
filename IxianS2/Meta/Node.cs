@@ -383,7 +383,7 @@ namespace DLT.Meta
                         // Update self presence
                         PresenceList.receiveKeepAlive(m.ToArray());
                         // Send this keepalive message to all connected clients
-                        ProtocolMessage.broadcastProtocolMessage(ProtocolMessageCode.keepAlivePresence, m.ToArray());
+                        ProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'R', 'H' }, ProtocolMessageCode.keepAlivePresence, m.ToArray());
                     }
                 }
                 catch (Exception ex)

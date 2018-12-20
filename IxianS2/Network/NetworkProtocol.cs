@@ -1,17 +1,11 @@
-﻿using DLT;
-using DLT.Meta;
-using DLT.Network;
+﻿using DLT.Meta;
 using IXICore;
 using S2;
 using S2.Network;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace DLT.Network
 {
@@ -20,49 +14,19 @@ namespace DLT.Network
 
         // Broadcast a protocol message across clients and nodes
         // Returns true if it sent the message at least one endpoint. Returns false if the message couldn't be sent to any endpoints
-        public static bool broadcastProtocolMessage(ProtocolMessageCode code, byte[] data, RemoteEndpoint skipEndpoint = null, bool sendToSingleRandomNode = false)
+        public static bool broadcastProtocolMessage(char[] types, ProtocolMessageCode code, byte[] data, RemoteEndpoint skipEndpoint = null)
         {
             if (data == null)
             {
                 Logging.warn(string.Format("Invalid protocol message data for {0}", code));
                 return false;
             }
+            
+            bool c_result = NetworkClientManager.broadcastData(types, code, data, skipEndpoint);
+            bool s_result = NetworkStreamServer.broadcastData(types, code, data, skipEndpoint);
 
-            if (sendToSingleRandomNode)
-            {
-                int serverCount = NetworkClientManager.getConnectedClients().Count();
-                int clientCount = 0;// NetworkStreamServer.getConnectedClients().Count();
-
-                Random r = new Random();
-                int rIdx = r.Next(serverCount + clientCount);
-
-                RemoteEndpoint re = null;
-
-                if (rIdx < serverCount)
-                {
-                    re = NetworkClientManager.getClient(rIdx);
-                }
-                else
-                {
-             //       re = NetworkStreamServer.getClient(rIdx - serverCount);
-                }
-                if (re != null && re.isConnected())
-                {
-                    re.sendData(code, data);
-                    return true;
-                }
+            if (!c_result && !s_result)
                 return false;
-            }
-            else
-            {
-                bool c_result = NetworkClientManager.broadcastData(code, data, skipEndpoint);
-                bool s_result = NetworkStreamServer.broadcastData(code, data, skipEndpoint);
-
-                if (!c_result && !s_result)
-                    return false;
-            }
-
-
 
             return true;
         }
@@ -492,7 +456,7 @@ namespace DLT.Network
                     case ProtocolMessageCode.newTransaction:
                         {
                             // Forward the new transaction message to the DLT network
-                            broadcastProtocolMessage(ProtocolMessageCode.newTransaction, data);
+                            broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, data);
                         }
                         break;
 
@@ -525,7 +489,7 @@ namespace DLT.Network
                             // If a presence entry was updated, broadcast this message again
                             if (updated)
                             {
-                                broadcastProtocolMessage(ProtocolMessageCode.keepAlivePresence, data, endpoint);
+                                broadcastProtocolMessage(new char[] { 'M', 'R', 'H' }, ProtocolMessageCode.keepAlivePresence, data, endpoint);
                             }
 
                         }
