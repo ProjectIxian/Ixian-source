@@ -568,19 +568,6 @@ namespace DLT.Network
                         }
                         break;
 
-                    case ProtocolMessageCode.ping:
-                        {
-                            endpoint.sendData(ProtocolMessageCode.pong, new byte[1]);
-                        }
-                        break;
-
-                    case ProtocolMessageCode.pong:
-                        {
-                            // do nothing
-                        }
-                        break;
-
-
                     case ProtocolMessageCode.extend:
                         {
                             if(Config.isTestClient)
