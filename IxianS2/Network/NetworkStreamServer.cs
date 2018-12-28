@@ -347,6 +347,46 @@ namespace S2.Network
             return result;
         }
 
+        // Sends event data to all subscribed clients
+        public static bool broadcastEventData(ProtocolMessageCode code, byte[] data, byte[] address, RemoteEndpoint skipEndpoint = null)
+        {
+            bool result = false;
+            lock (connectedClients)
+            {
+                foreach (RemoteEndpoint endpoint in connectedClients)
+                {
+                    if (skipEndpoint != null)
+                    {
+                        if (endpoint == skipEndpoint)
+                            continue;
+                    }
+
+                    if (!endpoint.isConnected())
+                    {
+                        continue;
+                    }
+
+                    if (endpoint.helloReceived == false)
+                    {
+                        continue;
+                    }
+
+                    if (endpoint.presenceAddress == null || endpoint.presenceAddress.type != 'C')
+                    {
+                        continue;
+                    }
+
+                    // Finally, check if the endpoint is subscribed to this event and address
+                    if (endpoint.isSubscribedToEvent((int)code, address))
+                    {
+                        endpoint.sendData(code, data);
+                        result = true;
+                    }
+                }
+            }
+            return result;
+        }
+
         // Sends data to a stream client
         public static void sendData(StreamClient client, ProtocolMessageCode code, byte[] data)
         {

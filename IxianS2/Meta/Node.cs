@@ -380,10 +380,12 @@ namespace DLT.Meta
                         }
 
 
+                        byte[] address = null;
                         // Update self presence
-                        PresenceList.receiveKeepAlive(m.ToArray());
+                        PresenceList.receiveKeepAlive(m.ToArray(), out address);
+
                         // Send this keepalive message to all connected clients
-                        ProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'R', 'H' }, ProtocolMessageCode.keepAlivePresence, m.ToArray());
+                        ProtocolMessage.broadcastEventBasedMessage(ProtocolMessageCode.keepAlivePresence, m.ToArray(), address);
                     }
                 }
                 catch (Exception ex)
