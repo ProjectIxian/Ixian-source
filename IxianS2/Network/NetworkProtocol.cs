@@ -31,6 +31,22 @@ namespace DLT.Network
             return true;
         }
 
+        // Broadcast an event-specific protocol message across clients and nodes
+        // Returns true if it sent the message at least one endpoint. Returns false if the message couldn't be sent to any endpoints
+        public static bool broadcastEventBasedMessage(ProtocolMessageCode code, byte[] data, byte[] address, RemoteEndpoint skipEndpoint = null)
+        {
+            // Broadcast the event to all non-C nodes
+            bool b_result = broadcastProtocolMessage(new char[] { 'M', 'R', 'H', 'W' }, code, data, skipEndpoint);
+
+            // Now send it to subscribed C nodes
+            bool f_result = NetworkStreamServer.broadcastEventData(code, data, address, skipEndpoint);
+
+            if (!b_result && !f_result)
+                return false;
+
+            return true;
+        }
+
 
         public static bool processHelloMessage(RemoteEndpoint endpoint, BinaryReader reader)
         {
@@ -485,11 +501,13 @@ namespace DLT.Network
 
                     case ProtocolMessageCode.keepAlivePresence:
                         {
-                            bool updated = PresenceList.receiveKeepAlive(data);
+                            byte[] address = null;
+                            bool updated = PresenceList.receiveKeepAlive(data, out address);
+
                             // If a presence entry was updated, broadcast this message again
                             if (updated)
                             {
-                                broadcastProtocolMessage(new char[] { 'M', 'R', 'H' }, ProtocolMessageCode.keepAlivePresence, data, endpoint);
+                                broadcastEventBasedMessage(ProtocolMessageCode.keepAlivePresence, data, address, endpoint);
                             }
 
                         }
