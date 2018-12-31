@@ -32,8 +32,8 @@ namespace S2
             {
                 using (BinaryWriter writer = new BinaryWriter(mw))
                 {
-                    writer.Write(Node.walletStorage.address.Length);
-                    writer.Write(Node.walletStorage.address);
+                    writer.Write(Node.walletStorage.getPrimaryAddress().Length);
+                    writer.Write(Node.walletStorage.getPrimaryAddress());
                     NetworkClientManager.broadcastData(new char[]{ 'M', 'R' }, ProtocolMessageCode.getBalance, mw.ToArray());
                 }
             }
@@ -105,17 +105,16 @@ namespace S2
             Transaction transaction = new Transaction((int)Transaction.Type.Normal);
             transaction.amount = CoreConfig.relayPriceInitial;
             transaction.toList.Add(friend.relayWallet, transaction.amount);
-            transaction.from = Node.walletStorage.address;
+            transaction.from = Node.walletStorage.getPrimaryAddress();
             transaction.fee = CoreConfig.transactionPrice;
             transaction.blockHeight = Node.blockHeight;
-            transaction.pubKey = Node.walletStorage.publicKey; // TODO: check if it's in the walletstate already
+            transaction.pubKey = Node.walletStorage.getPrimaryPublicKey(); // TODO: check if it's in the walletstate already
             transaction.checksum = Transaction.calculateChecksum(transaction);
-
 
             // Prepare the stream message
             StreamMessage message = new StreamMessage();
             message.recipient = friend.walletAddress;
-            message.sender = Node.walletStorage.getWalletAddress();
+            message.sender = Node.walletStorage.getPrimaryAddress();
             message.transaction = transaction.getBytes();
 
 
@@ -124,7 +123,7 @@ namespace S2
             message.encryptMessage(text_message, friend.aesPassword, friend.chachaKey);
 
             // Encrypt the transaction signature
-            byte[] tx_signature = Transaction.getSignature(transaction.checksum);
+            byte[] tx_signature = transaction.getSignature(transaction.checksum);
             message.encryptSignature(tx_signature, friend.aesPassword, friend.chachaKey);
 
             stream_client.sendData(ProtocolMessageCode.s2data, message.getBytes());

@@ -43,7 +43,7 @@ namespace DLT.Meta
 
             // Load or Generate the wallet
             walletStorage = new WalletStorage(Config.walletFile);
-            if (walletStorage.publicKey == null)
+            if (walletStorage.getPrimaryPublicKey() == null)
             {
                 running = false;
                 S2.Program.noStart = true;
@@ -359,7 +359,7 @@ namespace DLT.Meta
                         {
                             writer.Write(keepAliveVersion);
 
-                            byte[] wallet = walletStorage.address;
+                            byte[] wallet = walletStorage.getPrimaryAddress();
                             writer.Write(wallet.Length);
                             writer.Write(wallet);
                             writer.Write(Config.device_id);
@@ -371,7 +371,7 @@ namespace DLT.Meta
                             writer.Write(hostname);
 
                             // Add a verifiable signature
-                            byte[] private_key = walletStorage.privateKey;
+                            byte[] private_key = walletStorage.getPrimaryPrivateKey();
                             byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + Config.device_id + "-" + timestamp + "-" + hostname), private_key);
                             writer.Write(signature.Length);
                             writer.Write(signature);
