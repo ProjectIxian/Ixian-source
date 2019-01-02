@@ -1,0 +1,2045 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt">
+      <UniqueIdentifier>{23f1acdc-87a7-427c-84fe-058b27ea68e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\libtomcrypt">
+      <UniqueIdentifier>{540a8916-41dc-44f5-a94b-95ea9789d79a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\ciphers">
+      <UniqueIdentifier>{4c53b8e9-d9ad-4a3a-8e70-d77925682e71}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\encauth">
+      <UniqueIdentifier>{d1c821f4-67cb-4428-be86-ec32a7700d15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\hashes">
+      <UniqueIdentifier>{fb23d004-4bd1-4603-a173-493d43b068e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac">
+      <UniqueIdentifier>{43cb52f8-495c-4957-986b-88c4ad81c757}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\math">
+      <UniqueIdentifier>{85447e4e-50f9-4965-a68b-cc0ccca303f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc">
+      <UniqueIdentifier>{8b616584-dcc5-41fb-bfbe-499eb3f1fb95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes">
+      <UniqueIdentifier>{258144fa-adfc-4d36-aeec-65a4ac02d887}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\prngs">
+      <UniqueIdentifier>{02610940-afba-476e-9574-c4cf27d43d5a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk">
+      <UniqueIdentifier>{552f18da-4bb9-4039-92e9-f0fab3645caf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\stream">
+      <UniqueIdentifier>{d6da4a16-a6e9-47fe-a6db-6a74f47ea3ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\ciphers\aes">
+      <UniqueIdentifier>{52f9e27b-179e-4d66-9d32-3e245af0877a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\ciphers\safer">
+      <UniqueIdentifier>{b901ae39-dea9-4722-9ab7-6befd70e830d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\ciphers\twofish">
+      <UniqueIdentifier>{6490d46f-3b50-42b9-a4ce-3cd032acd0e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\encauth\ccm">
+      <UniqueIdentifier>{2e729be2-59d1-446b-b4d6-936b8285184e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\encauth\chachapoly">
+      <UniqueIdentifier>{bfb7ddd2-9b7f-4bde-b283-7e5693354788}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\encauth\eax">
+      <UniqueIdentifier>{25bf2d62-e1ca-4c53-8326-3abc4158ac99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\encauth\gcm">
+      <UniqueIdentifier>{47f7a0a4-a694-444d-9290-b049a3d6df88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\encauth\ocb">
+      <UniqueIdentifier>{de52ea86-6b45-4aa8-814e-7f1a317de066}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\encauth\ocb3">
+      <UniqueIdentifier>{a8fe0721-d0d7-438d-b38b-df7081fa8c5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\hashes\chc">
+      <UniqueIdentifier>{647e632f-8e06-45d4-b24a-70ede1cde847}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\hashes\helper">
+      <UniqueIdentifier>{8b63b2b1-370d-4887-b9d2-2cbeef811461}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\hashes\sha2">
+      <UniqueIdentifier>{861813ab-c85d-448b-924f-4653ca907b62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\hashes\whirl">
+      <UniqueIdentifier>{ae8f3fdf-7c4d-45f4-b222-186fb1341be2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\blake2">
+      <UniqueIdentifier>{7e034309-456e-40ee-bc29-a8d40cd79a1c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\f9">
+      <UniqueIdentifier>{fbfbd4b6-a8b6-4398-988d-454c8adc0089}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\hmac">
+      <UniqueIdentifier>{55ecc876-05ef-4dc7-9c96-861cb445ff97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\omac">
+      <UniqueIdentifier>{d13a6e49-f789-4328-8f9c-cd4662f784d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\pelican">
+      <UniqueIdentifier>{9587b950-af2c-452d-8e8d-754d2c5d3beb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\pmac">
+      <UniqueIdentifier>{883e029a-3c0b-4133-84be-b67bfe00fb6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\poly1305">
+      <UniqueIdentifier>{93507a99-768f-4e7b-ae79-182f3d2cc76a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\mac\xcbc">
+      <UniqueIdentifier>{4d2837f7-88f6-4b6c-873a-381000986100}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\math\fp">
+      <UniqueIdentifier>{4f1e26ac-461b-4a61-940f-6c89e0242496}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\base16">
+      <UniqueIdentifier>{1a6aefbb-aa64-4417-b837-c188ba597dab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\base32">
+      <UniqueIdentifier>{49abf66c-82e9-49ef-be61-9db6fa138c55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\base64">
+      <UniqueIdentifier>{bb18bbb5-449d-4905-be87-d167488b1221}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\crypt">
+      <UniqueIdentifier>{53c00ff0-3a23-4ef8-aa69-ee61a61cecb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\hkdf">
+      <UniqueIdentifier>{4efb16ea-359d-4c34-9bc3-f28cc534944e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\padding">
+      <UniqueIdentifier>{6a7fa5d5-66d3-452d-8adf-9d474a63753a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\pbes">
+      <UniqueIdentifier>{3cf7f384-3d4c-4515-8596-440d3dee00e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\pkcs12">
+      <UniqueIdentifier>{d89321a0-c817-44fb-b7cc-23c27da53ef6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\pkcs5">
+      <UniqueIdentifier>{b249e861-5df2-41f1-b023-d1dfb7afb742}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\misc\ssh">
+      <UniqueIdentifier>{17751e79-c560-4b84-881c-5e19a9ffa431}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\cbc">
+      <UniqueIdentifier>{831289d8-daf1-4dbf-a48e-755a67efe006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\cfb">
+      <UniqueIdentifier>{a7546516-5400-4ec7-b3ab-6ba973197697}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\ctr">
+      <UniqueIdentifier>{49eb7477-856c-4273-b747-d7c112d82b16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\ecb">
+      <UniqueIdentifier>{70e335e9-ecb6-43ef-b71b-df0931f3671b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\f8">
+      <UniqueIdentifier>{6d8ae1ae-6007-472e-9cf5-156e6105da8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\lrw">
+      <UniqueIdentifier>{e48b06b3-5fa6-4da6-b9ff-d88775a0556b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\ofb">
+      <UniqueIdentifier>{6ed91cd9-68a2-4274-afd5-6b08d040b3a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\modes\xts">
+      <UniqueIdentifier>{7428c7bd-a3d3-4388-85bc-3380a45502bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1">
+      <UniqueIdentifier>{217f517e-0aab-48fb-8d17-311a1db251f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\dh">
+      <UniqueIdentifier>{44507afd-602a-4fc3-b85f-455e5a3b596f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\dsa">
+      <UniqueIdentifier>{225bb2b2-b202-4969-9b27-249ce448704c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\ecc">
+      <UniqueIdentifier>{7fd81db5-87ca-4c1a-9efa-15a491d68258}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\pkcs1">
+      <UniqueIdentifier>{eca4b928-9b31-487e-a0fa-d8010559ab5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\rsa">
+      <UniqueIdentifier>{7f3f0a8a-46a6-4bcd-a7f9-65939455e34d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der">
+      <UniqueIdentifier>{a8bc8e7f-8814-487c-bef2-85d6942485ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\oid">
+      <UniqueIdentifier>{382b973a-dbc0-4ff6-be57-ddc6267da127}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\pkcs8">
+      <UniqueIdentifier>{316a1110-fdcf-478a-a7d1-153b30806b4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\x509">
+      <UniqueIdentifier>{42b2a118-57e6-4fe2-a2c0-7c468e0bceba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\bit">
+      <UniqueIdentifier>{954f429a-9e30-48f4-889a-2ad4e9b71139}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\boolean">
+      <UniqueIdentifier>{a9147936-061c-4ce5-bb07-03cd517f70a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\choice">
+      <UniqueIdentifier>{00deb683-27ca-41e7-8470-a702e3b4170c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\custom_type">
+      <UniqueIdentifier>{00502f89-5f28-4862-888a-094a4c6ea52e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\general">
+      <UniqueIdentifier>{6909582a-0253-4d2e-8ed2-b76ca61d6678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\generalizedtime">
+      <UniqueIdentifier>{949d243d-6a52-460e-ba7b-0c4cc01ebe18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\ia5">
+      <UniqueIdentifier>{3367497c-e462-4445-9783-9d03a9f29764}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\integer">
+      <UniqueIdentifier>{082e9f6e-126f-477d-ab31-67b30128ac09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\object_identifier">
+      <UniqueIdentifier>{5461b90a-4369-4e25-abe0-be090a40d2f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\octet">
+      <UniqueIdentifier>{1c868cd2-f70c-4031-8fbb-e03c8ffd192c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\printable_string">
+      <UniqueIdentifier>{6684b278-04dd-434b-8114-b089f84073be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\sequence">
+      <UniqueIdentifier>{24f4379f-58a5-41d4-9313-cbbebbccd4de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\set">
+      <UniqueIdentifier>{2136f087-c44e-40e1-b31a-5ef5e08e42e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\short_integer">
+      <UniqueIdentifier>{03af6ca1-8390-48d8-9c59-bb4362f718da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\teletex_string">
+      <UniqueIdentifier>{77ba1ffe-eace-4d32-822b-6e3a2ca36823}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\utctime">
+      <UniqueIdentifier>{80ca4780-d560-4cb8-8d3f-48a4f38d2491}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\pk\asn1\der\utf8">
+      <UniqueIdentifier>{82a185c8-4709-48bc-92cc-c0f8259040cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\stream\chacha">
+      <UniqueIdentifier>{23a377c7-73e3-4728-868a-610796ff8484}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\stream\rabbit">
+      <UniqueIdentifier>{6c15cfd2-b347-44a5-8965-cb299b116867}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\stream\rc4">
+      <UniqueIdentifier>{6198b6be-d485-414c-917d-25ddae79a056}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\stream\salsa20">
+      <UniqueIdentifier>{b1acaedf-bd65-47b0-b56a-0a4a028182cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\stream\sober128">
+      <UniqueIdentifier>{f1c44ba3-8ce3-413a-9a4d-2aff68af486b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomcrypt\stream\sosemanuk">
+      <UniqueIdentifier>{10947fe3-2c71-41ab-92e1-5b14743a1752}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\libtomfastmath">
+      <UniqueIdentifier>{fa8b5b7d-6a0a-4527-968f-0c27687be6f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath">
+      <UniqueIdentifier>{f94902ed-5654-41c0-b7bf-7d294d795db2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\addsub">
+      <UniqueIdentifier>{1a8c7da3-7332-46ff-9fb1-27b3012f6a98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\bin">
+      <UniqueIdentifier>{7d1fe695-eb51-410d-90cf-61ddfc9910e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\bit">
+      <UniqueIdentifier>{bf95491e-a9e3-455b-a114-56a19bfb7349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\divide">
+      <UniqueIdentifier>{6bb2d292-0244-43a5-98b1-259fda2bb145}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\exptmod">
+      <UniqueIdentifier>{0f39d018-5e1a-4a08-8845-ada5147c7c98}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\misc">
+      <UniqueIdentifier>{633d65af-b7b5-4371-9946-efddffbc071c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\mont">
+      <UniqueIdentifier>{ee4fa5f0-f7e0-4123-99ef-cb3dd45d12d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\mul">
+      <UniqueIdentifier>{f7cb2651-26ea-4563-a4c7-c76500ac6c0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\numtheory">
+      <UniqueIdentifier>{87f07998-171f-4328-8ffe-72fd85f09fc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\libtomfastmath\sqr">
+      <UniqueIdentifier>{2e5bf765-7d2e-4f5f-9bb5-7ce51f576f8f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="libtomcrypt\ciphers\anubis.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\blowfish.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\camellia.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\cast5.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\des.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\idea.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\kasumi.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\khazad.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\kseed.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\multi2.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\noekeon.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\rc2.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\rc5.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\rc6.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\serpent.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\skipjack.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\xtea.c">
+      <Filter>Source Files\libtomcrypt\ciphers</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\aes\aes.c">
+      <Filter>Source Files\libtomcrypt\ciphers\aes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\aes\aes_tab.c">
+      <Filter>Source Files\libtomcrypt\ciphers\aes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\twofish\twofish.c">
+      <Filter>Source Files\libtomcrypt\ciphers\twofish</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\twofish\twofish_tab.c">
+      <Filter>Source Files\libtomcrypt\ciphers\twofish</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\safer\safer.c">
+      <Filter>Source Files\libtomcrypt\ciphers\safer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\safer\safer_tab.c">
+      <Filter>Source Files\libtomcrypt\ciphers\safer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\ciphers\safer\saferp.c">
+      <Filter>Source Files\libtomcrypt\ciphers\safer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_add_aad.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_add_nonce.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_done.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_init.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_process.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_reset.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ccm\ccm_test.c">
+      <Filter>Source Files\libtomcrypt\encauth\ccm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_add_aad.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_decrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_done.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_encrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_init.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_setiv.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_setiv_rfc7905.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\chachapoly\chacha20poly1305_test.c">
+      <Filter>Source Files\libtomcrypt\encauth\chachapoly</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_addheader.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_decrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_decrypt_verify_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_done.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_encrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_encrypt_authenticate_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_init.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\eax\eax_test.c">
+      <Filter>Source Files\libtomcrypt\encauth\eax</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_add_aad.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_add_iv.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_done.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_gf_mult.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_init.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_mult_h.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_process.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_reset.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\gcm\gcm_test.c">
+      <Filter>Source Files\libtomcrypt\encauth\gcm</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_decrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_decrypt_verify_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_done_decrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_done_encrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_encrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_encrypt_authenticate_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_init.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_ntz.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_shift_xor.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\ocb_test.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb\s_ocb_done.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_add_aad.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_decrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_decrypt_last.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_decrypt_verify_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_done.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_encrypt.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_encrypt_authenticate_memory.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_encrypt_last.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_init.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_int_ntz.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_int_xor_blocks.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\encauth\ocb3\ocb3_test.c">
+      <Filter>Source Files\libtomcrypt\encauth\ocb3</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\chc\chc.c">
+      <Filter>Source Files\libtomcrypt\hashes\chc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\helper\hash_file.c">
+      <Filter>Source Files\libtomcrypt\hashes\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\helper\hash_filehandle.c">
+      <Filter>Source Files\libtomcrypt\hashes\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\helper\hash_memory.c">
+      <Filter>Source Files\libtomcrypt\hashes\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\helper\hash_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\hashes\helper</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\whirl\whirl.c">
+      <Filter>Source Files\libtomcrypt\hashes\whirl</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\whirl\whirltab.c">
+      <Filter>Source Files\libtomcrypt\hashes\whirl</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha2\sha224.c">
+      <Filter>Source Files\libtomcrypt\hashes\sha2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha2\sha256.c">
+      <Filter>Source Files\libtomcrypt\hashes\sha2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha2\sha384.c">
+      <Filter>Source Files\libtomcrypt\hashes\sha2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha2\sha512.c">
+      <Filter>Source Files\libtomcrypt\hashes\sha2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha2\sha512_224.c">
+      <Filter>Source Files\libtomcrypt\hashes\sha2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha2\sha512_256.c">
+      <Filter>Source Files\libtomcrypt\hashes\sha2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\blake2b.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\blake2s.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\md2.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\md4.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\md5.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\rmd128.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\rmd160.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\rmd256.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\rmd320.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha1.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha3.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\sha3_test.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\hashes\tiger.c">
+      <Filter>Source Files\libtomcrypt\hashes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2bmac.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2bmac_file.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2bmac_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2bmac_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2bmac_test.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2smac.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2smac_file.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2smac_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2smac_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\blake2\blake2smac_test.c">
+      <Filter>Source Files\libtomcrypt\mac\blake2</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\f9\f9_done.c">
+      <Filter>Source Files\libtomcrypt\mac\f9</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\f9\f9_file.c">
+      <Filter>Source Files\libtomcrypt\mac\f9</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\f9\f9_init.c">
+      <Filter>Source Files\libtomcrypt\mac\f9</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\f9\f9_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\f9</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\f9\f9_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\f9</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\f9\f9_process.c">
+      <Filter>Source Files\libtomcrypt\mac\f9</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\f9\f9_test.c">
+      <Filter>Source Files\libtomcrypt\mac\f9</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\hmac\hmac_done.c">
+      <Filter>Source Files\libtomcrypt\mac\hmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\hmac\hmac_file.c">
+      <Filter>Source Files\libtomcrypt\mac\hmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\hmac\hmac_init.c">
+      <Filter>Source Files\libtomcrypt\mac\hmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\hmac\hmac_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\hmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\hmac\hmac_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\hmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\hmac\hmac_process.c">
+      <Filter>Source Files\libtomcrypt\mac\hmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\hmac\hmac_test.c">
+      <Filter>Source Files\libtomcrypt\mac\hmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\xcbc\xcbc_done.c">
+      <Filter>Source Files\libtomcrypt\mac\xcbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\xcbc\xcbc_file.c">
+      <Filter>Source Files\libtomcrypt\mac\xcbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\xcbc\xcbc_init.c">
+      <Filter>Source Files\libtomcrypt\mac\xcbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\xcbc\xcbc_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\xcbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\xcbc\xcbc_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\xcbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\xcbc\xcbc_process.c">
+      <Filter>Source Files\libtomcrypt\mac\xcbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\xcbc\xcbc_test.c">
+      <Filter>Source Files\libtomcrypt\mac\xcbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\poly1305\poly1305.c">
+      <Filter>Source Files\libtomcrypt\mac\poly1305</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\poly1305\poly1305_file.c">
+      <Filter>Source Files\libtomcrypt\mac\poly1305</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\poly1305\poly1305_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\poly1305</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\poly1305\poly1305_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\poly1305</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\poly1305\poly1305_test.c">
+      <Filter>Source Files\libtomcrypt\mac\poly1305</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_done.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_file.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_init.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_ntz.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_process.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_shift_xor.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pmac\pmac_test.c">
+      <Filter>Source Files\libtomcrypt\mac\pmac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pelican\pelican.c">
+      <Filter>Source Files\libtomcrypt\mac\pelican</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pelican\pelican_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\pelican</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\pelican\pelican_test.c">
+      <Filter>Source Files\libtomcrypt\mac\pelican</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\omac\omac_done.c">
+      <Filter>Source Files\libtomcrypt\mac\omac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\omac\omac_file.c">
+      <Filter>Source Files\libtomcrypt\mac\omac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\omac\omac_init.c">
+      <Filter>Source Files\libtomcrypt\mac\omac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\omac\omac_memory.c">
+      <Filter>Source Files\libtomcrypt\mac\omac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\omac\omac_memory_multi.c">
+      <Filter>Source Files\libtomcrypt\mac\omac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\omac\omac_process.c">
+      <Filter>Source Files\libtomcrypt\mac\omac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\mac\omac\omac_test.c">
+      <Filter>Source Files\libtomcrypt\mac\omac</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\gmp_desc.c">
+      <Filter>Source Files\libtomcrypt\math</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\multi.c">
+      <Filter>Source Files\libtomcrypt\math</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\radix_to_bin.c">
+      <Filter>Source Files\libtomcrypt\math</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\rand_bn.c">
+      <Filter>Source Files\libtomcrypt\math</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\rand_prime.c">
+      <Filter>Source Files\libtomcrypt\math</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\tfm_desc.c">
+      <Filter>Source Files\libtomcrypt\math</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\fp\ltc_ecc_fp_mulmod.c">
+      <Filter>Source Files\libtomcrypt\math\fp</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\adler32.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\burn_stack.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\compare_testvector.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\copy_or_zeromem.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crc32.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\error_to_string.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\mem_neq.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\zeromem.c">
+      <Filter>Source Files\libtomcrypt\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\base16\base16_decode.c">
+      <Filter>Source Files\libtomcrypt\misc\base16</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\base16\base16_encode.c">
+      <Filter>Source Files\libtomcrypt\misc\base16</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\base32\base32_decode.c">
+      <Filter>Source Files\libtomcrypt\misc\base32</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\base32\base32_encode.c">
+      <Filter>Source Files\libtomcrypt\misc\base32</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\base64\base64_decode.c">
+      <Filter>Source Files\libtomcrypt\misc\base64</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\base64\base64_encode.c">
+      <Filter>Source Files\libtomcrypt\misc\base64</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_argchk.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_cipher_descriptor.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_cipher_is_valid.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_constants.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_cipher.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_cipher_any.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_cipher_id.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_hash.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_hash_any.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_hash_id.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_hash_oid.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_find_prng.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_fsa.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_hash_descriptor.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_hash_is_valid.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_inits.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_ltc_mp_descriptor.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_prng_descriptor.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_prng_is_valid.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_prng_rng_descriptor.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_register_all_ciphers.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_register_all_hashes.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_register_all_prngs.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_register_cipher.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_register_hash.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_register_prng.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_sizes.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_unregister_cipher.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_unregister_hash.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\crypt\crypt_unregister_prng.c">
+      <Filter>Source Files\libtomcrypt\misc\crypt</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\hkdf\hkdf.c">
+      <Filter>Source Files\libtomcrypt\misc\hkdf</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\hkdf\hkdf_test.c">
+      <Filter>Source Files\libtomcrypt\misc\hkdf</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\ssh\ssh_decode_sequence_multi.c">
+      <Filter>Source Files\libtomcrypt\misc\ssh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\ssh\ssh_encode_sequence_multi.c">
+      <Filter>Source Files\libtomcrypt\misc\ssh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pkcs5\pkcs_5_1.c">
+      <Filter>Source Files\libtomcrypt\misc\pkcs5</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pkcs5\pkcs_5_2.c">
+      <Filter>Source Files\libtomcrypt\misc\pkcs5</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pkcs5\pkcs_5_test.c">
+      <Filter>Source Files\libtomcrypt\misc\pkcs5</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pkcs12\pkcs12_kdf.c">
+      <Filter>Source Files\libtomcrypt\misc\pkcs12</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pkcs12\pkcs12_utf8_to_utf16.c">
+      <Filter>Source Files\libtomcrypt\misc\pkcs12</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pbes\pbes.c">
+      <Filter>Source Files\libtomcrypt\misc\pbes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pbes\pbes1.c">
+      <Filter>Source Files\libtomcrypt\misc\pbes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\pbes\pbes2.c">
+      <Filter>Source Files\libtomcrypt\misc\pbes</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\padding\padding_depad.c">
+      <Filter>Source Files\libtomcrypt\misc\padding</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\misc\padding\padding_pad.c">
+      <Filter>Source Files\libtomcrypt\misc\padding</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cbc\cbc_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\cbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cbc\cbc_done.c">
+      <Filter>Source Files\libtomcrypt\modes\cbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cbc\cbc_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\cbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cbc\cbc_getiv.c">
+      <Filter>Source Files\libtomcrypt\modes\cbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cbc\cbc_setiv.c">
+      <Filter>Source Files\libtomcrypt\modes\cbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cbc\cbc_start.c">
+      <Filter>Source Files\libtomcrypt\modes\cbc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cfb\cfb_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\cfb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cfb\cfb_done.c">
+      <Filter>Source Files\libtomcrypt\modes\cfb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cfb\cfb_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\cfb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cfb\cfb_getiv.c">
+      <Filter>Source Files\libtomcrypt\modes\cfb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cfb\cfb_setiv.c">
+      <Filter>Source Files\libtomcrypt\modes\cfb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\cfb\cfb_start.c">
+      <Filter>Source Files\libtomcrypt\modes\cfb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ctr\ctr_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\ctr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ctr\ctr_done.c">
+      <Filter>Source Files\libtomcrypt\modes\ctr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ctr\ctr_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\ctr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ctr\ctr_getiv.c">
+      <Filter>Source Files\libtomcrypt\modes\ctr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ctr\ctr_setiv.c">
+      <Filter>Source Files\libtomcrypt\modes\ctr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ctr\ctr_start.c">
+      <Filter>Source Files\libtomcrypt\modes\ctr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ctr\ctr_test.c">
+      <Filter>Source Files\libtomcrypt\modes\ctr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ecb\ecb_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\ecb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ecb\ecb_done.c">
+      <Filter>Source Files\libtomcrypt\modes\ecb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ecb\ecb_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\ecb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ecb\ecb_start.c">
+      <Filter>Source Files\libtomcrypt\modes\ecb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\f8\f8_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\f8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\f8\f8_done.c">
+      <Filter>Source Files\libtomcrypt\modes\f8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\f8\f8_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\f8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\f8\f8_getiv.c">
+      <Filter>Source Files\libtomcrypt\modes\f8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\f8\f8_setiv.c">
+      <Filter>Source Files\libtomcrypt\modes\f8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\f8\f8_start.c">
+      <Filter>Source Files\libtomcrypt\modes\f8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\f8\f8_test_mode.c">
+      <Filter>Source Files\libtomcrypt\modes\f8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_done.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_getiv.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_process.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_setiv.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_start.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\lrw\lrw_test.c">
+      <Filter>Source Files\libtomcrypt\modes\lrw</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\xts\xts_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\xts</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\xts\xts_done.c">
+      <Filter>Source Files\libtomcrypt\modes\xts</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\xts\xts_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\xts</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\xts\xts_init.c">
+      <Filter>Source Files\libtomcrypt\modes\xts</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\xts\xts_mult_x.c">
+      <Filter>Source Files\libtomcrypt\modes\xts</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\xts\xts_test.c">
+      <Filter>Source Files\libtomcrypt\modes\xts</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ofb\ofb_decrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\ofb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ofb\ofb_done.c">
+      <Filter>Source Files\libtomcrypt\modes\ofb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ofb\ofb_encrypt.c">
+      <Filter>Source Files\libtomcrypt\modes\ofb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ofb\ofb_getiv.c">
+      <Filter>Source Files\libtomcrypt\modes\ofb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ofb\ofb_setiv.c">
+      <Filter>Source Files\libtomcrypt\modes\ofb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\modes\ofb\ofb_start.c">
+      <Filter>Source Files\libtomcrypt\modes\ofb</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\bit\der_decode_bit_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\bit\der_decode_raw_bit_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\bit\der_encode_bit_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\bit\der_encode_raw_bit_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\bit\der_length_bit_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\boolean\der_decode_boolean.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\boolean</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\boolean\der_encode_boolean.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\boolean</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\boolean\der_length_boolean.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\boolean</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\choice\der_decode_choice.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\choice</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\custom_type\der_decode_custom_type.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\custom_type</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\custom_type\der_encode_custom_type.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\custom_type</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\custom_type\der_length_custom_type.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\custom_type</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\general\der_asn1_maps.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\general</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\general\der_decode_asn1_identifier.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\general</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\general\der_decode_asn1_length.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\general</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\general\der_encode_asn1_identifier.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\general</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\general\der_encode_asn1_length.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\general</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\general\der_length_asn1_identifier.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\general</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\general\der_length_asn1_length.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\general</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\generalizedtime\der_decode_generalizedtime.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\generalizedtime</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\generalizedtime\der_encode_generalizedtime.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\generalizedtime</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\generalizedtime\der_length_generalizedtime.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\generalizedtime</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\ia5\der_decode_ia5_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\ia5</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\ia5\der_encode_ia5_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\ia5</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\ia5\der_length_ia5_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\ia5</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\integer\der_decode_integer.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\integer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\integer\der_encode_integer.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\integer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\integer\der_length_integer.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\integer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\utf8\der_decode_utf8_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\utf8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\utf8\der_encode_utf8_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\utf8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\utf8\der_length_utf8_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\utf8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\utctime\der_decode_utctime.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\utctime</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\utctime\der_encode_utctime.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\utctime</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\utctime\der_length_utctime.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\utctime</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\teletex_string\der_decode_teletex_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\teletex_string</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\teletex_string\der_length_teletex_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\teletex_string</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\short_integer\der_decode_short_integer.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\short_integer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\short_integer\der_encode_short_integer.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\short_integer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\short_integer\der_length_short_integer.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\short_integer</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\set\der_encode_set.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\set</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\set\der_encode_setof.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\set</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_decode_sequence_ex.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_decode_sequence_flexi.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_decode_sequence_multi.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_encode_sequence_ex.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_encode_sequence_multi.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_length_sequence.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_sequence_free.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\sequence\der_sequence_shrink.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\sequence</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\printable_string\der_decode_printable_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\printable_string</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\printable_string\der_encode_printable_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\printable_string</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\printable_string\der_length_printable_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\printable_string</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\octet\der_decode_octet_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\octet</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\octet\der_encode_octet_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\octet</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\octet\der_length_octet_string.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\octet</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\object_identifier\der_decode_object_identifier.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\object_identifier</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\object_identifier\der_encode_object_identifier.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\object_identifier</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\der\object_identifier\der_length_object_identifier.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\der\object_identifier</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\oid\pk_get_oid.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\oid</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\oid\pk_oid_cmp.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\oid</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\oid\pk_oid_str.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\oid</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\pkcs8\pkcs8_decode_flexi.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\pkcs8</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\x509\x509_decode_subject_public_key_info.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\x509</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\asn1\x509\x509_encode_subject_public_key_info.c">
+      <Filter>Source Files\libtomcrypt\pk\asn1\x509</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_check_pubkey.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_export.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_export_key.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_free.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_generate_key.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_import.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_set.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_set_pg_dhparam.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dh\dh_shared_secret.c">
+      <Filter>Source Files\libtomcrypt\pk\dh</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_decrypt_key.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_encrypt_key.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_export.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_free.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_generate_key.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_generate_pqg.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_import.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_make_key.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_set.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_set_pqg_dsaparam.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_shared_secret.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_sign_hash.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_verify_hash.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\dsa\dsa_verify_key.c">
+      <Filter>Source Files\libtomcrypt\pk\dsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_ansi_x963_export.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_ansi_x963_import.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_decrypt_key.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_encrypt_key.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_export.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_export_openssl.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_find_curve.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_free.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_get_key.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_get_oid_str.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_get_size.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_import.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_import_openssl.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_import_pkcs8.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_import_x509.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_make_key.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_recover_key.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_set_curve.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_set_curve_internal.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_set_key.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_shared_secret.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_sign_hash.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_sizes.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_ssh_ecdsa_encode_name.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ecc_verify_hash.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_export_point.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_import_point.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_is_point.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_is_point_at_infinity.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_map.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_mul2add.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_mulmod.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_mulmod_timing.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_points.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_projective_add_point.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_projective_dbl_point.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\ecc\ltc_ecc_verify_key.c">
+      <Filter>Source Files\libtomcrypt\pk\ecc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_decrypt_key.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_encrypt_key.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_export.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_exptmod.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_free.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_get_size.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_import.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_import_pkcs8.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_import_x509.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_make_key.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_set.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_sign_hash.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_sign_saltlen_get.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\rsa\rsa_verify_hash.c">
+      <Filter>Source Files\libtomcrypt\pk\rsa</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_i2osp.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_mgf1.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_oaep_decode.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_oaep_encode.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_os2ip.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_pss_decode.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_pss_encode.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_v1_5_decode.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\pk\pkcs1\pkcs_1_v1_5_encode.c">
+      <Filter>Source Files\libtomcrypt\pk\pkcs1</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\chacha20.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\fortuna.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\rc4.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\rng_get_bytes.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\rng_make_prng.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\sober128.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\sprng.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\prngs\yarrow.c">
+      <Filter>Source Files\libtomcrypt\prngs</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_crypt.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_done.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_ivctr32.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_ivctr64.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_keystream.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_memory.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_setup.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\chacha\chacha_test.c">
+      <Filter>Source Files\libtomcrypt\stream\chacha</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\sosemanuk\sosemanuk.c">
+      <Filter>Source Files\libtomcrypt\stream\sosemanuk</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\sosemanuk\sosemanuk_memory.c">
+      <Filter>Source Files\libtomcrypt\stream\sosemanuk</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\sosemanuk\sosemanuk_test.c">
+      <Filter>Source Files\libtomcrypt\stream\sosemanuk</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\sober128\sober128_stream.c">
+      <Filter>Source Files\libtomcrypt\stream\sober128</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\sober128\sober128_stream_memory.c">
+      <Filter>Source Files\libtomcrypt\stream\sober128</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\sober128\sober128_test.c">
+      <Filter>Source Files\libtomcrypt\stream\sober128</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\sober128\sober128tab.c">
+      <Filter>Source Files\libtomcrypt\stream\sober128</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\salsa20_crypt.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\salsa20_done.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\salsa20_ivctr64.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\salsa20_keystream.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\salsa20_memory.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\salsa20_setup.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\salsa20_test.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\xsalsa20_memory.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\xsalsa20_setup.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\salsa20\xsalsa20_test.c">
+      <Filter>Source Files\libtomcrypt\stream\salsa20</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\rc4\rc4_stream.c">
+      <Filter>Source Files\libtomcrypt\stream\rc4</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\rc4\rc4_stream_memory.c">
+      <Filter>Source Files\libtomcrypt\stream\rc4</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\rc4\rc4_test.c">
+      <Filter>Source Files\libtomcrypt\stream\rc4</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\rabbit\rabbit.c">
+      <Filter>Source Files\libtomcrypt\stream\rabbit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\stream\rabbit\rabbit_memory.c">
+      <Filter>Source Files\libtomcrypt\stream\rabbit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_add.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_add_d.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_addmod.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_cmp.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_cmp_d.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_cmp_mag.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_sub.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_sub_d.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\fp_submod.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\s_fp_add.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\addsub\s_fp_sub.c">
+      <Filter>Source Files\libtomfastmath\addsub</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_radix_size.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_read_radix.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_read_signed_bin.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_read_unsigned_bin.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_reverse.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_s_rmap.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_signed_bin_size.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_to_signed_bin.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_to_unsigned_bin.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_toradix.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_toradix_n.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bin\fp_unsigned_bin_size.c">
+      <Filter>Source Files\libtomfastmath\bin</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bit\fp_cnt_lsb.c">
+      <Filter>Source Files\libtomfastmath\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bit\fp_count_bits.c">
+      <Filter>Source Files\libtomfastmath\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bit\fp_div_2.c">
+      <Filter>Source Files\libtomfastmath\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bit\fp_div_2d.c">
+      <Filter>Source Files\libtomfastmath\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bit\fp_lshd.c">
+      <Filter>Source Files\libtomfastmath\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bit\fp_mod_2d.c">
+      <Filter>Source Files\libtomfastmath\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\bit\fp_rshd.c">
+      <Filter>Source Files\libtomfastmath\bit</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\divide\fp_div.c">
+      <Filter>Source Files\libtomfastmath\divide</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\divide\fp_div_d.c">
+      <Filter>Source Files\libtomfastmath\divide</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\divide\fp_mod.c">
+      <Filter>Source Files\libtomfastmath\divide</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\divide\fp_mod_d.c">
+      <Filter>Source Files\libtomfastmath\divide</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\exptmod\fp_2expt.c">
+      <Filter>Source Files\libtomfastmath\exptmod</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\exptmod\fp_exptmod.c">
+      <Filter>Source Files\libtomfastmath\exptmod</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\misc\fp_ident.c">
+      <Filter>Source Files\libtomfastmath\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\misc\fp_rand.c">
+      <Filter>Source Files\libtomfastmath\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\misc\fp_set.c">
+      <Filter>Source Files\libtomfastmath\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mont\fp_montgomery_calc_normalization.c">
+      <Filter>Source Files\libtomfastmath\mont</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mont\fp_montgomery_reduce.c">
+      <Filter>Source Files\libtomfastmath\mont</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mont\fp_montgomery_setup.c">
+      <Filter>Source Files\libtomfastmath\mont</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_2.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_2d.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_3.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_4.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_6.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_7.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_8.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_9.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_12.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_17.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_20.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_24.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_28.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_32.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_48.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_64.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_comba_small_set.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mul_d.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\mul\fp_mulmod.c">
+      <Filter>Source Files\libtomfastmath\mul</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_3.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_4.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_6.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_7.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_8.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_9.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_12.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_17.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_20.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_24.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_28.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_32.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_48.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_64.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_generic.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqr_comba_small_set.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\sqr\fp_sqrmod.c">
+      <Filter>Source Files\libtomfastmath\sqr</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\numtheory\fp_gcd.c">
+      <Filter>Source Files\libtomfastmath\numtheory</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\numtheory\fp_invmod.c">
+      <Filter>Source Files\libtomfastmath\numtheory</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\numtheory\fp_isprime.c">
+      <Filter>Source Files\libtomfastmath\numtheory</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\numtheory\fp_isprime_ex.c">
+      <Filter>Source Files\libtomfastmath\numtheory</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\numtheory\fp_lcm.c">
+      <Filter>Source Files\libtomfastmath\numtheory</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\numtheory\fp_prime_miller_rabin.c">
+      <Filter>Source Files\libtomfastmath\numtheory</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomfastmath\numtheory\fp_prime_random_ex.c">
+      <Filter>Source Files\libtomfastmath\numtheory</Filter>
+    </ClCompile>
+    <ClCompile Include="libtomcrypt\math\ltm_desc.c">
+      <Filter>Source Files\libtomcrypt\math</Filter>
+    </ClCompile>
+    <ClCompile Include="IC_PRNG.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IXICrypt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="IC_PRNG.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_argchk.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_cfg.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_cipher.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_custom.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_hash.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_mac.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_macros.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_math.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_misc.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_pk.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_pkcs.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_private.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomcrypt\headers\tomcrypt_prng.h">
+      <Filter>Header Files\libtomcrypt</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomfastmath\headers\tfm.h">
+      <Filter>Header Files\libtomfastmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libtomfastmath\headers\tfm_private.h">
+      <Filter>Header Files\libtomfastmath</Filter>
+    </ClInclude>
+    <ClInclude Include="IXICrypt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libtomfastmath\mont\fp_mont_small.i">
+      <Filter>Source Files\libtomfastmath\mont</Filter>
+    </None>
+  </ItemGroup>
+</Project>
