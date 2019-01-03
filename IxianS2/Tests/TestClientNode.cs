@@ -105,8 +105,8 @@ namespace S2
             Transaction transaction = new Transaction((int)Transaction.Type.Normal);
             transaction.amount = CoreConfig.relayPriceInitial;
             transaction.toList.Add(friend.relayWallet, transaction.amount);
-            transaction.from = Node.walletStorage.getPrimaryAddress();
             transaction.fee = CoreConfig.transactionPrice;
+            transaction.fromList.Add(new byte[1] { 0 }, transaction.amount + transaction.fee);
             transaction.blockHeight = Node.blockHeight;
             transaction.pubKey = Node.walletStorage.getPrimaryPublicKey(); // TODO: check if it's in the walletstate already
             transaction.checksum = Transaction.calculateChecksum(transaction);
