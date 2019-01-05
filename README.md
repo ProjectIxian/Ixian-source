@@ -91,7 +91,7 @@ git clone https://github.com/P-H-C/phc-winner-argon2.git
 cd phc-winner-argon2
 make
 ```
-Copy the resulting libargon2.so file to the IxianDLT /bin/Release folder.
+Copy the resulting libargon2.so file to the IxianDLT /bin/Release/ folder.
 
 ## DLT Hybrid PoW Miner
 
