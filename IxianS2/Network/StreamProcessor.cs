@@ -176,7 +176,7 @@ namespace S2.Network
                         transaction.signature = signature;
 
                         // Verify the signed transaction
-                        if (transaction.verifySignature(transaction.pubKey))
+                        if (transaction.verifySignature(transaction.pubKey, null))
                         {
                             // Broadcast the transaction
                             ProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, transaction.getBytes(), endpoint);
