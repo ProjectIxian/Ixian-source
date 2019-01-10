@@ -43,6 +43,11 @@ namespace DLT
             public static bool isTestClient = false;
             public static string testS2Node = "";
 
+            // Development/testing options
+            public static bool generateWalletOnly = false;
+            public static string dangerCommandlinePasswordCleartextUnsafe = "";
+
+
             public static int forceTimeOffset = int.MaxValue;
 
             // internal
@@ -92,6 +97,10 @@ namespace DLT
                 cmd_parser.Setup<string>('n', "s2node").Callback(value => Config.testS2Node = value).Required();
 
                 cmd_parser.Setup<int>("forceTimeOffset").Callback(value => forceTimeOffset = value).SetDefault(int.MaxValue);
+
+                cmd_parser.Setup<bool>("generateWallet").Callback(value => generateWalletOnly = value).SetDefault(false);
+
+                cmd_parser.Setup<string>("walletPassword").Callback(value => dangerCommandlinePasswordCleartextUnsafe = value).SetDefault("");
 
                 cmd_parser.Parse(args);
 

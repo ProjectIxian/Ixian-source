@@ -33,3 +33,5 @@
 /SPIXI/SPIXI/SPIXI.GTK/obj
 Debug
 Release
+/TestingScripts/state.xml
+/TestingScripts/TestClients
