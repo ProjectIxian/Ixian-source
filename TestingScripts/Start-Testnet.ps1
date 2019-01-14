@@ -2,7 +2,8 @@
     [int]$numInstances = 5,
     [switch]$ClearState,
     [switch]$StartNetwork,
-    [switch]$CollectResults
+    [switch]$CollectResults,
+    [string]$IPInterface = ""
 )
 
 $ClientBinary = "Debug"
@@ -15,7 +16,8 @@ $WalletPassword = "IXIANIXIANIXIANIXIAN"
 $IgnoreList = @(
     ".+\.log",
     ".+\.wal",
-    ".+\.wal\.bak"
+    ".+\.wal\.bak",
+    "peers.dat"
 )
 
 
@@ -115,6 +117,63 @@ function Execute-Binary {
     }
 }
 
+function Determine-LocalIP {
+    $ipAddresses = Get-NetIPAddress -AddressFamily IPv4 -Type Unicast -AddressState Preferred | Sort-Object ifIndex
+    foreach($ip in $ipAddresses) {
+        $ip_object = New-Object System.Net.IPAddress ($ip)
+        $octets = $ip_object.GetAddressBytes()
+        if(($octets[0] -eq 10) -or 
+            ($octets[0] -eq 172 -and $octets[1] -ge 16 -and $octets[1] -le 31) -or
+            ($octets[0] -eq 192 -and $octets[1] -eq 168)) {
+
+            # Is private address, we return the first one
+            return $ip
+        }
+    }
+    # No private IP address
+    return ""
+}
+
+function Start-DLTClient {
+    Param(
+        [string]$Client,
+        [string]$StartupArgs
+    )
+    $clientBinary = "IxianDLT.exe"
+    $cwd = [System.IO.Directory]::GetCurrentDirectory()
+    [System.IO.Directory]::SetCurrentDirectory($Client)
+    $result = $null
+    try {
+        $pi = New-Object System.Diagnostics.ProcessStartInfo
+        $pi.FileName = $clientBinary
+        $pi.UseShellExecute = $false
+        $pi.Arguments = $StartupArgs
+        $pi.CreateNoWindow = $true
+        $p = New-Object System.Diagnostics.Process
+        $p.StartInfo = $pi
+        [void]$p.Start()
+        $result = $p
+    } catch {
+        Write-Host -ForegroundColor Magenta "Error while starting client '$($Client)': $($_.Message)"
+    }
+    return $result    
+}
+
+function Shutdown-TestNet {
+    Param(
+        [System.Collections.ArrayList]$Clients
+    )
+    Write-Host -ForegroundColor Cyan "Terminating TestNet..."
+    # TODO: Attempt shutdown over API and wait for a while
+    foreach($dltClient in $Clients) {
+        Write-Host -ForegroundColor Yellow "-> [$($dltClient.idx)]: $($dltClient.Client)"
+        if($dltClient.Process -ne $null) {
+            $dltClient.Process.Kill()
+        }
+    }
+    Write-Host -ForegroundColor Green "-> TestNet terminated!"
+}
+
 ###### Main ######
 # DEBUG
 [System.IO.Directory]::SetCurrentDirectory("C:\ZAGAR\Dev\Ixian_source\TestingScripts")
@@ -191,6 +250,74 @@ if($ClearState.IsPresent) {
     if($any_failure) {
         Write-Host -ForegroundColor Magenta "Something failed. Aborting."
     } else {
-        # proceed running the simulation
+        # Start DLT network
+        if($IPInterface -eq "") {
+            Write-Host -ForegroundColor Cyan "Attempting to automatically discover local IP address..."
+            $IPInterface = Determine-LocalIP
+            if($IPInterface -eq "") {
+                Write-Host -ForegroundColor Magenta "Unable to determine a valid private IP interface, please speficy -IPInterface on the commandline!"
+                exit
+            }
+        }
+        Write-Host -ForegroundColor Cyan "IP Interface over which the nodes will communicate: $($IPInterface)"
+        if($StartNetwork.IsPresent) {
+            if($dstPaths.Count < 2) {
+                Write-Host -ForegroundColor Magenta "At least two instances are required to start the testnet!"
+            } else {
+                $gen2Addr = $ClientAddresses[$dstPaths[1]]
+                if($gen2Addr -eq $null -or $gen2Addr -eq "") {
+                    Write-Host -ForegroundColor Magenta "Error while reading client2 wallet address!"
+                } else {
+                    $DLTProcesses = New-Object System.Collections.ArrayList
+                    $idx = 0
+                    $wasError = $false
+                    foreach($client in $dstPaths) {
+                        $dltPort = $DLTStartPort + $idx
+                        $apiPort = $APIStartPort + $idx
+                        $startParams = ""
+                        if($idx -eq 0) {
+                            # Genesis node
+                            $startParams = "-t -s -p $($dltPort) -a $($apiPort) -i $($IPInterface) --genesis 1000000 --genesis2 $($gen2Addr) --walletPassword $($WalletPassword)"
+                        } else {
+                            $startParams = "-t -s -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword)"
+                        }
+                        Write-Host -ForegroundColor Cyan "Starting Client $($idx)..."
+                        $dltClientProcess = Start-DLTClient -Client $client -StartupArgs $startParams
+                        if($dltClientProcess -eq $null) {
+                            Write-Host -ForegroundColor Magenta "-> There was an error starting client $($idx)!"
+                            $wasError = $true
+                            break
+                        } else {
+                            Write-Host -ForegroundColor Green "-> Client started!"
+                        }
+                        $dltClient = [PSCustomObject]@{
+                            idx     = $idx
+                            Client  = $client
+                            Process = $dltClientProcess
+                            DLTPort = $dltPort
+                            APIPort = $apiPort
+                        }
+                        [void]$DLTProcesses.Add($dltClient)
+                        Write-Host
+                        $idx = $idx + 1
+                    }
+                    if($wasError) {
+                        Write-Host -ForegroundColor Magenta "At least one error occured while starting the testnet. Aborting!"
+                        Shutdown-TestNet -Clients $DLTProcesses
+                        exit
+                    }
+                    Write-Host -ForegroundColor Cyan "Entering main loop..."
+                    #Enter-MainDLTLoop
+                    Write-Host -ForegroundColor Cyan "Main loop finished. Terminating..."
+                    Shutdown-TestNet -Clients $DLTProcesses
+                }
+            }
+        } else {
+            Write-Host -ForegroundColor Cyan "Option 'StartNetwork' was not specified, so the DLT network will not be started."
+        }
+        if($CollectResults.IsPresent) {
+            Write-Host -ForegroundColor Cyan "Collecting DLT run results..."
+            # Collect run results (Logs, wallets, peer lists, block databases)
+        }
     }
 }
