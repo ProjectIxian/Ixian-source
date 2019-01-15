@@ -1,9 +1,10 @@
 ﻿Param(
-    [int]$numInstances = 5,
+    [int]$NumInstances = 5,
     [switch]$ClearState,
     [switch]$StartNetwork,
     [switch]$CollectResults,
-    [string]$IPInterface = ""
+    [string]$IPInterface = "",
+    [switch]$EnableMining
 )
 
 $ClientBinary = "Debug"
@@ -120,15 +121,17 @@ function Execute-Binary {
 function Determine-LocalIP {
     $ipAddresses = Get-NetIPAddress -AddressFamily IPv4 -Type Unicast -AddressState Preferred | Sort-Object ifIndex
     foreach($ip in $ipAddresses) {
-        $ip_object = New-Object System.Net.IPAddress ($ip)
-        $octets = $ip_object.GetAddressBytes()
-        if(($octets[0] -eq 10) -or 
-            ($octets[0] -eq 172 -and $octets[1] -ge 16 -and $octets[1] -le 31) -or
-            ($octets[0] -eq 192 -and $octets[1] -eq 168)) {
+        try {
+            $ip_object = [System.Net.IPAddress]::Parse($ip.IPAddress)
+            $octets = $ip_object.GetAddressBytes()
+            if(($octets[0] -eq 10) -or 
+                ($octets[0] -eq 172 -and $octets[1] -ge 16 -and $octets[1] -le 31) -or
+                ($octets[0] -eq 192 -and $octets[1] -eq 168)) {
 
-            # Is private address, we return the first one
-            return $ip
-        }
+                # Is private address, we return the first one
+                return $ip.IPAddress
+            }
+        } catch { }
     }
     # No private IP address
     return ""
@@ -148,14 +151,16 @@ function Start-DLTClient {
         $pi.FileName = $clientBinary
         $pi.UseShellExecute = $false
         $pi.Arguments = $StartupArgs
-        $pi.CreateNoWindow = $true
+        #$pi.CreateNoWindow = $true
         $p = New-Object System.Diagnostics.Process
         $p.StartInfo = $pi
+        Write-Host -ForegroundColor Gray "Start-DLTClient: Commandline: $($clientBinary) $($StartupArgs)"
         [void]$p.Start()
         $result = $p
     } catch {
         Write-Host -ForegroundColor Magenta "Error while starting client '$($Client)': $($_.Message)"
     }
+    [System.IO.Directory]::SetCurrentDirectory($cwd)
     return $result    
 }
 
@@ -174,10 +179,130 @@ function Shutdown-TestNet {
     Write-Host -ForegroundColor Green "-> TestNet terminated!"
 }
 
+function Invoke-DLTApi {
+    Param(
+        [int]$APIPort,
+        [string]$Command,
+        [hashtable]$CmdArgs
+    )
+    $url = "http://localhost:$($APIPort)/$($Command)"
+    $args = ""
+    foreach($k in $CmdArgs.Keys) {
+        $args = $args + "$($k)=$($CmdArgs[$k])&"
+    }
+    $fullUrl = "$($url)?$($args)"
+    Write-Host -ForegroundColor Gray "Invoking DLT Api: $($fullUrl)"
+    try {
+        $r = Invoke-RestMethod -Method Get -Uri $fullUrl
+        return $r.result
+    } catch {
+        Write-Host -ForegroundColor Magenta "Invoke-DLTApi: Error while calling rest method $($Command): $($_.Message)"
+        return $null
+    }
+}
+
+function Send-Transaction {
+    Param(
+        [System.Collections.ArrayList]$Clients,
+        [int]$FromClient,
+        [int]$ToClient = -1,
+        [string]$YoAddr = "",
+        [int]$Amount = 0
+    )
+    if($FromClient -lt 0 -or $FromClient -ge $Clients.Count) {
+        Write-Host -ForegroundColor Magenta "Send-Transactin: FromClient index $($FromClient) is invalid. Possible clients are: 0 - $($Clients.Count)"
+        return $null
+    }
+    if($ToClient -eq -1 -and $ToAddr -eq "") {
+        Write-Host -ForegroundColor Magenta "Send-Transaction: either ToClient or ToAddr must be specified!"
+        return $null
+    }
+    $targetAddr = $ToAddr
+    if($ToClient -lt 0 -or $ToClient -ge $Clients.Count) {
+        Write-Host -ForegroundColor Magenta "Send-Transactin: ToClient index $($ToClient) is invalid. Possible clients are: 0 - $($Clients.Count)"
+        return $null       
+    } else {
+        $targetAddr = $clients[$ToClient].Address
+    }
+    $cmdArgs = @{
+        "to" = "$($targetAddr)_$($Amount)";
+    }
+    $reply = Invoke-DLTApi -APIPort $Clients[$FromClient].APIPort -Command "addtransaction" -CmdArgs $cmdArgs
+    Write-Host -ForegroundColor Gray "Generated transaction txid: $($reply.id)"
+    return $reply.id
+}
+
+function Get-DLTNodeStatus {
+    Param(
+        [System.Collections.ArrayList]$Clients,
+        [int]$NodeIdx
+    )
+    if($NodeIdx -lt 0 -or $NodeIdx -ge $Clients.Count) {
+        Write-Host -ForegroundColor Magenta "Get-DLTNodeStatus: Invalid node index: $($NodeIdx). Values must be between 0 and $($Clients.Count)"
+        return $null
+    }
+    try {
+        $r = Invoke-DLTApi -APIPort $Clients[$NodeIdx].APIPort -Command "status"
+    } catch {
+        Write-Host -ForegroundColor Magenta "Get-DLTNodeStatus: Error calling api for client $($NodeIdx): $($_.Message)"
+        return $null
+    }
+    return $r
+}
+
+function WaitConfirm-PendingTX {
+    Param(
+        [System.Collections.ArrayList]$Clients,
+        [System.Collections.ArrayList]$TXList,
+        [int]$Blocks = 5,
+        [int]$ConfirmAtNode = 0
+    )
+
+    if($Blocks -lt 0) {
+        $Blocks = 0
+    }
+    if($CofirmAtNode -lt 0 -or $ConfirmAtNode -ge $Clients.Count) {
+        Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Client idx $($ConfirmAtNode) is out of bounds."
+        return $false
+    }
+    $ns = Get-DLTNodeStatus -Clients $Clients -NodeIdx $ConfirmAtNode
+    if($ns -eq $null) {
+        Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Unable to read status from confirmation node $($ConfirmAtNode)."
+        return $false
+    }
+    $currentBlock = $ns.'Block Height'
+    $waitUntil = $currentBlock + $Blocks
+    while($currentBlock -lt $waitUntil) {
+        $transactions = Invoke-DLTApi -APIPort $Clients[$ConfirmAtNode].APIPort -Command "tx"
+        if($transactions -eq $null) {
+            Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Unable to get a list of applied transactions from confirmation node $($ConfirmAtNode)."
+            return $false
+        }
+        # check transaction output
+        # if all from pending list are in, we return $true
+        $ns = Get-DLTNodeStatus -Clients $Clients -NodeIdx $ConfirmAtNode
+        if($ns -eq $null) {
+            Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Unable to read status from confirmation node $($ConfirmAtNode)."
+            return $false
+        }
+        $currentBlock = $ns.'Block Height'
+        Write-Host -ForegroundColor Gray -NoNewline "WaitConfirm-PendingTX: Waiting... Block height: $($currentBlock) / $($waitUntil)"
+        Start-Sleep -Seconds 10
+    }
+    return $false
+}
+
+function Enter-MainDLTLoop {
+    Param(
+        [System.Collections.ArrayList]$Clients
+    )
+}
+
 ###### Main ######
 # DEBUG
 [System.IO.Directory]::SetCurrentDirectory("C:\ZAGAR\Dev\Ixian_source\TestingScripts")
 $wd = [System.IO.Directory]::GetCurrentDirectory()
+# /DEBUG
 Write-Host "Working directory: $($wd)"
 
 $srcDir = "..\IxianDLT\bin\$($ClientBinary)"
@@ -240,7 +365,7 @@ if($ClearState.IsPresent) {
                 $pub_addr = $match.Groups[1].Value
                 Write-Host -ForegroundColor Green "-> Done! Address: $($pub_addr)"
                 $ClientAddresses.Add($targetClient, $pub_addr)
-                $ClientAddresses | Export-Clixml -Path "state.xml" -Force
+                $ClientAddresses | Export-Clixml -Path ".\state.xml" -Force
             } else {
                 Write-Host -ForegroundColor Magenta "-> Error! Address was not generated, please check the log file!"
                 $any_failure = $true
@@ -261,7 +386,7 @@ if($ClearState.IsPresent) {
         }
         Write-Host -ForegroundColor Cyan "IP Interface over which the nodes will communicate: $($IPInterface)"
         if($StartNetwork.IsPresent) {
-            if($dstPaths.Count < 2) {
+            if($dstPaths.Count -lt 2) {
                 Write-Host -ForegroundColor Magenta "At least two instances are required to start the testnet!"
             } else {
                 $gen2Addr = $ClientAddresses[$dstPaths[1]]
@@ -274,14 +399,18 @@ if($ClearState.IsPresent) {
                     foreach($client in $dstPaths) {
                         $dltPort = $DLTStartPort + $idx
                         $apiPort = $APIStartPort + $idx
+                        $clientAddr = $ClientAddresses[$client]
                         $startParams = ""
                         if($idx -eq 0) {
                             # Genesis node
-                            $startParams = "-t -s -p $($dltPort) -a $($apiPort) -i $($IPInterface) --genesis 1000000 --genesis2 $($gen2Addr) --walletPassword $($WalletPassword)"
+                            $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) --genesis 1000000 --genesis2 $($gen2Addr) --walletPassword $($WalletPassword) --disableWebStart"
                         } else {
-                            $startParams = "-t -s -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword)"
+                            $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
                         }
-                        Write-Host -ForegroundColor Cyan "Starting Client $($idx)..."
+                        if(-not $EnableMining.IsPresent) {
+                           $startParams += " --disableMiner" 
+                        }
+                        Write-Host -ForegroundColor Cyan "Starting Client $($idx) - Address: $($clientAddr)..."
                         $dltClientProcess = Start-DLTClient -Client $client -StartupArgs $startParams
                         if($dltClientProcess -eq $null) {
                             Write-Host -ForegroundColor Magenta "-> There was an error starting client $($idx)!"
@@ -296,18 +425,85 @@ if($ClearState.IsPresent) {
                             Process = $dltClientProcess
                             DLTPort = $dltPort
                             APIPort = $apiPort
+                            Address = $clientAddr
                         }
                         [void]$DLTProcesses.Add($dltClient)
-                        Write-Host
+                        Write-Host -ForegroundColor Yellow "-> Process ID: $($dltClientProcess.ID)"
                         $idx = $idx + 1
+                        if($idx -eq 1) {
+                            Write-Host -ForegroundColor Cyan "Waiting for genesis node to complete a few blocks..."
+                            while($true) {
+                                $ns = Get-DLTNodeStatus -Clients $DLTProcesses -NodeIdx 0
+                                if($ns -eq $null) {
+                                    Write-Host -ForegroundColor Magenta "Error while reading node status..."
+                                    $wasError = $true
+                                    break
+                                }
+                                if($ns.'Block Height' -lt 5) {
+                                    Write-Host -ForegroundColor Green "-> Block Height: $($ns.'Block Height')"
+                                } else {
+                                    Write-Host -ForegroundColor Green "-> Block Height reached, proceeding."
+                                    break                                    
+                                }
+                                Start-Sleep -Seconds 2
+                            }
+                        }
+                        if($wasError -eq $false) {
+                            if($idx -eq 2) {
+                                # Leave two nodes running until they reach block #11
+                                Write-Host -ForegroundColor Cyan "Waiting for the genesis nodes to reach block #11..."
+                                while($true) {
+                                    $ns = Get-DLTNodeStatus -Clients $DLTProcesses -NodeIdx 0
+                                    if($ns -eq $null) {
+                                        Write-Host -ForegroundColor Magenta "Error while reading node status..."
+                                        $wasError = $true
+                                        break
+                                    }
+                                    if($ns.'Block Height' -le 10) {
+                                        Write-Host -ForegroundColor Green "-> Block Height: $($ns.'Block Height')"
+                                    } else {
+                                        Write-Host -ForegroundColor Green "-> Block Height reached, proceeding."
+                                        break
+                                    }
+                                    Start-Sleep -Seconds 2
+                                }
+                            }
+                        }
+                        # early exit on error
+                        if($wasError) { break }
                     }
+
+                    $pendingTx = New-Object System.Collections.ArrayList
+                    if($wasError -eq $false) {
+                        # Put in transactions to give other seed nodes initial funds
+                        Write-Host -ForegroundColor Cyan "Creating transactions to give other nodes required minimum funds..."
+                        foreach($n in $DLTProcesses) {
+                            if($n.idx -lt 2) { continue }
+                            $tx = Send-Transaction -Clients $DLTProcesses -FromClient 0 -ToClient $n.idx -Amount 50000
+                            if($tx -eq $null) {
+                                Write-Host -ForegroundColor Magenta "Error sending initial funds to client $($n.idx). Aborting."
+                                $wasError = $true
+                                break
+                            }
+                            $pendingTx.Add($tx)
+                        }
+                    }
+                    if($wasError -eq $false) {
+                        # wait for all pending transactions to clear
+                        $pendTxCleared = WaitConfirm-PendingTX -Clients $DLTProcesses -TXList $pendingTx -Blocks 5
+                        if($pendTxCleared -eq $false) {
+                            Write-Host -ForegroundColor Magenta "Pending transctions did not clear within 5 blocks, aborting."
+                            $wasError = $true
+                        }
+                    }
+
                     if($wasError) {
                         Write-Host -ForegroundColor Magenta "At least one error occured while starting the testnet. Aborting!"
                         Shutdown-TestNet -Clients $DLTProcesses
                         exit
                     }
                     Write-Host -ForegroundColor Cyan "Entering main loop..."
-                    #Enter-MainDLTLoop
+                    Enter-MainDLTLoop -Clients $DLTProcesses
                     Write-Host -ForegroundColor Cyan "Main loop finished. Terminating..."
                     Shutdown-TestNet -Clients $DLTProcesses
                 }
