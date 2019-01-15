@@ -1,10 +1,12 @@
 ﻿Param(
     [int]$NumInstances = 5,
+    [int]$MinerOnlyInstances = 0,
     [switch]$ClearState,
     [switch]$StartNetwork,
     [switch]$CollectResults,
     [string]$IPInterface = "",
-    [switch]$EnableMining
+    [switch]$EnableMining, # Ignored if $MinerOnlyInstances > 0
+    [switch]$DisplayWindows
 )
 
 $ClientBinary = "Debug"
@@ -151,7 +153,11 @@ function Start-DLTClient {
         $pi.FileName = $clientBinary
         $pi.UseShellExecute = $false
         $pi.Arguments = $StartupArgs
-        #$pi.CreateNoWindow = $true
+        if($DisplayWindows.IsPresent) {
+            $pi.CreateNoWindow = $false
+        } else {
+            $pi.CreateNoWindow = $true
+        }
         $p = New-Object System.Diagnostics.Process
         $p.StartInfo = $pi
         Write-Host -ForegroundColor Gray "Start-DLTClient: Commandline: $($clientBinary) $($StartupArgs)"
@@ -190,10 +196,12 @@ function Invoke-DLTApi {
     foreach($k in $CmdArgs.Keys) {
         $args = $args + "$($k)=$($CmdArgs[$k])&"
     }
-    $fullUrl = "$($url)?$($args)"
-    Write-Host -ForegroundColor Gray "Invoking DLT Api: $($fullUrl)"
+    if($args.Length -gt 0) {
+        $url = "$($url)?$($args)"
+    }
+    Write-Host -ForegroundColor Gray "Invoking DLT Api: $($url)"
     try {
-        $r = Invoke-RestMethod -Method Get -Uri $fullUrl
+        $r = Invoke-RestMethod -Method Get -Uri $url
         return $r.result
     } catch {
         Write-Host -ForegroundColor Magenta "Invoke-DLTApi: Error while calling rest method $($Command): $($_.Message)"
@@ -261,7 +269,7 @@ function WaitConfirm-PendingTX {
     if($Blocks -lt 0) {
         $Blocks = 0
     }
-    if($CofirmAtNode -lt 0 -or $ConfirmAtNode -ge $Clients.Count) {
+    if($ConfirmAtNode -lt 0 -or $ConfirmAtNode -ge $Clients.Count) {
         Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Client idx $($ConfirmAtNode) is out of bounds."
         return $false
     }
@@ -279,7 +287,22 @@ function WaitConfirm-PendingTX {
             return $false
         }
         # check transaction output
+        # $transactions are PSObject with properties=txids and values transaction objects
+        $txids = $transactions.PSObject.Properties | foreach { $_.Name }
+        $missing = $false
+        foreach($txid in $TXList) {
+            if($txids.Contains($txid) -eq $false) {
+                $missing = $true
+                break
+            }
+        }
         # if all from pending list are in, we return $true
+        if($missing) {
+            Write-Host -ForegroundColor Yellow "-> Some transactions have not been accepted yet..."
+        } else {
+            Write-Host -ForegroundColor Green "-> All transactions have been accepted..."
+            return $true
+        }
         $ns = Get-DLTNodeStatus -Clients $Clients -NodeIdx $ConfirmAtNode
         if($ns -eq $null) {
             Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Unable to read status from confirmation node $($ConfirmAtNode)."
@@ -296,14 +319,23 @@ function Enter-MainDLTLoop {
     Param(
         [System.Collections.ArrayList]$Clients
     )
+    while($true) {
+        # status display
+        Write-Host -ForegroundColor White "Main loop does nothing yet, press any key to terminate."
+        $Key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp")
+        Write-Host -ForegroundColor White "Pressed: $($Key.Character)"
+        break
+    }
 }
 
 ###### Main ######
 # DEBUG
-[System.IO.Directory]::SetCurrentDirectory("C:\ZAGAR\Dev\Ixian_source\TestingScripts")
-$wd = [System.IO.Directory]::GetCurrentDirectory()
+#[System.IO.Directory]::SetCurrentDirectory("C:\ZAGAR\Dev\Ixian_source\TestingScripts")
+#[System.IO.Directory]::SetCurrentDirectory("D:\Dev_zagar\Ixian-source\TestingScripts")
+$wd = pwd
 # /DEBUG
 Write-Host "Working directory: $($wd)"
+[System.IO.Directory]::SetCurrentDirectory($wd)
 
 $srcDir = "..\IxianDLT\bin\$($ClientBinary)"
 $dstPaths = New-Object System.Collections.ArrayList
@@ -485,7 +517,7 @@ if($ClearState.IsPresent) {
                                 $wasError = $true
                                 break
                             }
-                            $pendingTx.Add($tx)
+                            [void]$pendingTx.Add($tx)
                         }
                     }
                     if($wasError -eq $false) {
