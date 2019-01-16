@@ -23,7 +23,31 @@ $IgnoreList = @(
     "peers.dat"
 )
 
+###### Libraries ######
 
+. .\Testnet-Functions.ps1
+. .\Display-Functions.ps1
+
+
+###### Really low level keyboard hack (Windows only, for now) #####
+
+function Check-Key {
+    Param(
+        [System.Windows.Forms.Keys]$Key
+    )
+    $Signature = @'
+        [DllImport("user32.dll", CharSet=CharSet.Auto, ExactSpelling=true)] 
+        public static extern short GetAsyncKeyState(int virtualKeyCode); 
+'@
+
+    $API = Add-Type -MemberDefinition $Signature -Name 'Keypress' -Namespace Keytest -PassThru
+
+    if($API::GetAsyncKeyState($Key) -eq -32767) {
+        return $true
+    } else {
+        return $false
+    }
+}
 
 ###### functions ######
 
@@ -120,25 +144,6 @@ function Execute-Binary {
     }
 }
 
-function Determine-LocalIP {
-    $ipAddresses = Get-NetIPAddress -AddressFamily IPv4 -Type Unicast -AddressState Preferred | Sort-Object ifIndex
-    foreach($ip in $ipAddresses) {
-        try {
-            $ip_object = [System.Net.IPAddress]::Parse($ip.IPAddress)
-            $octets = $ip_object.GetAddressBytes()
-            if(($octets[0] -eq 10) -or 
-                ($octets[0] -eq 172 -and $octets[1] -ge 16 -and $octets[1] -le 31) -or
-                ($octets[0] -eq 192 -and $octets[1] -eq 168)) {
-
-                # Is private address, we return the first one
-                return $ip.IPAddress
-            }
-        } catch { }
-    }
-    # No private IP address
-    return ""
-}
-
 function Start-DLTClient {
     Param(
         [string]$Client,
@@ -185,147 +190,25 @@ function Shutdown-TestNet {
     Write-Host -ForegroundColor Green "-> TestNet terminated!"
 }
 
-function Invoke-DLTApi {
-    Param(
-        [int]$APIPort,
-        [string]$Command,
-        [hashtable]$CmdArgs
-    )
-    $url = "http://localhost:$($APIPort)/$($Command)"
-    $args = ""
-    foreach($k in $CmdArgs.Keys) {
-        $args = $args + "$($k)=$($CmdArgs[$k])&"
-    }
-    if($args.Length -gt 0) {
-        $url = "$($url)?$($args)"
-    }
-    Write-Host -ForegroundColor Gray "Invoking DLT Api: $($url)"
-    try {
-        $r = Invoke-RestMethod -Method Get -Uri $url
-        return $r.result
-    } catch {
-        Write-Host -ForegroundColor Magenta "Invoke-DLTApi: Error while calling rest method $($Command): $($_.Message)"
-        return $null
-    }
-}
-
-function Send-Transaction {
-    Param(
-        [System.Collections.ArrayList]$Clients,
-        [int]$FromClient,
-        [int]$ToClient = -1,
-        [string]$YoAddr = "",
-        [int]$Amount = 0
-    )
-    if($FromClient -lt 0 -or $FromClient -ge $Clients.Count) {
-        Write-Host -ForegroundColor Magenta "Send-Transactin: FromClient index $($FromClient) is invalid. Possible clients are: 0 - $($Clients.Count)"
-        return $null
-    }
-    if($ToClient -eq -1 -and $ToAddr -eq "") {
-        Write-Host -ForegroundColor Magenta "Send-Transaction: either ToClient or ToAddr must be specified!"
-        return $null
-    }
-    $targetAddr = $ToAddr
-    if($ToClient -lt 0 -or $ToClient -ge $Clients.Count) {
-        Write-Host -ForegroundColor Magenta "Send-Transactin: ToClient index $($ToClient) is invalid. Possible clients are: 0 - $($Clients.Count)"
-        return $null       
-    } else {
-        $targetAddr = $clients[$ToClient].Address
-    }
-    $cmdArgs = @{
-        "to" = "$($targetAddr)_$($Amount)";
-    }
-    $reply = Invoke-DLTApi -APIPort $Clients[$FromClient].APIPort -Command "addtransaction" -CmdArgs $cmdArgs
-    Write-Host -ForegroundColor Gray "Generated transaction txid: $($reply.id)"
-    return $reply.id
-}
-
-function Get-DLTNodeStatus {
-    Param(
-        [System.Collections.ArrayList]$Clients,
-        [int]$NodeIdx
-    )
-    if($NodeIdx -lt 0 -or $NodeIdx -ge $Clients.Count) {
-        Write-Host -ForegroundColor Magenta "Get-DLTNodeStatus: Invalid node index: $($NodeIdx). Values must be between 0 and $($Clients.Count)"
-        return $null
-    }
-    try {
-        $r = Invoke-DLTApi -APIPort $Clients[$NodeIdx].APIPort -Command "status"
-    } catch {
-        Write-Host -ForegroundColor Magenta "Get-DLTNodeStatus: Error calling api for client $($NodeIdx): $($_.Message)"
-        return $null
-    }
-    return $r
-}
-
-function WaitConfirm-PendingTX {
-    Param(
-        [System.Collections.ArrayList]$Clients,
-        [System.Collections.ArrayList]$TXList,
-        [int]$Blocks = 5,
-        [int]$ConfirmAtNode = 0
-    )
-
-    if($Blocks -lt 0) {
-        $Blocks = 0
-    }
-    if($ConfirmAtNode -lt 0 -or $ConfirmAtNode -ge $Clients.Count) {
-        Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Client idx $($ConfirmAtNode) is out of bounds."
-        return $false
-    }
-    $ns = Get-DLTNodeStatus -Clients $Clients -NodeIdx $ConfirmAtNode
-    if($ns -eq $null) {
-        Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Unable to read status from confirmation node $($ConfirmAtNode)."
-        return $false
-    }
-    $currentBlock = $ns.'Block Height'
-    $waitUntil = $currentBlock + $Blocks
-    while($currentBlock -lt $waitUntil) {
-        $transactions = Invoke-DLTApi -APIPort $Clients[$ConfirmAtNode].APIPort -Command "tx"
-        if($transactions -eq $null) {
-            Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Unable to get a list of applied transactions from confirmation node $($ConfirmAtNode)."
-            return $false
-        }
-        # check transaction output
-        # $transactions are PSObject with properties=txids and values transaction objects
-        $txids = $transactions.PSObject.Properties | foreach { $_.Name }
-        $missing = $false
-        foreach($txid in $TXList) {
-            if($txids.Contains($txid) -eq $false) {
-                $missing = $true
-                break
-            }
-        }
-        # if all from pending list are in, we return $true
-        if($missing) {
-            Write-Host -ForegroundColor Yellow "-> Some transactions have not been accepted yet..."
-        } else {
-            Write-Host -ForegroundColor Green "-> All transactions have been accepted..."
-            return $true
-        }
-        $ns = Get-DLTNodeStatus -Clients $Clients -NodeIdx $ConfirmAtNode
-        if($ns -eq $null) {
-            Write-Host -ForegroundColor Magenta "WaitConfirm-PendingTX: Unable to read status from confirmation node $($ConfirmAtNode)."
-            return $false
-        }
-        $currentBlock = $ns.'Block Height'
-        Write-Host -ForegroundColor Gray -NoNewline "WaitConfirm-PendingTX: Waiting... Block height: $($currentBlock) / $($waitUntil)"
-        Start-Sleep -Seconds 10
-    }
-    return $false
-}
-
 function Enter-MainDLTLoop {
     Param(
         [System.Collections.ArrayList]$Clients
     )
-    while($true) {
-        # status display
-        Write-Host -ForegroundColor White "Main loop does nothing yet, press any key to terminate."
-        $Key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp")
-        Write-Host -ForegroundColor White "Pressed: $($Key.Character)"
-        break
+    try {
+        while($true) {
+            # status display
+            Display-ClientStatus -Clients $Clients
+            
+            Start-Sleep -Seconds 2
+            if(Check-Key -Key E) {
+                Write-Host -ForegroundColor Magenta "Exit key pressed!"
+                break
+            }
+        }
+    } catch {
+        Write-Host -ForegroundColor Yellow "Exception caught in main loop: $($_)"
     }
+    Write-Host -ForegroundColor Cyan "Exiting..."
 }
 
 ###### Main ######
@@ -471,7 +354,7 @@ if($ClearState.IsPresent) {
                                     $wasError = $true
                                     break
                                 }
-                                if($ns.'Block Height' -lt 5) {
+                                if($ns.'Block Height' -lt 2) {
                                     Write-Host -ForegroundColor Green "-> Block Height: $($ns.'Block Height')"
                                 } else {
                                     Write-Host -ForegroundColor Green "-> Block Height reached, proceeding."

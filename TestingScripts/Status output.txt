@@ -5,6 +5,7 @@ Status (Act,Conn,Sync,..)
 Connections(In/Out)
 Mode: M,H,...
 Req. Sigs
+Applied/Unapplied TX
 
 Per miner:
 Hashrate
