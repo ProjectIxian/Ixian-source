@@ -105,8 +105,7 @@ function Execute-Binary {
     Param(
         [string]$CWD,
         [string]$Binary,
-        [string]$Parameters,
-        [switch]$CaptureOutput
+        [string]$Parameters
     )
     $old_wd = [System.IO.Directory]::GetCurrentDirectory()
     [System.IO.Directory]::SetCurrentDirectory($CWD)
@@ -190,19 +189,71 @@ function Shutdown-TestNet {
     Write-Host -ForegroundColor Green "-> TestNet terminated!"
 }
 
+function Spinup-AnotherNode {
+    Param(
+        [System.Collections.ArrayList]$Clients,
+        [switch]$Miner
+    )
+    $nIndex = $Clients[$Clients.Count-1].idx + 1
+    $dltPort = $DLTStartPort + $nIndex
+    $apiPort = $APIStartPort + $nIndex
+    $client = $dstPaths[$nIndex]
+    $params = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
+    if(-not $Miner.IsPresent) {
+        $params += " --disableMiner"
+    }
+    $node_process = Start-DLTClient -Client $client -StartupArgs $params
+    $clientAddr = $ClientAddresses[$client]
+    $dltClient = [PSCustomObject]@{
+        idx     = $nIndex
+        Client  = $client
+        Process = $node_process
+        DLTPort = $dltPort
+        APIPort = $apiPort
+        Address = $clientAddr
+        Miner   = $false
+    }
+    [void]$Clients.Add($dltClient)
+    Write-Host -ForegroundColor Yellow "-> Process ID: $($dltClientProcess.ID)"
+    Write-Host -ForegroundColor Cyan -NoNewline "-> Generating transaction for initial funds: "
+    $tx = Send-Transaction -Clients $DLTProcesses -FromClient 0 -ToClient $nIndex -Amount 50000
+    Write-Host -ForegroundColor Gray "$($tx)"
+}
+
 function Enter-MainDLTLoop {
     Param(
         [System.Collections.ArrayList]$Clients
     )
     try {
-        while($true) {
+        $run = $true
+        while($run) {
             # status display
             Display-ClientStatus -Clients $Clients
             
-            Start-Sleep -Seconds 2
-            if(Check-Key -Key E) {
-                Write-Host -ForegroundColor Magenta "Exit key pressed!"
-                break
+            # wait loop must poll for keypresses
+            for($i = 0; $i -lt 10; $i++) {
+                if(Check-Key -Key E) {
+                    Write-Host -ForegroundColor Magenta "Exit key pressed!"
+                    $run = $false
+                    break
+                }
+                if(Check-Key -Key N) {
+                    if($Clients.Count -ge $dstPaths.Count) {
+                        Write-Host -ForegroundColor Yellow "Unable to add another node. No more are prepared. Run this script with -NumInstances greater than $($dstPaths.Count) but without -StartNetwork to prepare more nodes."
+                    } else {
+                        Write-Host -ForegroundColor White "Adding another node to the network!"
+                        Spinup-AnotherNode -Clients $Clients
+                    }
+                }
+                if(Check-Key -Key M) {
+                    if($Clients.Count -ge $dstPaths.Count) {
+                        Write-Host -ForegroundColor Yellow "Unable to add another node. No more are prepared. Run this script with -NumInstances greater than $($dstPaths.Count) but without -StartNetwork to prepare more nodes."
+                    } else {
+                        Write-Host -ForegroundColor White "Adding another miner node to the network!"
+                        Spinup-AnotherNode -Clients $Clients -Miner
+                    }
+                }
+                Start-Sleep -Milliseconds 200
             }
         }
     } catch {
@@ -219,11 +270,24 @@ $wd = pwd
 # /DEBUG
 Write-Host "Working directory: $($wd)"
 [System.IO.Directory]::SetCurrentDirectory($wd)
+Write-Host "Loading required assemblies..."
+[void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
 
 $srcDir = "..\IxianDLT\bin\$($ClientBinary)"
 $dstPaths = New-Object System.Collections.ArrayList
 
-for($i = 0; $i -lt $numInstances; $i++) {
+$ClientAddresses = @{}
+if([System.IO.File]::Exists("state.xml")) {
+    $ClientAddresses = Import-Clixml "state.xml"
+}
+
+
+$num_ready_clients = $NumInstances
+if($ClientAddresses.Keys.Count -gt $NumInstances) {
+    $num_ready_clients = $ClientAddresses.Keys.Count
+}
+
+for($i = 0; $i -lt $num_ready_clients; $i++) {
     $dpath = ".\$($TestRoot)\Client_$($i)"
     [void]$dstPaths.Add($dpath);
 }
@@ -255,10 +319,6 @@ if($ClearState.IsPresent) {
         [System.IO.File]::Delete("state.xml")
     }
 } else {
-    $ClientAddresses = @{}
-    if([System.IO.File]::Exists("state.xml")) {
-        $ClientAddresses = Import-Clixml "state.xml"
-    }
     Write-Host -ForegroundColor Cyan "Checking and generating wallets for all clients..."
     $any_failure = $false
     foreach($targetClient in $dstPaths) {
@@ -270,7 +330,7 @@ if($ClearState.IsPresent) {
             $targetWD = $targetClient
             $targetExe = "IxianDLT.exe"
             $params = "-t --generateWallet --walletPassword $($WalletPassword)"
-            $output = Execute-Binary -CWD $targetWD -Binary $targetExe -Parameters $params -CaptureOutput
+            $output = Execute-Binary -CWD $targetWD -Binary $targetExe -Parameters $params
             # Looking for log line like: 01-10 11:15:17.4001|info|(1): Public Node Address: 1STq7YC3y71uiN1QHbp8jFfVg3A1rfBe8qYytbgr2CNEKeXUD
             $pub_addr_r = New-Object System.Text.RegularExpressions.Regex(
                 "^[0-9\-\ \:\.]+\|info\|\([0-9]+\)\: Public Node Address\: ([a-zA-Z0-9]+)",
@@ -284,13 +344,13 @@ if($ClearState.IsPresent) {
             } else {
                 Write-Host -ForegroundColor Magenta "-> Error! Address was not generated, please check the log file!"
                 $any_failure = $true
-            }
+            }n
         }
     }
     if($any_failure) {
         Write-Host -ForegroundColor Magenta "Something failed. Aborting."
     } else {
-        # Start DLT network
+        # Start DLT network, if switch has been set
         if($IPInterface -eq "") {
             Write-Host -ForegroundColor Cyan "Attempting to automatically discover local IP address..."
             $IPInterface = Determine-LocalIP
@@ -301,7 +361,10 @@ if($ClearState.IsPresent) {
         }
         Write-Host -ForegroundColor Cyan "IP Interface over which the nodes will communicate: $($IPInterface)"
         if($StartNetwork.IsPresent) {
-            if($dstPaths.Count -lt 2) {
+            Write-Host -ForegroundColor White " -------------------------"
+            Write-Host -ForegroundColor White " | Starting DLT NETWORK! |"
+            Write-Host -ForegroundColor White " -------------------------"
+            if($NumInstances -lt 2) {
                 Write-Host -ForegroundColor Magenta "At least two instances are required to start the testnet!"
             } else {
                 $gen2Addr = $ClientAddresses[$dstPaths[1]]
@@ -311,6 +374,7 @@ if($ClearState.IsPresent) {
                     $DLTProcesses = New-Object System.Collections.ArrayList
                     $idx = 0
                     $wasError = $false
+                    $total_instances = $NumInstances + $MinerOnlyInstances
                     foreach($client in $dstPaths) {
                         $dltPort = $DLTStartPort + $idx
                         $apiPort = $APIStartPort + $idx
@@ -322,8 +386,19 @@ if($ClearState.IsPresent) {
                         } else {
                             $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
                         }
-                        if(-not $EnableMining.IsPresent) {
-                           $startParams += " --disableMiner" 
+                        $mining = $true
+                        if($MinerOnlyInstances -gt 0) {
+                            # if MinerOnlyInstances is specified, then the first NumInstances do not mine
+                            if($idx -lt $NumInstances) {
+                                $mining = $false
+                                $startParams += " --disableMiner"
+                            }
+                        } else {
+                            # if MinerOnlyInstances is not specified, all nodes (potentially) mine
+                            if(-not $EnableMining.IsPresent) {
+                                $mining = $false
+                                $startParams += " --disableMiner"
+                            }
                         }
                         Write-Host -ForegroundColor Cyan "Starting Client $($idx) - Address: $($clientAddr)..."
                         $dltClientProcess = Start-DLTClient -Client $client -StartupArgs $startParams
@@ -341,12 +416,14 @@ if($ClearState.IsPresent) {
                             DLTPort = $dltPort
                             APIPort = $apiPort
                             Address = $clientAddr
+                            Miner   = $mining
                         }
                         [void]$DLTProcesses.Add($dltClient)
                         Write-Host -ForegroundColor Yellow "-> Process ID: $($dltClientProcess.ID)"
                         $idx = $idx + 1
                         if($idx -eq 1) {
                             Write-Host -ForegroundColor Cyan "Waiting for genesis node to complete a few blocks..."
+                            Write-Host ""
                             while($true) {
                                 $ns = Get-DLTNodeStatus -Clients $DLTProcesses -NodeIdx 0
                                 if($ns -eq $null) {
@@ -355,7 +432,7 @@ if($ClearState.IsPresent) {
                                     break
                                 }
                                 if($ns.'Block Height' -lt 2) {
-                                    Write-Host -ForegroundColor Green "-> Block Height: $($ns.'Block Height')"
+                                    Write-Host -ForegroundColor Green -NoNewline "`r-> Block Height: $($ns.'Block Height')"
                                 } else {
                                     Write-Host -ForegroundColor Green "-> Block Height reached, proceeding."
                                     break                                    
@@ -367,6 +444,7 @@ if($ClearState.IsPresent) {
                             if($idx -eq 2) {
                                 # Leave two nodes running until they reach block #11
                                 Write-Host -ForegroundColor Cyan "Waiting for the genesis nodes to reach block #11..."
+                                Write-Host ""
                                 while($true) {
                                     $ns = Get-DLTNodeStatus -Clients $DLTProcesses -NodeIdx 0
                                     if($ns -eq $null) {
@@ -375,7 +453,7 @@ if($ClearState.IsPresent) {
                                         break
                                     }
                                     if($ns.'Block Height' -le 10) {
-                                        Write-Host -ForegroundColor Green "-> Block Height: $($ns.'Block Height')"
+                                        Write-Host -ForegroundColor Green -NoNewline "`r-> Block Height: $($ns.'Block Height')"
                                     } else {
                                         Write-Host -ForegroundColor Green "-> Block Height reached, proceeding."
                                         break
@@ -386,6 +464,8 @@ if($ClearState.IsPresent) {
                         }
                         # early exit on error
                         if($wasError) { break }
+                        # onyl spawn $NumInstances nodes
+                        if($idx -ge $total_instances) { break }
                     }
 
                     $pendingTx = New-Object System.Collections.ArrayList

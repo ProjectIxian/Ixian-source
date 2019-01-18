@@ -31,7 +31,8 @@ function Invoke-DLTApi {
     if($args.Length -gt 0) {
         $url = "$($url)?$($args)"
     }
-    Write-Host -ForegroundColor Gray "Invoking DLT Api: $($url)"
+    # DEBUG
+    #Write-Host -ForegroundColor Gray "Invoking DLT Api: $($url)"
     try {
         $r = Invoke-RestMethod -Method Get -Uri $url
         return $r.result
