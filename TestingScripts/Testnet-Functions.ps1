@@ -165,3 +165,11 @@ function WaitConfirm-PendingTX {
     }
     return $false
 }
+
+function Get-CurrentBlockHeight {
+    $ns = Invoke-DLTApi -APIPort $APIStartPort -Command "status"
+    if($ns -eq $null) {
+        return $null
+    }
+    return $ns.'Block Height'
+}

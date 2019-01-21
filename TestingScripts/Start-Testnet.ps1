@@ -29,26 +29,6 @@ $IgnoreList = @(
 . .\Display-Functions.ps1
 
 
-###### Really low level keyboard hack (Windows only, for now) #####
-
-function Check-Key {
-    Param(
-        [System.Windows.Forms.Keys]$Key
-    )
-    $Signature = @'
-        [DllImport("user32.dll", CharSet=CharSet.Auto, ExactSpelling=true)] 
-        public static extern short GetAsyncKeyState(int virtualKeyCode); 
-'@
-
-    $API = Add-Type -MemberDefinition $Signature -Name 'Keypress' -Namespace Keytest -PassThru
-
-    if($API::GetAsyncKeyState($Key) -eq -32767) {
-        return $true
-    } else {
-        return $false
-    }
-}
-
 ###### functions ######
 
 function Check-FileIgnoreList {
@@ -182,8 +162,10 @@ function Shutdown-TestNet {
     # TODO: Attempt shutdown over API and wait for a while
     foreach($dltClient in $Clients) {
         Write-Host -ForegroundColor Yellow "-> [$($dltClient.idx)]: $($dltClient.Client)"
-        if($dltClient.Process -ne $null) {
-            $dltClient.Process.Kill()
+        if($dltClient.Process -ne $null -and $dltClient.Dead -eq $false) {
+            try {
+                $dltClient.Process.Kill()
+            } catch { } # we ignore errors at this point
         }
     }
     Write-Host -ForegroundColor Green "-> TestNet terminated!"
@@ -211,7 +193,9 @@ function Spinup-AnotherNode {
         DLTPort = $dltPort
         APIPort = $apiPort
         Address = $clientAddr
-        Miner   = $false
+        Miner   = $Miner.IsPresent
+        Dead    = $false
+        Display = $true
     }
     [void]$Clients.Add($dltClient)
     Write-Host -ForegroundColor Yellow "-> Process ID: $($dltClientProcess.ID)"
@@ -226,40 +210,60 @@ function Enter-MainDLTLoop {
     )
     try {
         $run = $true
+        $detach = $false
         while($run) {
             # status display
             Display-ClientStatus -Clients $Clients
-            
-            # wait loop must poll for keypresses
-            for($i = 0; $i -lt 10; $i++) {
-                if(Check-Key -Key E) {
-                    Write-Host -ForegroundColor Magenta "Exit key pressed!"
-                    $run = $false
-                    break
-                }
-                if(Check-Key -Key N) {
-                    if($Clients.Count -ge $dstPaths.Count) {
-                        Write-Host -ForegroundColor Yellow "Unable to add another node. No more are prepared. Run this script with -NumInstances greater than $($dstPaths.Count) but without -StartNetwork to prepare more nodes."
-                    } else {
-                        Write-Host -ForegroundColor White "Adding another node to the network!"
-                        Spinup-AnotherNode -Clients $Clients
+
+            if($host.UI.RawUI.KeyAvailable) {
+                $key = $host.UI.RawUI.ReadKey("IncludeKeyUp,IncludeKeyDown,NoEcho")
+                if($key.KeyDown -eq $true) {
+                    # ignore when key is released so as not to trigger twice
+                    # note - we still have to grab both from the ReadKey, otherwise KeyAvailable will remain $true
+                    if($key.Character -eq 'e' -or $key.Character -eq 'E') {
+                        Write-Host -ForegroundColor Magenta "Exit key pressed!"
+                        $run = $false
+                        break
+                    }
+                    if($key.Character -eq 'x' -or $key.Character -eq 'X') {
+                        Write-Host -ForegroundColor Magenta "Detach key pressed!"
+                        $detach = $true
+                        $run = $false
+                        break
+                    }
+                    if($key.Character -eq 'c' -or $key.Character -eq 'C') {
+                        Write-Host -ForegroundColor Magenta "Cleaning up dead nodes"
+                        foreach($n in $Clients) {
+                            if($n.Dead) {
+                                $n.Display = $false
+                            }
+                        }
+                    }
+                    if($key.Character -eq 'n' -or $key.Character -eq 'N') {
+                        if($Clients.Count -ge $dstPaths.Count) {
+                            Write-Host -ForegroundColor Yellow "Unable to add another node. No more are prepared. Run this script with -NumInstances greater than $($dstPaths.Count) but without -StartNetwork to prepare more nodes."
+                        } else {
+                            Write-Host -ForegroundColor White "Adding another node to the network!"
+                            Spinup-AnotherNode -Clients $Clients
+                        }
+                    }
+                    if($key.Character -eq 'm' -or $key.Character -eq 'M') {
+                        if($Clients.Count -ge $dstPaths.Count) {
+                            Write-Host -ForegroundColor Yellow "Unable to add another node. No more are prepared. Run this script with -NumInstances greater than $($dstPaths.Count) but without -StartNetwork to prepare more nodes."
+                        } else {
+                            Write-Host -ForegroundColor White "Adding another miner node to the network!"
+                            Spinup-AnotherNode -Clients $Clients -Miner
+                        }
                     }
                 }
-                if(Check-Key -Key M) {
-                    if($Clients.Count -ge $dstPaths.Count) {
-                        Write-Host -ForegroundColor Yellow "Unable to add another node. No more are prepared. Run this script with -NumInstances greater than $($dstPaths.Count) but without -StartNetwork to prepare more nodes."
-                    } else {
-                        Write-Host -ForegroundColor White "Adding another miner node to the network!"
-                        Spinup-AnotherNode -Clients $Clients -Miner
-                    }
-                }
-                Start-Sleep -Milliseconds 200
             }
+            Start-Sleep -Seconds 2
         }
     } catch {
         Write-Host -ForegroundColor Yellow "Exception caught in main loop: $($_)"
     }
     Write-Host -ForegroundColor Cyan "Exiting..."
+    return $detach
 }
 
 ###### Main ######
@@ -344,7 +348,7 @@ if($ClearState.IsPresent) {
             } else {
                 Write-Host -ForegroundColor Magenta "-> Error! Address was not generated, please check the log file!"
                 $any_failure = $true
-            }n
+            }
         }
     }
     if($any_failure) {
@@ -417,6 +421,8 @@ if($ClearState.IsPresent) {
                             APIPort = $apiPort
                             Address = $clientAddr
                             Miner   = $mining
+                            Dead    = $false
+                            Display = $true
                         }
                         [void]$DLTProcesses.Add($dltClient)
                         Write-Host -ForegroundColor Yellow "-> Process ID: $($dltClientProcess.ID)"
@@ -498,9 +504,12 @@ if($ClearState.IsPresent) {
                         exit
                     }
                     Write-Host -ForegroundColor Cyan "Entering main loop..."
-                    Enter-MainDLTLoop -Clients $DLTProcesses
-                    Write-Host -ForegroundColor Cyan "Main loop finished. Terminating..."
-                    Shutdown-TestNet -Clients $DLTProcesses
+                    $detach = Enter-MainDLTLoop -Clients $DLTProcesses
+                    Write-Host -ForegroundColor Cyan "Main loop finished."
+                    if($detach -eq $false) {
+                        Write-Host -ForegroundColor Red "Terminating testnet..."
+                        Shutdown-TestNet -Clients $DLTProcesses
+                    }
                 }
             }
         } else {

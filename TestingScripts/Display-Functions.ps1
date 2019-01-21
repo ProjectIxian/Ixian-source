@@ -35,10 +35,10 @@ function Render-Indexes {
     Param(
         [System.Collections.ArrayList]$Clients
     )
-    Write-Host -ForegroundColor White -NoNewline "NODES:".PadRight(10)
+    Write-Host -ForegroundColor White -NoNewline "PID:".PadRight(10)
     foreach($c in $Clients) {
         if($c.idx -ge 13) { break }
-        Write-Host -ForegroundColor Green -NoNewline "$($c.idx.ToString().PadLeft(10))"
+        Write-Host -ForegroundColor Green -NoNewline "$($c.Process.Id.ToString().PadLeft(10))"
     }
     Write-Host ""
 }
@@ -60,9 +60,13 @@ function Render-Status {
         $bp_c = [ConsoleColor]::Green
         if($dlt_s -eq "SYN") {
             $dlt_c = [ConsoleColor]::Yellow
+        } elseif($dlt_s -eq "DEAD") {
+            $dlt_c = [ConsoleColor]::Magenta
         }
         if($bp_s -eq "STOP") {
             $bp_c = [ConsoleColor]::Red
+        } elseif($bp_s -eq "DEAD") {
+            $bp_c = [ConsoleColor]::Magenta
         }
         $len = 10 - $dlt_s.Length - $bp_s.Length - 1
         Write-Host -NoNewline "$(New-Object String (' ', $len))"
@@ -79,7 +83,7 @@ function Render-BlockHeight {
     )
     Write-Host -NoNewline -ForegroundColor White "B.HEIGHT:".PadRight(10)
     foreach($bh in $bhs) {
-        Write-Host -NoNewline -ForegroundColor Cyan $bh
+        Write-Host -NoNewline -ForegroundColor Cyan $bh.ToString().PadLeft(10)
     }
     Write-Host ""
 }
@@ -90,7 +94,7 @@ function Render-Consensus {
     )
     Write-Host -NoNewline -ForegroundColor White "CONSENSUS:"
     foreach($c in $consensus) {
-        Write-Host -NoNewline -ForegroundColor Yellow $c
+        Write-Host -NoNewline -ForegroundColor Yellow $c.ToString().PadLeft(10)
     }
     Write-Host ""
 }
@@ -106,8 +110,8 @@ function Render-Connections {
         $num_elem = $out_conn.Count
     }
     for($i = 0; $i -lt $num_elem; $i++) {
-        $in_s = $in_conn[$i]
-        $out_s = $out_conn[$i]
+        $in_s = $in_conn[$i].ToString()
+        $out_s = $out_conn[$i].ToString()
         $len = 10 - $in_s.Length - $out_s.Length - 1
         Write-Host -NoNewline "$(New-Object String (' ', $len))"
         Write-Host -NoNewline -ForegroundColor Cyan $in_s
@@ -128,8 +132,8 @@ function Render-TXs {
         $num_elem = $unapplied.Count
     }
     for($i = 0; $i -lt $num_elem; $i++) {
-        $a_s = $applied[$i]
-        $u_s = $unapplied[$i]
+        $a_s = $applied[$i].ToString()
+        $u_s = $unapplied[$i].ToString()
         $len = 10 - $a_s.Length - $u_s.Length - 1
         Write-Host -NoNewline "$(New-Object String (' ', $len))"
         Write-Host -NoNewline -ForegroundColor Cyan $a_s
@@ -161,7 +165,7 @@ function Render-MinerSolved {
     )
     Write-Host -NoNewline -ForegroundColor White "SOLVED:".PadRight(10)
     foreach($s in $solved_counts) {
-        Write-Host -NoNewline -ForegroundColor Green $s.PadLeft(10)
+        Write-Host -NoNewline -ForegroundColor Green $s.ToString().PadLeft(10)
     }
     Write-Host ""
 }
@@ -203,6 +207,16 @@ function Render-GlobalStats {
 
 }
 
+function Render-Footer {
+    Write-Host -ForegroundColor White  "Keys:"
+    Write-Host -ForegroundColor White  " - N : Add another DLT node to the network"
+    Write-Host -ForegroundColor White  " - M : Add another Mining node to the network"
+    Write-Host -ForegroundColor White  " - C : Cleanup dead nodes from the table"
+    Write-Host -ForegroundColor White  " - E : Stop all nodes and exit"
+    Write-Host -ForegroundColor Yellow " - X : DETACH FROM NODE PROCESSES AND LEAVE THE NETWORK RUNNING"
+    Write-Host -ForegroundColor White  " - If a key does not work, try holding it down briefly."
+}
+
 
 function Display-ClientStatus {
     Param(
@@ -229,45 +243,70 @@ function Display-ClientStatus {
     $mining_globals_captured = $false
 
     foreach($node in $Clients) {
-        $ns = Get-DLTNodeStatus -Clients $Clients -NodeIdx $node.idx
-        # DLT Status
-        [void]$dlt_statuses.Add(($ns.'DLT Status').Substring(0,3).ToUpper())
-        # Block processor status
-        $bp_status = ($ns.'Block Processor Status')
-        if($bp_status -eq "Stopped") { $bp_status = "STOP" }
-        if($bp_status -eq "Running") { $bp_status = "OK" }
-        [void]$bp_statuses.Add($bp_status)
-        # Block Height
-        [void]$node_bhs.Add(($ns.'Block Height').ToString().PadLeft(10))
-        # Consensus
-        [void]$consensus.Add(($ns.'Required Consensus').ToString().PadLeft(10))
-        # In / Out connections
-        [void]$in_connections.Add(($ns.'Network Clients').Count.ToString())
-        [void]$out_connections.Add(($ns.'Network Servers').Count.ToString())
-        # Applied / Unapplied TXs
-        [void]$applied_txs.Add(($ns.'Applied TX Count').ToString())
-        [void]$unapplied_txs.Add(($ns.'Unapplied TX Count').ToString())
-        # Miner
-        $ms = Get-DLTMinerStatus -Clients $Clients -NodeIdx $node.idx
-        # Hashrates
-        [void]$hashrates.Add(($ms.'Hashrate'))
-        # Solved
-        [void]$solved_counts.Add(($ms.'Solved Blocks (Local)').ToString().PadLeft(10))
-        if($count -eq 0) {
-            # Caputer global stats from first node
-            $global_wallets = $ns.'Wallets'
+        if($node.Display -eq $false) { continue }
+        $ns = $null
+        if($node.Dead -eq $false) {
+            $ns = Get-DLTNodeStatus -Clients $Clients -NodeIdx $node.idx
         }
-        if($node.Miner -eq $true -and $mining_globals_captured -eq $false) {
-            # Capture mining globals from the first miner
-            $global_solved = $ms.'Solved Blocks (Network)'
-            $global_unsolved = $ms.'Empty Blocks'
-            $global_difficulty = $ms.'Current Difficulty'
-            $mining_globals_captured = $true
+        if($ns -eq $null) {
+            # Node probably died
+            $node.Dead = $true
+            [void]$dlt_statuses.Add("DEAD")
+            [void]$bp_statuses.Add("DEAD")
+            [void]$node_bhs.Add(0)
+            [void]$consensus.Add(0)
+            [void]$in_connections.Add(0)
+            [void]$out_connections.Add(0)
+            [void]$applied_txs.Add(0)
+            [void]$unapplied_txs.Add(0)
+            [void]$hashrates.Add(0)
+            [void]$solved_counts.Add(0)
+        } else {
+            # DLT Status
+            [void]$dlt_statuses.Add(($ns.'DLT Status').Substring(0,3).ToUpper())
+            # Block processor status
+            $bp_status = ($ns.'Block Processor Status')
+            if($bp_status -eq "Stopped") { $bp_status = "STOP" }
+            if($bp_status -eq "Running") { $bp_status = "OK" }
+            [void]$bp_statuses.Add($bp_status)
+            # Block Height
+            [void]$node_bhs.Add(($ns.'Block Height'))
+            # Consensus
+            [void]$consensus.Add(($ns.'Required Consensus'))
+            # In / Out connections
+            [void]$in_connections.Add(($ns.'Network Clients').Count)
+            [void]$out_connections.Add(($ns.'Network Servers').Count)
+            # Applied / Unapplied TXs
+            [void]$applied_txs.Add(($ns.'Applied TX Count'))
+            [void]$unapplied_txs.Add(($ns.'Unapplied TX Count'))
+            # Miner
+            $ms = Get-DLTMinerStatus -Clients $Clients -NodeIdx $node.idx
+            if($ms -eq $null) {
+                $node.Dead = $true
+                [void]$hashrates.Add(0)
+                [void]$solved_counts.Add(0)
+            } else {
+                # Hashrates
+                [void]$hashrates.Add(($ms.'Hashrate'))
+                # Solved
+                [void]$solved_counts.Add(($ms.'Solved Blocks (Local)'))
+                if($count -eq 0) {
+                    # Caputer global stats from first node
+                    $global_wallets = $ns.'Wallets'
+                }
+                if($node.Miner -eq $true -and $mining_globals_captured -eq $false) {
+                    # Capture mining globals from the first miner
+                    $global_solved = $ms.'Solved Blocks (Network)'
+                    $global_unsolved = $ms.'Empty Blocks'
+                    $global_difficulty = $ms.'Current Difficulty'
+                    $mining_globals_captured = $true
+                }
+            }
+            $count++
+            if($Count -ge 13) {
+                break
+            }
         }
-        $count++
-        if($Count -ge 13) {
-            break
-        }       
     }
     #
     Clear-Host
@@ -281,5 +320,5 @@ function Display-ClientStatus {
     Render-MinerHashrate $hashrates
     Render-MinerSolved $solved_counts
     Render-GlobalStats $global_solved $global_unsolved $global_wallets $global_difficulty
-    #Render-Footer
+    Render-Footer
 }
