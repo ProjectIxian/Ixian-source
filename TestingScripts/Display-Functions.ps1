@@ -214,7 +214,6 @@ function Render-Footer {
     Write-Host -ForegroundColor White  " - C : Cleanup dead nodes from the table"
     Write-Host -ForegroundColor White  " - E : Stop all nodes and exit"
     Write-Host -ForegroundColor Yellow " - X : DETACH FROM NODE PROCESSES AND LEAVE THE NETWORK RUNNING"
-    Write-Host -ForegroundColor White  " - If a key does not work, try holding it down briefly."
 }
 
 

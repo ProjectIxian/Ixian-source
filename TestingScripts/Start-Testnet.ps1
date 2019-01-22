@@ -200,7 +200,7 @@ function Spinup-AnotherNode {
     [void]$Clients.Add($dltClient)
     Write-Host -ForegroundColor Yellow "-> Process ID: $($dltClientProcess.ID)"
     Write-Host -ForegroundColor Cyan -NoNewline "-> Generating transaction for initial funds: "
-    $tx = Send-Transaction -Clients $DLTProcesses -FromClient 0 -ToClient $nIndex -Amount 50000
+    $tx = Send-TransactionTN -Clients $DLTProcesses -FromClient 0 -ToClient $nIndex -Amount 50000
     Write-Host -ForegroundColor Gray "$($tx)"
 }
 
@@ -386,7 +386,7 @@ if($ClearState.IsPresent) {
                         $startParams = ""
                         if($idx -eq 0) {
                             # Genesis node
-                            $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) --genesis 1000000 --genesis2 $($gen2Addr) --walletPassword $($WalletPassword) --disableWebStart"
+                            $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) --genesis 100000000 --genesis2 $($gen2Addr) --walletPassword $($WalletPassword) --disableWebStart"
                         } else {
                             $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
                         }
@@ -480,7 +480,7 @@ if($ClearState.IsPresent) {
                         Write-Host -ForegroundColor Cyan "Creating transactions to give other nodes required minimum funds..."
                         foreach($n in $DLTProcesses) {
                             if($n.idx -lt 2) { continue }
-                            $tx = Send-Transaction -Clients $DLTProcesses -FromClient 0 -ToClient $n.idx -Amount 50000
+                            $tx = Send-TransactionTN -Clients $DLTProcesses -FromClient 0 -ToClient $n.idx -Amount 100000
                             if($tx -eq $null) {
                                 Write-Host -ForegroundColor Magenta "Error sending initial funds to client $($n.idx). Aborting."
                                 $wasError = $true

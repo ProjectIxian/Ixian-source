@@ -42,12 +42,12 @@ function Invoke-DLTApi {
     }
 }
 
-function Send-Transaction {
+function Send-TransactionTN {
     Param(
         [System.Collections.ArrayList]$Clients,
         [int]$FromClient,
         [int]$ToClient = -1,
-        [string]$YoAddr = "",
+        [string]$ToAddr = "",
         [int]$Amount = 0
     )
     if($FromClient -lt 0 -or $FromClient -ge $Clients.Count) {
@@ -70,6 +70,59 @@ function Send-Transaction {
     }
     $reply = Invoke-DLTApi -APIPort $Clients[$FromClient].APIPort -Command "addtransaction" -CmdArgs $cmdArgs
     Write-Host -ForegroundColor Gray "Send-Transaction: Generated transaction txid: $($reply.id)"
+    return $reply.id
+}
+
+function Send-Transaction {
+    Param(
+        [int]$FromNode,
+        [System.Collections.ArrayList]$FromAddresses,
+        [System.Collections.ArrayList]$FromAmounts,
+        [System.Collections.ArrayList]$ToAddresses,
+        [System.Collections.ArrayList]$ToAmounts
+    )
+    $fromArg = ""
+    if($FromAddresses.Count -gt 0) {
+        if($FromAddresses.Count -ne $FromAmounts.Count) {
+            Write-Host -ForegroundColor Red "Number of FromAddresses and FromAmounts must be equal!"
+            return $null
+        }    
+        for($i = 0; $i -lt $FromAddresses.Count; $i++) {
+            $fromArg += "$($FromAddresses[$i])_$($FromAmounts[$i])-"
+        }
+        # remove trailing '-'
+        $fromArg = $fromArg.Remove($fromArg.Length-1, 1)
+    }
+    $toArg = ""
+    if($ToAddresses.Count -eq 0) {
+        Write-Host -ForegroundColor Red "There must be at least one ToAddress."
+        return $null
+    }
+    if($ToAddresses.Count -ne $ToAmounts.Count) {
+        Write-Host -ForegroundColor Red "Number of ToAddresses and ToAmounts must be equal!"
+        return $null
+    }
+    for($i = 0; $i -lt $ToAddresses.Count; $i++) {
+        $toArg += "$($ToAddresses[$i])_$($ToAmounts[$i])-"
+    }
+    # remove trailing '-'
+    $toArg = $toArg.Remove($toArg.Length-1, 1)
+    $cmdArgs = $null
+    if($fromArg.Length -gt 0) {
+        $cmdArgs = @{
+            "from" = $fromArg
+            "to" = $toArg
+        }
+    } else {
+        $cmdArgs = @{
+            "to" = $toArg
+        }
+    }
+    $reply = Invoke-DLTApi -APIPort $FromNode -Command "addtransaction" -CmdArgs $cmdArgs
+    if($reply -eq $null) {
+        Write-Host -ForegroundColor Red "There was an error creating the transaction."
+        return $null
+    }
     return $reply.id
 }
 
@@ -167,9 +220,58 @@ function WaitConfirm-PendingTX {
 }
 
 function Get-CurrentBlockHeight {
-    $ns = Invoke-DLTApi -APIPort $APIStartPort -Command "status"
+    Param(
+        [int]$APIPort
+    )
+    $ns = Invoke-DLTApi -APIPort $APIPort -Command "status"
     if($ns -eq $null) {
         return $null
     }
     return $ns.'Block Height'
+}
+
+function Get-NumMasterNodes {
+    Param(
+        [int]$APIPort
+    )
+    $ns = Invoke-DLTApi -APIPort $APIPort -Command "status"
+    if($ns -eq $null) {
+        return $null
+    }
+    return $ns.'Masters'
+}
+
+function Choose-RandomNode {
+    Param(
+        [int]$APIPort
+    )
+    $numMasterNodes = Get-NumMasterNodes -APIPort $APIPort
+    $tries = 0
+    while($true) {
+        $r_apiport = Get-Random -Minimum $APIPort -Maximum ($APIPort + $numMasterNodes)
+        $ns = Invoke-DLTApi -APIPort $r_apiport -Command "status"
+        if($ns -ne $null) {
+            return $r_apiport
+        }
+        $tries++
+        if($tries -ge 5) {
+            Write-Host -ForegroundColor Yellow "Unable to find a working DLT node!"
+            return $null
+        }
+    }
+}
+
+function Get-WalletBalance {
+    Param(
+        [int]$APIPort,
+        [string]$address
+    )
+    $cmdArgs = @{
+        "address" = $address
+    }
+    $balance = Invoke-DLTApi -APIPort $APIPort -Command "getbalance" -CmdArgs $cmdArgs
+    if($balance -eq $null) {
+        Write-Host -ForegroundColor Red "Error retrieving balance for wallet $($address)."
+    }
+    return $balance
 }

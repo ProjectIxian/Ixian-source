@@ -27,9 +27,9 @@ function Add-Test {
 }
 
 function WaitFor-NextBlock {
-    $bh = Get-CurrentBlockHeight
+    $bh = Get-CurrentBlockHeight -APIPort $APIStartPort
     while($true) {
-        $nbh = Get-CurrentBlockHeight
+        $nbh = Get-CurrentBlockHeight -APIPort $APIStartPort
         if($nbh -gt $bh) {
             return
         }
@@ -44,6 +44,8 @@ Write-Host -ForegroundColor White "Preparing tests..."
 
 $Tests = New-Object System.Collections.ArrayList
 Add-Test -Tests $Tests -TestName "WalletStateIsMaintained"
+Add-Test -Tests $Tests -TestName "BasicTX"
+
 
 
 Write-Host -ForegroundColor Green "Done."
@@ -56,9 +58,15 @@ $failed_test_names = New-Object System.Collections.ArrayList
 
 foreach($t in $Tests) {
     Write-Host -ForegroundColor Yellow -NoNewline "- $($t) : "
-    $test_data = &"Init-$($t)" -APIPort $($APIStartPort)
+    $test_data = &"Init-$($t)" -APIPort $APIStartPort
+    if($test_data -eq $null) {
+        Write-Host -ForegroundColor Red "Unable to initialize test $($t)"
+        $failed_tests++
+        [void]$failed_test_names.Add($t)
+        continue
+    }
     while($true) {
-        $test_r = &"Check-$($t)" -APIPort $($APIStartPort) $test_data
+        $test_r = &"Check-$($t)" -APIPort $APIStartPort $test_data
         if($test_r -eq "WAIT") {
             WaitFor-NextBlock
         } elseif($test_r -eq "OK") {
@@ -69,6 +77,7 @@ foreach($t in $Tests) {
             Write-Host -ForegroundColor Red "FAIL: $($test_r)"
             $failed_tests++
             [void]$failed_test_names.Add($t)
+            break
         }
     }
 }
