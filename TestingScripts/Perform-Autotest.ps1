@@ -26,6 +26,23 @@ function Add-Test {
     Write-Host -ForegroundColor Cyan "-> $($TestName) added"
 }
 
+function Add-ParallelTest {
+    Param(
+        [System.Collections.ArrayList]$PTests,
+        [int]$Batch,
+        [string]$TestName
+    )
+    if($Batch -lt 0) {
+        $Batch = 0
+    }
+    if($Batch -ge $PTests.Count) {
+        $Batch = $PTests.Count
+        $na = New-Object System.Collections.ArrayList
+        [void]$PTests.Add($na)
+    }
+    Add-Test -Tests $PTests[$Batch] -TestName $TestName
+}
+
 function WaitFor-NextBlock {
     $bh = Get-CurrentBlockHeight -APIPort $APIStartPort
     while($true) {
@@ -43,9 +60,9 @@ function WaitFor-NextBlock {
 Write-Host -ForegroundColor White "Preparing tests..."
 
 $Tests = New-Object System.Collections.ArrayList
-Add-Test -Tests $Tests -TestName "WalletStateIsMaintained"
-Add-Test -Tests $Tests -TestName "BasicTX"
 
+Add-ParallelTest -PTests $Tests -Batch 0 -TestName "WalletStateIsMaintained"
+Add-ParallelTest -PTests $Tests -Batch 0 -TestName "BasicTX"
 
 
 Write-Host -ForegroundColor Green "Done."
@@ -56,30 +73,47 @@ $succeeded_tests = 0
 $failed_tests = 0
 $failed_test_names = New-Object System.Collections.ArrayList
 
-foreach($t in $Tests) {
-    Write-Host -ForegroundColor Yellow -NoNewline "- $($t) : "
-    $test_data = &"Init-$($t)" -APIPort $APIStartPort
-    if($test_data -eq $null) {
-        Write-Host -ForegroundColor Red "Unable to initialize test $($t)"
-        $failed_tests++
-        [void]$failed_test_names.Add($t)
-        continue
-    }
-    while($true) {
-        $test_r = &"Check-$($t)" -APIPort $APIStartPort $test_data
-        if($test_r -eq "WAIT") {
-            WaitFor-NextBlock
-        } elseif($test_r -eq "OK") {
-            Write-Host -ForegroundColor Green "OK"
-            $succeeded_tests++
-            break
-        } else {
-            Write-Host -ForegroundColor Red "FAIL: $($test_r)"
+for($batch = 0; $batch -lt $Tests.Count; $batch++) {
+    Write-Host -ForegroundColor Cyan -NoNewline "Initializing batch "
+    Write-Host -ForegroundColor Green "$($batch)..."
+
+    $current_tests = @{}
+
+    foreach($t in $Tests[$batch]) {
+        Write-Host -ForegroundColor Yellow -NoNewline "- $($t) : "
+        $test_data = &"Init-$($t)" -APIPort $APIStartPort
+        if($test_data -eq $null) {
+            Write-Host -ForegroundColor Red "Unable to initialize test $($t)"
             $failed_tests++
             [void]$failed_test_names.Add($t)
-            break
+            continue
+        }
+        [void]$current_tests.Add($t, $test_data)
+    }
+
+    Write-Host -ForegroundColor Cyan -NoNewline "Checking batch "
+    Write-Host -ForegroundColor Green "$($batch)..."
+
+    while($current_tests.Count -gt 0) {
+        foreach($t in $current_tests.Keys) {
+            $td = $current_tests[$t]
+            $test_result = &"Check-$($t)" -APIPort $APIStartPort $test_data
+            if($test_result -eq "WAIT") {
+                # do nothing this iteration
+                continue
+            } elseif($test_result -eq "OK") {
+                Write-Host -ForegroundColor Green "-> OK: $($t)"
+            } else {
+                Write-Host -ForegroundColor Red "FAIL: $($test_r)"
+                $failed_tests++
+                [void]$failed_test_names.Add($t)
+            }
+        }
+        if($current_tests.Count -gt 0) {
+            WaitFor-NextBlock
         }
     }
+    Write-Host -ForegroundColor Green "Batch complete."
 }
 
 Write-Host -ForegroundColor White -NoNewline "Results: Succeeded: "
