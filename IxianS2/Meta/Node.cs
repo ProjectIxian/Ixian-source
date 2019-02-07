@@ -25,6 +25,7 @@ namespace DLT.Meta
 
 
         public static ulong blockHeight = 0;      // Stores the last known block height 
+        public static int blockVersion = 0;      // Stores the last known block version TODO TODO TODO TODO TODO needs to be implemented
         public static IxiNumber balance = 0;      // Stores the last known balance for this node
 
         public static int keepAliveVersion = 0;
@@ -407,6 +408,11 @@ namespace DLT.Meta
         public static ulong getLastBlockHeight()
         {
             return blockHeight;
+        }
+
+        public static int getLastBlockVersion()
+        {
+            return blockVersion;
         }
     }
 }

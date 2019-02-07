@@ -44,11 +44,51 @@ namespace DLT.Network
             }
             else
             {
-                bool c_result = NetworkClientManager.broadcastData(code, data, skipEndpoint);
+                bool c_result = NetworkClientManager.broadcastData(new char[] { 'M', 'R' }, code, data, skipEndpoint);
 
                 if (!c_result)
                     return false;
             }
+
+            return true;
+        }
+
+        // Broadcast a protocol message across clients and nodes
+        // Returns true if it sent the message at least one endpoint. Returns false if the message couldn't be sent to any endpoints
+        public static bool broadcastProtocolMessage(char[] types, ProtocolMessageCode code, byte[] data, RemoteEndpoint skipEndpoint = null, bool sendToSingleRandomNode = false)
+        {
+            if (data == null)
+            {
+                Logging.warn(string.Format("Invalid protocol message data for {0}", code));
+                return false;
+            }
+
+            if (sendToSingleRandomNode)
+            {
+                int serverCount = NetworkClientManager.getConnectedClients().Count();
+
+                Random r = new Random();
+                int rIdx = r.Next(serverCount);
+
+                RemoteEndpoint re = null;
+
+                re = NetworkClientManager.getClient(rIdx);
+
+                if (re != null && re.isConnected())
+                {
+                    re.sendData(code, data);
+                    return true;
+                }
+                return false;
+            }
+            else
+            {
+                bool c_result = NetworkClientManager.broadcastData(new char[] { 'M', 'R' }, code, data, skipEndpoint);
+
+                if (!c_result)
+                    return false;
+            }
+
 
             return true;
         }
@@ -65,7 +105,7 @@ namespace DLT.Network
                     writer.Write(CoreConfig.protocolVersion);
 
                     // Send the public node address
-                    byte[] address = Node.walletStorage.address;
+                    byte[] address = Node.walletStorage.getPrimaryAddress();
                     writer.Write(address.Length);
                     writer.Write(address);
 
@@ -84,8 +124,8 @@ namespace DLT.Network
                     writer.Write(Config.device_id);
 
                     // Send the wallet public key
-                    writer.Write(Node.walletStorage.publicKey.Length);
-                    writer.Write(Node.walletStorage.publicKey);
+                    writer.Write(Node.walletStorage.getPrimaryPublicKey().Length);
+                    writer.Write(Node.walletStorage.getPrimaryPublicKey());
 
                     // Send listening port
                     writer.Write(Config.serverPort);
@@ -95,7 +135,7 @@ namespace DLT.Network
                     writer.Write(timestamp);
 
                     // send signature
-                    byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + Config.device_id + "-" + timestamp + "-" + publicHostname), Node.walletStorage.privateKey);
+                    byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + Config.device_id + "-" + timestamp + "-" + publicHostname), Node.walletStorage.getPrimaryPrivateKey());
                     writer.Write(signature.Length);
                     writer.Write(signature);
 
@@ -327,7 +367,7 @@ namespace DLT.Network
                                     // Retrieve the latest balance
                                     IxiNumber balance = reader.ReadString();
 
-                                    if(address.SequenceEqual(Node.walletStorage.address))
+                                    if(address.SequenceEqual(Node.walletStorage.getPrimaryAddress()))
                                     {
                                         Node.balance = balance;
                                     }
@@ -354,7 +394,7 @@ namespace DLT.Network
                             Logging.info("RECIEVED NEW TRANSACTION");
 
                             Transaction transaction = new Transaction(data);
-                            if (transaction.toList.Keys.First().SequenceEqual(Node.walletStorage.address))
+                            if (transaction.toList.Keys.First().SequenceEqual(Node.walletStorage.getPrimaryAddress()))
                             {
                                 TransactionCache.addTransaction(transaction);
                             }

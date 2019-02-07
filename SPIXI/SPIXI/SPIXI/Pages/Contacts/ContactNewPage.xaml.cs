@@ -31,7 +31,7 @@ namespace SPIXI
             webView.Source = source;
 
             // TODO optimize this         
-            NetworkClientManager.broadcastData(ProtocolMessageCode.syncPresenceList, new byte[1]);
+            NetworkClientManager.broadcastData(new char[] { 'M' }, ProtocolMessageCode.syncPresenceList, new byte[1]);
         }
 
         public ContactNewPage(string wal_id)
@@ -147,7 +147,7 @@ namespace SPIXI
             if(pubkey == null)
             {
                 DisplayAlert("Contact does not exist", "Try again later.", "OK");
-                NetworkClientManager.broadcastData(ProtocolMessageCode.syncPresenceList, new byte[1]);
+                NetworkClientManager.broadcastData(new char[] { 'M' }, ProtocolMessageCode.syncPresenceList, new byte[1]);
                 return;
             }
 
@@ -168,7 +168,7 @@ namespace SPIXI
             StreamMessage message = new StreamMessage();
             message.type = StreamMessageCode.info;
             message.recipient = recipient_address;
-            message.sender = Node.walletStorage.address;
+            message.sender = Node.walletStorage.getPrimaryAddress();
             message.data = spixi_message.getBytes();
             message.transaction = new byte[1];
             message.sigdata = new byte[1];

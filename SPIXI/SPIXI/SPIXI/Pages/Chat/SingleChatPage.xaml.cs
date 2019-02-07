@@ -230,7 +230,7 @@ namespace SPIXI
             StreamMessage message = new StreamMessage();
             message.type = StreamMessageCode.data;
             message.recipient = friend.walletAddress;
-            message.sender = Node.walletStorage.address;
+            message.sender = Node.walletStorage.getPrimaryAddress();
             message.transaction = new byte[1];
             message.sigdata = new byte[1];
             message.data = spixi_message.getBytes();
@@ -257,7 +257,7 @@ namespace SPIXI
             StreamMessage message = new StreamMessage();
             message.type = StreamMessageCode.info;
             message.recipient = friend.walletAddress;
-            message.sender = Node.walletStorage.address;
+            message.sender = Node.walletStorage.getPrimaryAddress();
             message.transaction = new byte[1];
             message.sigdata = new byte[1];
             message.data = spixi_message.getBytes();
@@ -349,7 +349,8 @@ namespace SPIXI
             // Call webview methods on the main UI thread only
             Xamarin.Forms.Device.BeginInvokeOnMainThread(() =>
             {
-                webView.Eval(string.Format("{0}(\"{1}\",\"{2}\",\"{3}\")", prefix, avatar, message.message, message.timestamp));
+                string escapedString = message.message.Replace("\"", "&quot;");
+                webView.Eval(string.Format("{0}(\"{1}\",\"{2}\",\"{3}\")", prefix, avatar, escapedString, message.timestamp));
             });
             message.read = true;
 
