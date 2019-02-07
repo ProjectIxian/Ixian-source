@@ -38,6 +38,7 @@ function Render-Indexes {
     Write-Host -ForegroundColor White -NoNewline "PID:".PadRight(10)
     foreach($c in $Clients) {
         if($c.idx -ge 13) { break }
+        if($c.Display -eq $false) { continue }
         Write-Host -ForegroundColor Green -NoNewline "$($c.Process.Id.ToString().PadLeft(10))"
     }
     Write-Host ""
