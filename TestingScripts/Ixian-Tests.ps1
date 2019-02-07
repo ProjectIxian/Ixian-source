@@ -76,8 +76,8 @@ function Init-BasicTX {
         Write-Host -ForegroundColor Red "Unable to generate a new wallet address. Check the log for node with API $($random_dst_node)"
         return $null
     }
-    #$txid = Send-Transaction -FromNode $random_src_node -FromAddresses @($orig_wallet) -FromAmounts @($amnt) -ToAddresses @($new_wallet) -ToAmounts @($amnt)
-    $txid = Send-Transaction -FromNode $random_src_node -ToAddresses @($new_wallet) -ToAmounts @($amnt)
+    $txid = Send-Transaction -FromNode $random_src_node -FromAddresses @($orig_wallet) -FromAmounts @($amnt) -ToAddresses @($new_wallet) -ToAmounts @($amnt)
+    #$txid = Send-Transaction -FromNode $random_src_node -ToAddresses @($new_wallet) -ToAmounts @($amnt)
     if($txid -eq $null) {
         Write-Host -ForegroundColor Red "Error generating the transaction! Check the log for node with API $($random_src_node)"
         return $null
@@ -103,7 +103,7 @@ function Check-BasicTX {
         return "WAIT"
     }
     $src_balance = Get-WalletBalance -APIPort $APIPort -address $test_data.SrcWallet
-    # because of staking, src wallet might have more than expected, but it should still be less than before
+
     if($src_balance -ge $test_data.SrcWalletBalance) {
         return "Source wallet was not deducted! Details: $($test_data)"
     }

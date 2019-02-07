@@ -95,7 +95,8 @@ for($batch = 0; $batch -lt $Tests.Count; $batch++) {
     Write-Host -ForegroundColor Green "$($batch)..."
 
     while($current_tests.Count -gt 0) {
-        foreach($t in $current_tests.Keys) {
+        for($tidx = 0; $tidx -lt $current_tests.Keys.Count; $tidx++) {
+            $t = $current_tests.Keys[$tidx]
             $td = $current_tests[$t]
             $test_result = &"Check-$($t)" -APIPort $APIStartPort $test_data
             if($test_result -eq "WAIT") {
@@ -108,6 +109,8 @@ for($batch = 0; $batch -lt $Tests.Count; $batch++) {
                 $failed_tests++
                 [void]$failed_test_names.Add($t)
             }
+            $current_tests.Remove($t)
+            $tidx--
         }
         if($current_tests.Count -gt 0) {
             WaitFor-NextBlock
