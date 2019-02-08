@@ -35,6 +35,10 @@ function Invoke-DLTApi {
     #Write-Host -ForegroundColor Gray "Invoking DLT Api: $($url)"
     try {
         $r = Invoke-RestMethod -Method Get -Uri $url
+        if($r.error -ne $null) {
+            Write-Host -ForegroundColor Red "Invoke-DLTApi: Error returned from API: $($r.error)"
+            return $null
+        }
         return $r.result
     } catch {
         Write-Host -ForegroundColor Magenta "Invoke-DLTApi: Error while calling rest method $($Command): $($_.Message)"
