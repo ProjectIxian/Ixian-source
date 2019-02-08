@@ -88,15 +88,21 @@ for($batch = 0; $batch -lt $Tests.Count; $batch++) {
             [void]$failed_test_names.Add($t)
             continue
         }
+        Write-Host -ForegroundColor Green "OK"
         [void]$current_tests.Add($t, $test_data)
     }
 
     Write-Host -ForegroundColor Cyan -NoNewline "Checking batch "
     Write-Host -ForegroundColor Green "$($batch)..."
 
-    while($current_tests.Count -gt 0) {
-        for($tidx = 0; $tidx -lt $current_tests.Keys.Count; $tidx++) {
-            $t = $current_tests.Keys[$tidx]
+    $test_list = New-Object System.Collections.ArrayList
+    foreach($t in $current_tests.Keys.GetEnumerator()) {
+        [void]$test_list.Add($t);
+    }
+
+    while($test_list.Count -gt 0) {
+        for($tidx = 0; $tidx -lt $test_list.Count; $tidx++) {
+            $t = $test_list[$tidx]
             $td = $current_tests[$t]
             $test_result = &"Check-$($t)" -APIPort $APIStartPort $test_data
             if($test_result -eq "WAIT") {
@@ -104,15 +110,16 @@ for($batch = 0; $batch -lt $Tests.Count; $batch++) {
                 continue
             } elseif($test_result -eq "OK") {
                 Write-Host -ForegroundColor Green "-> OK: $($t)"
+                $succeeded_tests++
             } else {
-                Write-Host -ForegroundColor Red "FAIL: $($test_r)"
+                Write-Host -ForegroundColor Red "FAIL: $($test_result)"
                 $failed_tests++
                 [void]$failed_test_names.Add($t)
             }
-            $current_tests.Remove($t)
+            $test_list.RemoveAt($tidx)
             $tidx--
         }
-        if($current_tests.Count -gt 0) {
+        if($test_list.Count -gt 0) {
             WaitFor-NextBlock
         }
     }

@@ -116,6 +116,7 @@ function Send-Transaction {
         $cmdArgs = @{
             "from" = $fromArg
             "to" = $toArg
+            "autofee" = "true"
         }
     } else {
         $cmdArgs = @{

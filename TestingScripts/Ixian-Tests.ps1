@@ -63,8 +63,11 @@ function Init-BasicTX {
         $addr = $p.Name
         if($orig_wallet_list.$addr -gt 0) {
             $orig_wallet = $addr
-            $src_balance_old = ($orig_wallet_list.$addr)
-            $amnt = ($orig_wallet_list.$addr) / 2
+            $src_balance_old = [double]($orig_wallet_list.$addr)
+            # force amnt into an int, so we don't end up with weird double precision issues when we test in Check-
+            $amnt = [int](($orig_wallet_list.$addr) / 2)
+            $amnt = [double]$amnt
+            break
         }
     }
     if($orig_wallet -eq "") {
@@ -103,14 +106,15 @@ function Check-BasicTX {
         return "WAIT"
     }
     $src_balance = Get-WalletBalance -APIPort $APIPort -address $test_data.SrcWallet
-
-    if($src_balance -ge $test_data.SrcWalletBalance) {
+    $src_balance = [double]$src_balance
+    if($src_balance -ge ($test_data.SrcWalletBalance)) {
         return "Source wallet was not deducted! Details: $($test_data)"
     }
     # dest wallet should have exactly the required amount
     $dst_balance = Get-WalletBalance -APIPort $APIPort -address $test_data.DstWallet
-    if($dst_balance -ne $test_data.Amount) {
-        return "Incorrect amount was deposited! Details: $($test_data)"
+    $dst_balance = [double]$dst_balance
+    if($dst_balance -ne ($test_data.Amount)) {
+        return "Incorrect amount was deposited! Expected: $($test_data.Amount)Details: $($test_data)"
     }
     return "OK"
 }
