@@ -75,6 +75,7 @@
     <Compile Include="Tests\TestFriend.cs" />
     <Compile Include="Tests\TestStreamClient.cs" />
     <Compile Include="Tests\TestStreamClientManager.cs" />
+    <Compile Include="Wallet\S2WalletStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

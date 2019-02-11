@@ -16,7 +16,7 @@ namespace DLT.Meta
     class Node
     {
         // Public
-        public static WalletStorage walletStorage;
+        public static S2WalletStorage walletStorage;
         public static WalletState walletState;
 
         public static UPnP upnp;
@@ -43,7 +43,7 @@ namespace DLT.Meta
             running = true;
 
             // Load or Generate the wallet
-            walletStorage = new WalletStorage(Config.walletFile);
+            walletStorage = new S2WalletStorage(Config.walletFile);
             if (walletStorage.getPrimaryPublicKey() == null)
             {
                 running = false;
