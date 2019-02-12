@@ -106,7 +106,7 @@ namespace S2
                 networkArray.Add("Supply", Node.walletState.calculateTotalSupply().ToString());
 
                 networkArray.Add("WS Checksum", Crypto.hashToString(Node.walletState.calculateWalletStateChecksum()));
-                networkArray.Add("WS Delta Checksum", Crypto.hashToString(Node.walletState.calculateWalletStateChecksum(true)));
+                networkArray.Add("WS Delta Checksum", Crypto.hashToString(Node.walletState.calculateWalletStateChecksum(0, true)));
 
 //                networkArray.Add("Network Clients", NetworkServer.getConnectedClients());
                 networkArray.Add("Network Servers", NetworkClientManager.getConnectedClients());
