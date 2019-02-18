@@ -16,8 +16,6 @@ namespace S2
     {
         public TcpClient tcpClient = null;
 
-        public long timeDifference = 0;
-
         private string tcpHostname = "";
         private int tcpPort = 0;
         private int totalReconnects = 0;

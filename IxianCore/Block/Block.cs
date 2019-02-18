@@ -517,46 +517,6 @@ namespace DLT
             }
         }
 
-        // Updates the walletstate public keys. Called from BlockProcessor applyAcceptedBlock()
-        public bool updateWalletStatePublicKeys(bool ws_snapshot = false)
-        {
-            Block targetBlock = Node.blockChain.getBlock(blockNum - 6, false);
-            if(targetBlock == null)
-            {
-                return false;
-            }
-            List<byte[][]> sigs = targetBlock.signatures;
-            foreach (byte[][] sig in sigs)
-            {
-                byte[] signature = sig[0];
-                byte[] signerPubkeyOrAddress = sig[1];
-
-                if (signerPubkeyOrAddress.Length < 70)
-                {
-                    byte[] signerAddress = signerPubkeyOrAddress;
-                    Wallet signerWallet = Node.walletState.getWallet(signerAddress);
-                    if (signerWallet.publicKey == null)
-                    {
-                        Logging.error("Signer wallet's pubKey entry is null, expecting a non-null entry");
-                        continue;
-                    }
-                }else
-                {
-                    byte[] signerPubKey = signerPubkeyOrAddress;
-                    // Generate an address
-                    Address p_address = new Address(signerPubKey);
-                    Wallet signerWallet = Node.walletState.getWallet(p_address.address);
-                    if (signerWallet.publicKey == null)
-                    {
-                        // Set the WS public key
-                        Node.walletState.setWalletPublicKey(p_address.address, signerPubKey, ws_snapshot);
-                    }
-                }
-            }
-
-            return true;
-        }
-
         // Goes through all signatures and verifies if the block is already signed with this node's pubkey
         public bool hasNodeSignature(byte[] public_key = null)
         {
@@ -706,57 +666,6 @@ namespace DLT
             Array.Copy(checksum, walletStateChecksum, walletStateChecksum.Length);
         }
 
-        // Returs a list of transactions connected to this block 
-        public List<Transaction> getFullTransactions()
-        {
-            List<Transaction> txList = new List<Transaction>();
-            for (int i = 0; i < transactions.Count; i++)
-            {
-                Transaction t = TransactionPool.getTransaction(transactions[i], blockNum);
-                if (t == null)
-                {
-                    Logging.error(string.Format("nulltx: {0}", transactions[i]));
-                    continue;
-                }
-                txList.Add(t);
-            }
-            return txList;
-        }
-
-        // temporary function that will correctly JSON Serialize IxiNumber
-        public List<Dictionary<string, object>> getFullTransactionsAsArray()
-        {
-            List<Dictionary<string, object>> txList = new List<Dictionary<string, object>>();
-            for (int i = 0; i < transactions.Count; i++)
-            {
-                Transaction t = TransactionPool.getTransaction(transactions[i], blockNum, true);
-                if (t == null)
-                {
-                    Logging.error(string.Format("nulltx: {0}", transactions[i]));
-                    continue;
-                }
-
-                txList.Add(t.toDictionary());
-
-            }
-            return txList;
-        }
-
-        // Returs total value of transactions connected to this block 
-        public IxiNumber getTotalTransactionsValue()
-        {
-            IxiNumber val = 0;
-            for(int i = 0; i < transactions.Count; i++)
-            {
-                Transaction t = TransactionPool.getTransaction(transactions[i], blockNum);
-                if (t == null)
-                    Logging.error(string.Format("nulltx: {0}", transactions[i]));
-                else
-                    val.add(t.amount);
-            }
-            return val;
-        }
-
         public void logBlockDetails()
         {
             string last_block_chksum = "";
@@ -770,7 +679,7 @@ namespace DLT
             }
             Logging.info(String.Format("\t\t|- Block Number:\t\t {0}", blockNum));
             Logging.info(String.Format("\t\t|- Block Version:\t\t {0}", version));
-            Logging.info(String.Format("\t\t|- Signatures:\t\t\t {0} ({1} req)", signatures.Count, Node.blockChain.getRequiredConsensus()));
+            Logging.info(String.Format("\t\t|- Signatures:\t\t\t {0} ({1} req)", signatures.Count, Node.getRequiredConsensus()));
             Logging.info(String.Format("\t\t|- Block Checksum:\t\t {0}", Crypto.hashToString(blockChecksum)));
             Logging.info(String.Format("\t\t|- Last Block Checksum: \t {0}", last_block_chksum));
             Logging.info(String.Format("\t\t|- WalletState Checksum:\t {0}", Crypto.hashToString(walletStateChecksum)));

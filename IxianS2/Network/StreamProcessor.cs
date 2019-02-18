@@ -5,26 +5,6 @@ using IXICore;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-
-
-// Dummy Network server for IXICore
-namespace DLT.Network
-{
-    public class NetworkServer
-    {
-        // Returns all the connected clients
-        public static string[] getConnectedClients(bool useIncomingPort = false)
-        {
-            List<String> result = new List<String>();
-            return result.ToArray();
-        }
-    }
-}
-
 
 namespace S2.Network
 {
@@ -71,7 +51,7 @@ namespace S2.Network
             QuotaManager.addActivity(endpoint.presence.wallet, data_message);
 
             // Relay certain messages without transaction
-            NetworkStreamServer.forwardMessage(message.recipient, ProtocolMessageCode.s2data, bytes);
+            NetworkServer.forwardMessage(message.recipient, ProtocolMessageCode.s2data, bytes);
 
             // TODO: commented for development purposes ONLY!
             /*
@@ -179,7 +159,7 @@ namespace S2.Network
                         if (transaction.verifySignature(transaction.pubKey, null))
                         {
                             // Broadcast the transaction
-                            ProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, transaction.getBytes(), endpoint);
+                            CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, transaction.getBytes(), endpoint);
                         }
                         return;
                                                  
@@ -206,7 +186,7 @@ namespace S2.Network
             message.sigdata = new byte[1];
             message.data = new byte[1];
 
-            NetworkStreamServer.forwardMessage(recipient, DLT.Network.ProtocolMessageCode.s2data, message.getBytes());
+            NetworkServer.forwardMessage(recipient, DLT.Network.ProtocolMessageCode.s2data, message.getBytes());
         }
     }
 }

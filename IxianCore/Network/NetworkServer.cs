@@ -45,12 +45,6 @@ namespace DLT
                     return;
                 }
 
-                if(!Node.isMasterNode())
-                {
-                    Logging.info("Network server is not enabled in modes other than master node.");
-                    return;
-                }
-
                 netControllerThread = new Thread(networkOpsLoop);
                 connectedClients = new List<RemoteEndpoint>();
                 continueRunning = true;
@@ -272,6 +266,45 @@ namespace DLT
                 return result;
             }
 
+
+            // Forwards a network message to a specific presense address if it's in the client list
+            public static bool forwardMessage(byte[] address, ProtocolMessageCode code, byte[] message)
+            {
+                if (address == null)
+                {
+                    Logging.warn("Cannot forward message to null address.");
+                    return false;
+                }
+
+                Logging.info(String.Format(">>>> Preparing to forward to {0}",
+                    Base58Check.Base58CheckEncoding.EncodePlain(address)));
+
+                lock (connectedClients)
+                {
+                    foreach (RemoteEndpoint endpoint in connectedClients)
+                    {
+                        // Skip connections without presence information
+                        if (endpoint.presence == null)
+                            continue;
+
+                        byte[] client_wallet = endpoint.presence.wallet;
+
+                        if (client_wallet != null && address.SequenceEqual(client_wallet))
+                        {
+                            Logging.info(">>>> Forwarding message");
+                            endpoint.sendData(code, message);
+
+                        }
+
+                    }
+                }
+
+                // TODO: broadcast to network if no connect clients found?
+
+                return false;
+            }
+
+
             public static bool sendToClient(string neighbor, ProtocolMessageCode code, byte[] data)
             {
                 RemoteEndpoint client = null;
@@ -331,7 +364,7 @@ namespace DLT
                 clientSocket.NoDelay = true;
                 clientSocket.Blocking = true;
 
-                if(!Node.blockProcessor.operating)
+                if(Node.isAcceptingConnections())
                 {
                     Thread.Sleep(100); // wait a bit for check connectivity purposes
                     clientSocket.Send(CoreProtocolMessage.prepareProtocolMessage(ProtocolMessageCode.bye, new byte[1]));

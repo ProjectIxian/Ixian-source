@@ -1,15 +1,11 @@
 ﻿using DLT.Network;
-using IXICore;
+using IXICore.Utils;
 using S2;
 using S2.Network;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace DLT.Meta
 {
@@ -31,15 +27,15 @@ namespace DLT.Meta
         public static int keepAliveVersion = 0;
 
         // Private data
-        private static Thread keepAliveThread;
-        private static bool autoKeepalive = false;
-
         private static Thread maintenanceThread;
 
         public static bool running = false;
 
-        static public void start(bool verboseConsoleOutput)
+        // Perform basic initialization of node
+        static public void init()
         {
+
+
             running = true;
 
             // Load or Generate the wallet
@@ -51,15 +47,15 @@ namespace DLT.Meta
                 return;
             }
 
+            // Setup the stats console
+            statsConsoleScreen = new StatsConsoleScreen();
+
             // Initialize the wallet state
             walletState = new WalletState();
+        }
 
-            // Setup the stats console
-            if (verboseConsoleOutput == false)
-            {
-                statsConsoleScreen = new StatsConsoleScreen();
-            }
-
+        static private void configureNetwork()
+        {
             // Network configuration
             upnp = new UPnP();
             if (Config.externalIp != "" && IPAddress.TryParse(Config.externalIp, out _))
@@ -88,11 +84,11 @@ namespace DLT.Meta
                     }
                     else
                     {
-                        Logging.info(String.Format("None of the locally configured IP addresses are public. Attempting UPnP..."));
+                        Logging.warn(String.Format("None of the locally configured IP addresses are public. Attempting UPnP..."));
                         IPAddress public_ip = upnp.GetExternalIPAddress();
                         if (public_ip == null)
                         {
-                            Logging.info("UPnP failed.");
+                            Logging.warn("UPnP failed.");
                             showIPmenu();
                         }
                         else
@@ -100,24 +96,31 @@ namespace DLT.Meta
                             Logging.info(String.Format("UPNP-determined public IP: {0}. Attempting to configure a port-forwarding rule.", public_ip.ToString()));
                             if (upnp.MapPublicPort(Config.serverPort, primary_local))
                             {
-                                Config.publicServerIP = public_ip.ToString();
+                                Config.publicServerIP = public_ip.ToString(); //upnp.getMappedIP();
                                 Logging.info(string.Format("Network configured. Public IP is: {0}", Config.publicServerIP));
                             }
                             else
                             {
-                                Logging.info("UPnP configuration failed.");
-                                // Show the IP selector menu
+                                Logging.warn("UPnP configuration failed.");
                                 showIPmenu();
                             }
                         }
                     }
                 }
             }
+        }
+
+        static public void start(bool verboseConsoleOutput)
+        {
+            // Network configuration
+            configureNetwork();
 
             PresenceList.generatePresenceList(Config.publicServerIP, 'R');
 
             // Start the network queue
             NetworkQueue.start();
+
+            ActivityStorage.prepareStorage();
 
             // Prepare stats screen
             Config.verboseConsoleOutput = verboseConsoleOutput;
@@ -136,15 +139,13 @@ namespace DLT.Meta
             }
 
             // Start the node stream server
-            NetworkStreamServer.beginNetworkOperations();
+            NetworkServer.beginNetworkOperations();
 
             // Start the network client manager
             NetworkClientManager.start();
 
             // Start the keepalive thread
-            autoKeepalive = true;
-            keepAliveThread = new Thread(keepAlive);
-            keepAliveThread.Start();
+            PresenceList.startKeepAlive();
 
             // Start the maintenance thread
             maintenanceThread = new Thread(performMaintenance);
@@ -168,12 +169,7 @@ namespace DLT.Meta
         static public void stop()
         {
             // Stop the keepalive thread
-            autoKeepalive = false;
-            if (keepAliveThread != null)
-            {
-                keepAliveThread.Abort();
-                keepAliveThread = null;
-            }
+            PresenceList.stopKeepAlive();
 
             if (maintenanceThread != null)
             {
@@ -195,7 +191,7 @@ namespace DLT.Meta
             NetworkClientManager.stop();
 
             // Stop the network server
-            NetworkStreamServer.stopNetworkOperations();
+            NetworkServer.stopNetworkOperations();
 
             // Stop the console stats screen
             if (Config.verboseConsoleOutput == false)
@@ -218,13 +214,15 @@ namespace DLT.Meta
             }
 
             // Reconnect server and clients
-            NetworkStreamServer.restartNetworkOperations();
+            NetworkServer.restartNetworkOperations();
             NetworkClientManager.restartClients();
         }
 
         // Shows an IP selector menu
         static public void showIPmenu()
         {
+            return;
+            Thread.Sleep(1000); // sleep a bit to allow logging to do it's thing
             Console.WriteLine("This node needs to be reachable from the internet. Please select a valid IP address.");
             Console.WriteLine();
 
@@ -281,7 +279,7 @@ namespace DLT.Meta
             string chosenIP = Console.ReadLine();
 
             // Validate the IP
-            if (chosenIP.Length > 255 || validateIPv4(chosenIP) == false)
+            if (chosenIP.Length > 255 || IxiUtils.validateIPv4(chosenIP) == false)
             {
                 Console.WriteLine("Incorrect IP. Please try again.");
                 showManualIPEntry();
@@ -292,27 +290,11 @@ namespace DLT.Meta
             Console.WriteLine("Using option M) {0} as the default external IP for this node.", chosenIP);
         }
 
-        // Helper for validating IPv4 addresses
-        static private bool validateIPv4(string ipString)
-        {
-            if (String.IsNullOrWhiteSpace(ipString))
-            {
-                return false;
-            }
-
-            string[] splitValues = ipString.Split('.');
-            if (splitValues.Length != 4)
-            {
-                return false;
-            }
-
-            byte tempForParsing;
-            return splitValues.All(r => byte.TryParse(r, out tempForParsing));
-        }
-
         // Cleans the storage cache and logs
         public static bool cleanCacheAndLogs()
         {
+            ActivityStorage.deleteCache();
+
             PeerStorage.deletePeersFile();
 
             Logging.clear();
@@ -334,72 +316,6 @@ namespace DLT.Meta
             }
         }
 
-        // Sends perioding keepalive network messages
-        private static void keepAlive()
-        {
-            while (autoKeepalive)
-            {
-                // Wait x seconds before rechecking
-                for (int i = 0; i < CoreConfig.keepAliveInterval; i++)
-                {
-                    if (autoKeepalive == false)
-                    {
-                        Thread.Yield();
-                        return;
-                    }
-                    // Sleep for one second
-                    Thread.Sleep(1000);
-                }
-
-                try
-                {
-                    // Prepare the keepalive message
-                    using (MemoryStream m = new MemoryStream())
-                    {
-                        using (BinaryWriter writer = new BinaryWriter(m))
-                        {
-                            writer.Write(keepAliveVersion);
-
-                            byte[] wallet = walletStorage.getPrimaryAddress();
-                            writer.Write(wallet.Length);
-                            writer.Write(wallet);
-                            writer.Write(Config.device_id);
-
-                            // Add the unix timestamp
-                            long timestamp = Core.getCurrentTimestamp();
-                            writer.Write(timestamp);
-                            string hostname = Node.getFullAddress();
-                            writer.Write(hostname);
-
-                            // Add a verifiable signature
-                            byte[] private_key = walletStorage.getPrimaryPrivateKey();
-                            byte[] signature = CryptoManager.lib.getSignature(Encoding.UTF8.GetBytes(CoreConfig.ixianChecksumLockString + "-" + Config.device_id + "-" + timestamp + "-" + hostname), private_key);
-                            writer.Write(signature.Length);
-                            writer.Write(signature);
-                            PresenceList.curNodePresenceAddress.lastSeenTime = timestamp;
-                            PresenceList.curNodePresenceAddress.signature = signature;
-                        }
-
-
-                        byte[] address = null;
-                        // Update self presence
-                        PresenceList.receiveKeepAlive(m.ToArray(), out address);
-
-                        // Send this keepalive message to all connected clients
-                        ProtocolMessage.broadcastEventBasedMessage(ProtocolMessageCode.keepAlivePresence, m.ToArray(), address);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logging.error(String.Format("KeepAlive: {0}", ex.Message));
-                    continue;
-                }
-
-            }
-
-            Thread.Yield();
-        }
-
         public static string getFullAddress()
         {
             return Config.publicServerIP + ":" + Config.serverPort;
@@ -413,6 +329,34 @@ namespace DLT.Meta
         public static int getLastBlockVersion()
         {
             return blockVersion;
+        }
+
+        public static char getNodeType()
+        {
+            return 'R';
+        }
+
+        public static bool isAcceptingConnections()
+        {
+            // TODO TODO TODO TODO implement this properly
+            return true;
+        }
+
+        public static int getRequiredConsensus()
+        {
+            // TODO TODO TODO TODO implement this properly
+            return 0;
+        }
+
+        public static Block getLastBlock()
+        {
+            // TODO TODO TODO TODO implement this properly
+            return null;
+        }
+
+        public static bool isMasterNode()
+        {
+            return false;
         }
     }
 }
