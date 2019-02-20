@@ -23,15 +23,6 @@ namespace S2
         {
             streamClients = new List<TestStreamClient>();
 
-            if (Config.testS2Node.Length < 3)
-            {
-                Logging.error("Invalid S2 node for Test Client. Use -n or -s2node to specify node.");
-                Node.running = false;
-                S2.Program.noStart = true;
-            }
-
-            connectTo(Config.testS2Node);
-
             // Start the reconnect thread
             reconnectThread = new Thread(reconnectClients);
             autoReconnect = true;

@@ -37,7 +37,7 @@ namespace DLT
             public static string externalIp = "";
 
             // Read-only values
-            public static readonly string version = "s2-0.2.0-dev"; // S2 Node version
+            public static readonly string version = "xs2c-0.2.0-dev"; // S2 Node version
             public static bool isTestNet = true; // Testnet designator
 
             public static readonly int maximumStreamClients = 100; // Maximum number of stream clients this server can accept
@@ -49,7 +49,6 @@ namespace DLT
 
 
             public static bool isTestClient = false;
-            public static string testS2Node = "";
 
             // Debugging values
             public static string networkDumpFile = "";
@@ -289,6 +288,8 @@ namespace DLT
                 cmd_parser.Setup<bool>("generateWallet").Callback(value => generateWalletOnly = value).SetDefault(false);
 
                 cmd_parser.Setup<string>("walletPassword").Callback(value => dangerCommandlinePasswordCleartextUnsafe = value).SetDefault("");
+
+                cmd_parser.Setup<bool>("testClient").Callback(value => isTestClient = true).Required();
 
                 cmd_parser.Parse(args);
 

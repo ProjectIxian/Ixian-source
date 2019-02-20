@@ -68,11 +68,12 @@ namespace DLT.Meta
             writeLine("   | |   > <   | |   / /\\ \\ | . ` |  \\___ \\  / / ");
             writeLine("  _| |_ / . \\ _| |_ / ____ \\| |\\  |  ____) |/ /_ ");
             writeLine(" |_____/_/ \\_\\_____/_/    \\_\\_| \\_| |_____/|____|");
-            writeLine("\n                              {0}", Config.version);
-            writeLine("_________________________________________________\n");
+            writeLine(" {0} ", ("" + Config.version).PadLeft(48));
+            writeLine(" http://localhost:{0}/                       ", Config.apiPort);
+            writeLine("──────────────────────────────────────────────────");
 
             writeLine(" Thank you for running an Ixian S2 node.\n For help please visit www.ixian.io");
-            writeLine("_________________________________________________\n");
+            writeLine("──────────────────────────────────────────────────\n");
 
 
             /*
@@ -94,7 +95,7 @@ namespace DLT.Meta
             writeLine("\tConnections (I/O):\t{0}", connectionsIn + "/" + connectionsOut);
             writeLine("\tPresences:\t\t{0}", PresenceList.getTotalPresences());
 
-            writeLine("_________________________________________________");
+            writeLine("\n──────────────────────────────────────────────────");
 
             TimeSpan elapsed = DateTime.Now - startTime;
 
