@@ -21,13 +21,14 @@ namespace DLT.Meta
         public static StatsConsoleScreen statsConsoleScreen = null;
 
 
-        public static ulong blockHeight = 0;      // Stores the last known block height 
-        public static int blockVersion = 0;      // Stores the last known block version TODO TODO TODO TODO TODO needs to be implemented
         public static IxiNumber balance = 0;      // Stores the last known balance for this node
+        public static ulong blockHeight = 0;
 
-        public static int keepAliveVersion = 0;
 
         // Private data
+        static Block lastBlock = null;
+        static int requiredConsensus = 0;
+
         private static Thread maintenanceThread;
 
         public static bool running = false;
@@ -155,7 +156,8 @@ namespace DLT.Meta
                     Logging.flush();
                     password = requestNewPassword("Enter a password for your new wallet: ");
                 }
-                walletStorage.readWallet(password);
+                // Generate a new wallet
+                walletStorage.generateWallet(password);
             }
             else
             {
@@ -485,14 +487,13 @@ namespace DLT.Meta
             return Config.publicServerIP + ":" + Config.serverPort;
         }
 
-        public static ulong getLastBlockHeight()
-        {
-            return blockHeight;
-        }
-
         public static int getLastBlockVersion()
         {
-            return blockVersion;
+            if (lastBlock != null)
+            {
+                return lastBlock.version;
+            }
+            return 0;
         }
 
         public static char getNodeType()
@@ -506,16 +507,32 @@ namespace DLT.Meta
             return true;
         }
 
+        public static void setRequiredConsensus(int required_consensus)
+        {
+            requiredConsensus = required_consensus;
+        }
+
         public static int getRequiredConsensus()
         {
-            // TODO TODO TODO TODO implement this properly
-            return 0;
+            return requiredConsensus;
+        }
+
+        public static void setLastBlock(ulong block_num, byte[] checksum, byte[] ws_checksum, int version)
+        {
+            Block b = new Block();
+            b.blockNum = block_num;
+            b.blockChecksum = checksum;
+            b.walletStateChecksum = ws_checksum;
+            b.version = version;
+
+            lastBlock = b;
+
+            blockHeight = block_num;
         }
 
         public static Block getLastBlock()
         {
-            // TODO TODO TODO TODO implement this properly
-            return null;
+            return lastBlock;
         }
 
         public static bool isMasterNode()

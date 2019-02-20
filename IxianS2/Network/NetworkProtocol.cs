@@ -48,10 +48,6 @@ namespace DLT.Network
                                 {
                                     ulong last_block_num = reader.ReadUInt64();
 
-                                    // Update the node's block height
-                                    if (Node.blockHeight < last_block_num)
-                                        Node.blockHeight = last_block_num;
-
                                     int bcLen = reader.ReadInt32();
                                     byte[] block_checksum = reader.ReadBytes(bcLen);
                                     int wsLen = reader.ReadInt32();
@@ -60,27 +56,13 @@ namespace DLT.Network
 
                                     endpoint.blockHeight = last_block_num;
 
-                                    int block_version = 1;
-                                    try
-                                    {
-                                        block_version = reader.ReadInt32();
-                                    }
-                                    catch (Exception)
-                                    {
-                                        block_version = 1;
-                                    }
+                                    int block_version = reader.ReadInt32();
+
+                                    Node.setLastBlock(last_block_num, block_checksum, walletstate_checksum, block_version);
+                                    Node.setRequiredConsensus(consensus);
 
                                     // Check for legacy level
-                                    ulong legacy_level = last_block_num;
-                                    try
-                                    {
-                                        ulong level = reader.ReadUInt64();
-                                        legacy_level = level;
-                                    }
-                                    catch (Exception)
-                                    {
-                                        legacy_level = 0;
-                                    }
+                                    ulong legacy_level = reader.ReadUInt64();
 
                                     // Check for legacy node
                                     if (Legacy.isLegacy(legacy_level))
