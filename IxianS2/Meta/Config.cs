@@ -32,6 +32,8 @@ namespace DLT
 
             public static bool disableWebStart = false;
 
+            public static bool onlyShowAddresses = false;
+
             // Store the device id in a cache for reuse in later instances
             public static string device_id = Guid.NewGuid().ToString();
             public static string externalIp = "";
@@ -278,6 +280,8 @@ namespace DLT
                 cmd_parser.Setup<int>("maxLogCount").Callback(value => maxLogCount = value).Required();
 
                 cmd_parser.Setup<bool>("disableWebStart").Callback(value => disableWebStart = true).Required();
+
+                cmd_parser.Setup<bool>("onlyShowAddresses").Callback(value => onlyShowAddresses = true).Required();
 
 
                 // Debug

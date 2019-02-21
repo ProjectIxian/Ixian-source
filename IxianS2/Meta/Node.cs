@@ -16,6 +16,8 @@ namespace DLT.Meta
         public static WalletStorage walletStorage;
         public static WalletState walletState;
 
+        public static APIServer apiServer;
+
         public static UPnP upnp;
 
         public static StatsConsoleScreen statsConsoleScreen = null;
@@ -157,8 +159,11 @@ namespace DLT.Meta
                 {
                     Logging.flush();
                     password = requestNewPassword("Enter a password for your new wallet: ");
+                    if (apiServer.forceShutdown)
+                    {
+                        return false;
+                    }
                 }
-                // Generate a new wallet
                 walletStorage.generateWallet(password);
             }
             else
@@ -182,6 +187,10 @@ namespace DLT.Meta
                         Console.Write("Enter wallet password: ");
                         password = getPasswordInput();
                     }
+                    if (apiServer.forceShutdown)
+                    {
+                        return false;
+                    }
                     if (walletStorage.readWallet(password))
                     {
                         success = true;
@@ -199,11 +208,19 @@ namespace DLT.Meta
             Logging.flush();
 
             Console.WriteLine();
-            Console.Write("Your IXIAN address is ");
+            Console.WriteLine("Your IXIAN addresses are: ");
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(Base58Check.Base58CheckEncoding.EncodePlain(walletStorage.getPrimaryAddress()));
+            foreach (var entry in walletStorage.getMyAddressesBase58())
+            {
+                Console.WriteLine(entry);
+            }
             Console.ResetColor();
             Console.WriteLine();
+
+            if (Config.onlyShowAddresses)
+            {
+                return false;
+            }
 
             // Check if we should change the password of the wallet
             if (Config.changePass == true)
@@ -213,6 +230,10 @@ namespace DLT.Meta
                 while (new_password.Length < 10)
                 {
                     new_password = requestNewPassword("Enter a new password for your wallet: ");
+                    if (apiServer.forceShutdown)
+                    {
+                        return false;
+                    }
                 }
                 walletStorage.writeWallet(new_password);
             }
@@ -291,6 +312,9 @@ namespace DLT.Meta
 
             ActivityStorage.prepareStorage();
 
+            // Start the HTTP JSON API server
+            apiServer = new APIServer();
+
             // Prepare stats screen
             Config.verboseConsoleOutput = verboseConsoleOutput;
             Logging.consoleOutput = verboseConsoleOutput;
@@ -337,6 +361,13 @@ namespace DLT.Meta
 
         static public void stop()
         {
+            // Stop the API server
+            if (apiServer != null)
+            {
+                apiServer.stop();
+                apiServer = null;
+            }
+
             // Stop the keepalive thread
             PresenceList.stopKeepAlive();
 
@@ -362,11 +393,11 @@ namespace DLT.Meta
             // Stop the network server
             NetworkServer.stopNetworkOperations();
 
+            ActivityStorage.stopStorage();
+
             // Stop the console stats screen
-            if (Config.verboseConsoleOutput == false)
-            {
-                statsConsoleScreen.stop();
-            }
+            // Console screen has a thread running even if we are in verbose mode
+            statsConsoleScreen.stop();
         }
 
         static public void reconnect()

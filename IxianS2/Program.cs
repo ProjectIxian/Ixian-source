@@ -44,7 +44,6 @@ namespace S2
 
 
         private static System.Timers.Timer mainLoopTimer;
-        private static APIServer apiServer;
 
         public static bool noStart = false;
 
@@ -102,16 +101,16 @@ namespace S2
             // Start logging
             Logging.start();
 
-            onStart(args);
-
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
                 e.Cancel = true;
-                apiServer.forceShutdown = true;
+                Node.apiServer.forceShutdown = true;
             };
 
-            if (apiServer != null)
+            onStart(args);
+
+            if (Node.apiServer != null)
             {
-                while (apiServer.forceShutdown == false)
+                while (Node.apiServer.forceShutdown == false)
                 {
                     Thread.Sleep(1000);
                 }
@@ -162,9 +161,6 @@ namespace S2
                 return;
             }
 
-            // Start the HTTP JSON API server
-            apiServer = new APIServer();
-
             // Setup a timer to handle routine updates
             mainLoopTimer = new System.Timers.Timer(1000);
             mainLoopTimer.Elapsed += new ElapsedEventHandler(onUpdate);
@@ -196,14 +192,13 @@ namespace S2
                 }
                 else if (key.Key == ConsoleKey.Escape)
                 {
-                    Node.stop();
-                    Environment.Exit(-1);
+                    Node.apiServer.forceShutdown = true;
                 }
 
             }
             if (Node.update() == false)
             {
-                apiServer.forceShutdown = true;
+                Node.apiServer.forceShutdown = true;
             }
         }
 
@@ -212,12 +207,6 @@ namespace S2
             if (mainLoopTimer != null)
             {
                 mainLoopTimer.Stop();
-            }
-
-            // Stop the API server
-            if (apiServer != null)
-            {
-                apiServer.stop();
             }
 
             if (noStart == false)
@@ -243,7 +232,7 @@ namespace S2
             {
                 case CtrlTypes.CTRL_C_EVENT:
                 case CtrlTypes.CTRL_BREAK_EVENT:
-                    return true; // ignore these, as they will be caught by the managed event handler in Main()
+                    return true;
                 case CtrlTypes.CTRL_CLOSE_EVENT:
                 case CtrlTypes.CTRL_LOGOFF_EVENT:
                 case CtrlTypes.CTRL_SHUTDOWN_EVENT:
@@ -251,9 +240,9 @@ namespace S2
                     Logging.info("Application is being closed! Shutting down!");
                     Logging.flush();
                     noStart = true;
-                    if (apiServer != null)
+                    if (Node.apiServer != null)
                     {
-                        apiServer.forceShutdown = true;
+                        Node.apiServer.forceShutdown = true;
                     }
                     // Wait (max 5 seconds) for everything to die
                     DateTime waitStart = DateTime.Now;
