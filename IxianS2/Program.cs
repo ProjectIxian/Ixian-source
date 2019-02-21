@@ -232,6 +232,8 @@ namespace S2
             {
                 case CtrlTypes.CTRL_C_EVENT:
                 case CtrlTypes.CTRL_BREAK_EVENT:
+                    noStart = true;
+                    Node.forceShutdown = true;
                     return true;
                 case CtrlTypes.CTRL_CLOSE_EVENT:
                 case CtrlTypes.CTRL_LOGOFF_EVENT:
