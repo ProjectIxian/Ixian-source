@@ -26,6 +26,7 @@ namespace DLT.Meta
         public static IxiNumber balance = 0;      // Stores the last known balance for this node
         public static ulong blockHeight = 0;
 
+        public static bool forceShutdown = false;
 
         // Private data
         static Block lastBlock = null;
@@ -159,7 +160,7 @@ namespace DLT.Meta
                 {
                     Logging.flush();
                     password = requestNewPassword("Enter a password for your new wallet: ");
-                    if (apiServer.forceShutdown)
+                    if (forceShutdown)
                     {
                         return false;
                     }
@@ -187,7 +188,7 @@ namespace DLT.Meta
                         Console.Write("Enter wallet password: ");
                         password = getPasswordInput();
                     }
-                    if (apiServer.forceShutdown)
+                    if (forceShutdown)
                     {
                         return false;
                     }
@@ -230,7 +231,7 @@ namespace DLT.Meta
                 while (new_password.Length < 10)
                 {
                     new_password = requestNewPassword("Enter a new password for your wallet: ");
-                    if (apiServer.forceShutdown)
+                    if (forceShutdown)
                     {
                         return false;
                     }

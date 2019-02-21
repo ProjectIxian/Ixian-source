@@ -103,14 +103,14 @@ namespace S2
 
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
                 e.Cancel = true;
-                Node.apiServer.forceShutdown = true;
+                Node.forceShutdown = true;
             };
 
             onStart(args);
 
             if (Node.apiServer != null)
             {
-                while (Node.apiServer.forceShutdown == false)
+                while (Node.forceShutdown == false)
                 {
                     Thread.Sleep(1000);
                 }
@@ -192,13 +192,13 @@ namespace S2
                 }
                 else if (key.Key == ConsoleKey.Escape)
                 {
-                    Node.apiServer.forceShutdown = true;
+                    Node.forceShutdown = true;
                 }
 
             }
             if (Node.update() == false)
             {
-                Node.apiServer.forceShutdown = true;
+                Node.forceShutdown = true;
             }
         }
 
@@ -240,10 +240,7 @@ namespace S2
                     Logging.info("Application is being closed! Shutting down!");
                     Logging.flush();
                     noStart = true;
-                    if (Node.apiServer != null)
-                    {
-                        Node.apiServer.forceShutdown = true;
-                    }
+                    Node.forceShutdown = true;
                     // Wait (max 5 seconds) for everything to die
                     DateTime waitStart = DateTime.Now;
                     while (true)

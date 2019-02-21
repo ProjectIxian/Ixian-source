@@ -67,7 +67,7 @@ namespace S2
                 string responseString = JsonConvert.SerializeObject("Node shutdown");
                 sendResponse(context.Response, responseString);
 
-                forceShutdown = true;
+                Node.forceShutdown = true;
 
                 return true;
             }
