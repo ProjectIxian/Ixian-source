@@ -119,6 +119,12 @@ namespace DLT.Meta
                     return "";
                 }
 
+                if (!Console.KeyAvailable)
+                {
+                    Thread.Yield();
+                    continue;
+                }
+
                 ConsoleKeyInfo i = Console.ReadKey(true);
                 if (i.Key == ConsoleKey.Enter)
                 {

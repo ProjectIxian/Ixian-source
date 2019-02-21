@@ -102,6 +102,8 @@ namespace S2
             Logging.start();
 
             Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+                Config.verboseConsoleOutput = true;
+                Logging.consoleOutput = Config.verboseConsoleOutput;
                 e.Cancel = true;
                 Node.forceShutdown = true;
             };
@@ -232,14 +234,14 @@ namespace S2
             {
                 case CtrlTypes.CTRL_C_EVENT:
                 case CtrlTypes.CTRL_BREAK_EVENT:
-                    noStart = true;
-                    Node.forceShutdown = true;
-                    return true;
                 case CtrlTypes.CTRL_CLOSE_EVENT:
                 case CtrlTypes.CTRL_LOGOFF_EVENT:
                 case CtrlTypes.CTRL_SHUTDOWN_EVENT:
+                    Config.verboseConsoleOutput = true;
+                    Logging.consoleOutput = Config.verboseConsoleOutput;
                     Console.WriteLine();
-                    Logging.info("Application is being closed! Shutting down!");
+                    Console.WriteLine("Application is being closed!");
+                    Logging.info("Shutting down...");
                     Logging.flush();
                     noStart = true;
                     Node.forceShutdown = true;
