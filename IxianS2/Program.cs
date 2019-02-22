@@ -194,6 +194,8 @@ namespace S2
                 }
                 else if (key.Key == ConsoleKey.Escape)
                 {
+                    Config.verboseConsoleOutput = true;
+                    Logging.consoleOutput = Config.verboseConsoleOutput;
                     Node.forceShutdown = true;
                 }
 
