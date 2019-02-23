@@ -85,7 +85,8 @@ function Execute-Binary {
     Param(
         [string]$CWD,
         [string]$Binary,
-        [string]$Parameters
+        [string]$Parameters,
+        [switch]$ReturnStdOut
     )
     $old_wd = [System.IO.Directory]::GetCurrentDirectory()
     [System.IO.Directory]::SetCurrentDirectory($CWD)
@@ -96,12 +97,14 @@ function Execute-Binary {
         $pi.UseShellExecute = $false
         $pi.Arguments = $Parameters
         $pi.CreateNoWindow = $true
+        $pi.RedirectStandardOutput = $true
+        $pi.RedirectStandardError = $true
         $p = New-Object System.Diagnostics.Process
         $p.StartInfo = $pi
         [void]$p.Start()
         Write-Host -ForegroundColor Green "Waiting for $($Binary) to close..."
         try {
-            Wait-Process -InputObject $p -Timeout 5
+            $p.WaitForExit(5000)
         } catch { }
         $output = ""
         if($p.HasExited -eq $false) {
@@ -109,10 +112,15 @@ function Execute-Binary {
             Stop-Process -Id $p.Id -Force
         } else {
             Write-Host "Process exit code is: $($p.ExitCode)"
-            if([System.IO.File]::Exists("./ixian.log")) {
-                $output = [System.IO.File]::ReadAllText("./ixian.log")
+            if($ReturnStdOut.IsPresent) {
+                $output = $p.StandardOutput.ReadToEnd()
+                $stderr = $p.StandardError.ReadToEnd()
             } else {
-                $output = "No log file generated."
+                if([System.IO.File]::Exists("./ixian.log")) {
+                    $output = [System.IO.File]::ReadAllText("./ixian.log")
+                } else {
+                    $output = "No log file generated."
+                }
             }
         }
         [System.IO.Directory]::SetCurrentDirectory($old_wd)
@@ -335,9 +343,12 @@ if($ClearState.IsPresent) {
             $targetExe = "IxianDLT.exe"
             $params = "-t --generateWallet --walletPassword $($WalletPassword)"
             $output = Execute-Binary -CWD $targetWD -Binary $targetExe -Parameters $params
+            # Execute again to display the wallet address
+            $params = "-t --onlyShowAddresses --walletPassword $($WalletPassword)"
+            $output = Execute-Binary -CWD $targetWD -Binary $targetExe -Parameters $params -ReturnStdOut
             # Looking for log line like: 01-10 11:15:17.4001|info|(1): Public Node Address: 1STq7YC3y71uiN1QHbp8jFfVg3A1rfBe8qYytbgr2CNEKeXUD
             $pub_addr_r = New-Object System.Text.RegularExpressions.Regex(
-                "^[0-9\-\ \:\.]+\|info\|\([0-9]+\)\: Public Node Address\: ([a-zA-Z0-9]+)",
+                "^Your IXIAN address is ([a-zA-Z0-9]+)",
                 [System.Text.RegularExpressions.RegexOptions]::Multiline)
             $match = $pub_addr_r.Match($output)
             if($match.Success) {
