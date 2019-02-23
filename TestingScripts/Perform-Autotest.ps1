@@ -6,42 +6,101 @@ Param(
 . .\Testnet-Functions.ps1
 . .\Ixian-Tests.ps1
 
+
+# Global stuff
+$TestBatches = New-Object System.Collections.ArrayList
+$InitError = $false
+
+$FailedTestNames = New-Object System.Collections.ArrayList
+$SucceededTestNames = New-Object System.Collections.ArrayList
+
+
+## Test PSObject
+
+# [PSCustomObject]@{
+#     Name = [String]
+#     Steps = [Number]
+# }
+# Functions which must exist:
+# `Init-Name`  , step initialization
+# `StepX-Name` , where X [1..Steps] (inclusive). If Steps = 0, no Step functions need exist
+# `Check-Name` , step final check for success/failure
+
+## Return from each test step:
+# [PSCustomObject]@{
+#     Name = [String]
+#     BH = [Number] , Block Height when the step was performed
+#     Steps = [Number] , number of steps this test must go through
+#     CurrentStep = [Number] , step this test is currently on
+#     WaitBlockChange = [Boolean] , if $true, the next step won't be scheduled until the block number changes
+#     ... , own data
+# }
+
+# All tests in a single batch are run in parallel, batches are completely one by one sequentially
+# Batches are numbered from 0 forward
+
 ###### Functions ######
+
+function Function-Exists {
+    Param(
+        [string]$Name
+    )
+    $old = $ErrorActionPreference
+    $ErrorActionPreference = 'stop'
+    try {
+        Get-Command -Name $Name
+        return $true
+    } catch {
+        return $false
+    } finally {
+        $ErrorActionPreference = $old
+    }
+}
+
+function Extend-TestBatches {
+    Param(
+        [int]$Batch
+    )
+    while($TestBatches.Count -le $Batch) {
+        $batchArray = New-Object System.Collections.ArrayList
+        [void]$TestBatches.Add($batchArray)
+    }
+}
 
 function Add-Test {
     Param(
-        [System.Collections.ArrayList]$Tests,
-        [string]$TestName
+        [string]$TestName,
+        [int]$Batch,
+        [int]$NumExtraSteps
     )
-    $test_funcs = Get-Command -Noun $TestName
-    if( ($test_funcs | Where-Object { $_.Verb -eq "Init" }).Count -lt 1) {
-        Write-Host -ForegroundColor Red "-> Test $($TestName) is missing the Init function Init-$($TestName)"
+    Extend-TestBatches -Batch $Batch
+    # Check if all required functions exist
+    if((Function-Exists -Name "Init-$($TestName)") -eq $false) {
+        Write-Host -ForegroundColor Red "Initialization function missing: 'Init-$($TestName)'"
+        $InitError = $true
         return
     }
-    if( ($test_funcs | Where-Object { $_.Verb -eq "Check" }).Count -lt 1) {
-        Write-Host -ForegroundColor Red "-> Test $($TestName) is missing the Init function Check-$($TestName)"
+    if((Function-Exists -Name "Check-$($TestName)") -eq $false) {
+        Write-Host -ForegroundColor Red "Check function missing: 'Check-$($TestName)'"
+        $InitError = $true
         return
     }
-    [void]$Tests.Add($TestName)
-    Write-Host -ForegroundColor Cyan "-> $($TestName) added"
+    for($step = 0; $step -lt $NumExtraSteps; $step++) {
+        if((Function-Exists -Name "Step$($step)-$($TestName)") -eq $false) {
+            Write-Host -ForegroundColor Red "Step function missing: 'Step$($step)-$($TestName)'"
+            $InitError = $false
+            return
+        }
+    }
+
+    # Create the appropriate test descriptor
+    $td = [PSCustomObject]@{
+        Name = $TestName
+        Steps = $NumExtraSteps
+    }
+    [void]$TestBatches[$Batch].Add($td)
 }
 
-function Add-ParallelTest {
-    Param(
-        [System.Collections.ArrayList]$PTests,
-        [int]$Batch,
-        [string]$TestName
-    )
-    if($Batch -lt 0) {
-        $Batch = 0
-    }
-    if($Batch -ge $PTests.Count) {
-        $Batch = $PTests.Count
-        $na = New-Object System.Collections.ArrayList
-        [void]$PTests.Add($na)
-    }
-    Add-Test -Tests $PTests[$Batch] -TestName $TestName
-}
 
 function WaitFor-NextBlock {
     $bh = Get-CurrentBlockHeight -APIPort $APIStartPort
@@ -54,87 +113,115 @@ function WaitFor-NextBlock {
     }
 }
 
+function Process-TestBatch {
+    Param(
+        [System.Collections.ArrayList]$Batch
+    )
+    Write-Host -ForegroundColor Cyan "-> Initializing..."
+    $RemainingTests = New-Object System.Collections.ArrayList
+    foreach($td in $Batch) {
+        $test_return = & "Init-$($td.Name)"
+        if($test_return -eq $null) {
+            Write-Host -ForegroundColor Yellow "-> $($td.Name)"
+            [void]$FailedTestNames.Add($td.Name)
+        }
+        $test_return | Add-Member -Name 'Name' -Type NoteProperty -Value $td.Name
+        $test_return | Add-Member -Name 'BH' -Type NoteProperty -Value (Get-CurrentBlockHeight -APIPort $APIStartPort)
+        $test_return | Add-Member -Name 'Steps' -Type NoteProperty -Value $td.Steps
+        $test_return | Add-Member -Name 'CurrentStep' -Type NoteProperty -Value 0
+        if(([bool]($test_return.PSObject.Properties.name -match "WaitBlockChange")) -eq $false) {
+            $test_return | Add-Member -Name 'WaitBlockChange' -Type NoteProperty -Value $true
+        }
+        [void]$RemainingTests.Add($test_return)
+        Write-Host -ForegroundColor Green "-> $($td.Name)"
+    }
+    Write-Host -ForegroundColor Cyan "-> Performing intermediate steps..."
+    $DoneSteps = New-Object System.Collections.ArrayList
+    while($true) {
+        if($RemainingTests.Count -eq 0) {
+            # we are done with it all
+            break
+        }
+        $tests_were_run = $false
+        for($i = 0; $i -lt $RemainingTests.Count; $i++) {
+            $tr1 = $RemainingTests[$i]
+            if($tr1.CurrentStep -lt $tr1.Steps) {
+                # Test has more steps to run
+                if($tr1.WaitBlockChange -eq $false -or $tr1.BH -lt (Get-CurrentBlockHeight -APIPort $APIStartPort)) {
+                    # it can be run right away
+                    $tests_were_run = $true
+                    $tr2 = & "Step$($tr1.CurrentStep)-$($tr1.Name)" -Data $tr1
+                    # null return means a failure
+                    if($tr2 -eq $null) {
+                        Write-Host -ForegroundColor Yellow " -X $($tr1.Name)"
+                        [void]$FailedTestNames.Add($tr1.Name)
+                    } else {
+                        Write-Host -ForegroundColor Green " -> $($tr1.Name), Step $($tr1.CurrentStep)"
+                        # check if there are more steps
+                        $tr2.CurrentStep++
+                        $tr2.BH = Get-CurrentBlockHeight -APIPort $APIStartPort
+                    }
+                }
+            } else {
+                # Test has no more intermediate steps
+                $RemainingTests.RemoveAt($i)
+                $i--
+                [void]$DoneSteps.Add($tr1)
+            }
+        }
+        # if no tests were run, we probably need to wait for the next block
+        if($tests_were_run -eq $false) {
+            if($RemainingTests.Count -gt 0) {
+                Write-Host -ForegroundColor Gray " -> Waiting for next block..."
+                WaitFor-NextBlock
+            }
+        }
+    }
+
+    Write-Host -ForegroundColor Cyan "-> Performing final check..."
+    foreach($tr1 in $DoneSteps) {
+        $tr2 = & "Check-$($tr1.Name)" -Data $tr1
+        if($tr2 -eq $null) {
+            Write-Host -ForegroundColor Yellow " -X $($tr1.Name)"
+            [void]$FailedTestNames.Add($tr1.Name)
+        } else {
+            # test is successful...
+            Write-Host -ForegroundColor Green " -> $($tr1.Name)"
+            [void]$SucceededTestNames.Add($tr1.Name)
+        }
+    }
+}
+
 
 ###### Main ######
 
 Write-Host -ForegroundColor White "Preparing tests..."
 
-$Tests = New-Object System.Collections.ArrayList
+Add-Test -TestName "DummyTestSimple" -Batch 0 -NumExtraSteps 0
+Add-Test -TestName "DummyTestExtraStepsNoWait" -Batch 0 -NumExtraSteps 2
+Add-Test -TestName "DummyTestExtraStepsWait" -Batch 0 -NumExtraSteps 1
+Add-Test -TestName "DummyTestFailing" -Batch 0 -NumExtraSteps 0
 
-Add-ParallelTest -PTests $Tests -Batch 0 -TestName "WalletStateIsMaintained"
-Add-ParallelTest -PTests $Tests -Batch 0 -TestName "BasicTX"
+if($InitError) {
+    Write-Host -ForegroundColor Magenta "Initialization error occured. Aborting."
+    exit(-1)
+}
 
-
-Write-Host -ForegroundColor Green "Done."
-
-Write-Host -ForegroundColor White "Executing..."
-
-$succeeded_tests = 0
-$failed_tests = 0
-$failed_test_names = New-Object System.Collections.ArrayList
-
-for($batch = 0; $batch -lt $Tests.Count; $batch++) {
-    Write-Host -ForegroundColor Cyan -NoNewline "Initializing batch "
-    Write-Host -ForegroundColor Green "$($batch)..."
-
-    $current_tests = @{}
-
-    foreach($t in $Tests[$batch]) {
-        Write-Host -ForegroundColor Yellow -NoNewline "- $($t) : "
-        $test_data = &"Init-$($t)" -APIPort $APIStartPort
-        if($test_data -eq $null) {
-            Write-Host -ForegroundColor Red "Unable to initialize test $($t)"
-            $failed_tests++
-            [void]$failed_test_names.Add($t)
-            continue
-        }
-        Write-Host -ForegroundColor Green "OK"
-        [void]$current_tests.Add($t, $test_data)
-    }
-
-    Write-Host -ForegroundColor Cyan -NoNewline "Checking batch "
-    Write-Host -ForegroundColor Green "$($batch)..."
-
-    $test_list = New-Object System.Collections.ArrayList
-    foreach($t in $current_tests.Keys.GetEnumerator()) {
-        [void]$test_list.Add($t);
-    }
-
-    while($test_list.Count -gt 0) {
-        for($tidx = 0; $tidx -lt $test_list.Count; $tidx++) {
-            $t = $test_list[$tidx]
-            $td = $current_tests[$t]
-            $test_result = &"Check-$($t)" -APIPort $APIStartPort $test_data
-            if($test_result -eq "WAIT") {
-                # do nothing this iteration
-                continue
-            } elseif($test_result -eq "OK") {
-                Write-Host -ForegroundColor Green "-> OK: $($t)"
-                $succeeded_tests++
-            } else {
-                Write-Host -ForegroundColor Red "FAIL: $($test_result)"
-                $failed_tests++
-                [void]$failed_test_names.Add($t)
-            }
-            $test_list.RemoveAt($tidx)
-            $tidx--
-        }
-        if($test_list.Count -gt 0) {
-            WaitFor-NextBlock
-        }
-    }
-    Write-Host -ForegroundColor Green "Batch complete."
+$i = 0
+foreach($Batch in $TestBatches) {
+    Write-Host -ForegroundColor Cyan "Processing batch $($i)"
+    Process-TestBatch -Batch $Batch
 }
 
 Write-Host -ForegroundColor White -NoNewline "Results: Succeeded: "
-Write-Host -ForegroundColor Green -NoNewline $succeeded_tests
+Write-Host -ForegroundColor Green -NoNewline $SucceededTestNames.Count
 Write-Host -ForegroundColor White -NoNewline " / Failed: "
-Write-Host -ForegroundColor Red -NoNewline $failed_tests
+Write-Host -ForegroundColor Red -NoNewline $FailedTestNames.Count
 Write-Host -ForegroundColor White "."
 
-if($failed_tests -gt 0) {
+if($FailedTestNames.Count -gt 0) {
     Write-Host -ForegroundColor White "Failing tests:"
-    foreach($tn in $failed_test_names) {
+    foreach($tn in $FailedTestNames) {
         Write-Host -ForegroundColor Red "-> $($tn)"
     }
 }
