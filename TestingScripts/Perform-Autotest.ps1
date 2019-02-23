@@ -113,6 +113,42 @@ function WaitFor-NextBlock {
     }
 }
 
+function Fill-ResultMembers {
+    Param(
+        [PSCustomObject]$Result,
+        [string]$Name,
+        [long]$BH,
+        [int]$Steps,
+        [int]$CurrentStep
+    )
+
+    if(([bool]($Result.PSObject.Properties.name -match "Name")) -eq $false) {
+        $Result | Add-Member -Name 'Name' -Type NoteProperty -Value $Name
+    } else {
+        $Result.Name = $Name
+    }
+    if(([bool]($Result.PSObject.Properties.name -match "BH")) -eq $false) {
+        $Result | Add-Member -Name 'BH' -Type NoteProperty -Value $BH
+    } else {
+        $Result.BH = $BH
+    }
+    if(([bool]($Result.PSObject.Properties.name -match "Steps")) -eq $false) {
+        $Result | Add-Member -Name 'Steps' -Type NoteProperty -Value $Steps
+    } else {
+        $Result.Steps = $Steps
+    }
+    if(([bool]($Result.PSObject.Properties.name -match "CurrentStep")) -eq $false) {
+        $Result | Add-Member -Name 'CurrentStep' -Type NoteProperty -Value $CurrentStep
+    } else {
+        $Result.CurrentStep = $CurrentStep
+    }
+    if(([bool]($Result.PSObject.Properties.name -match "WaitBlockChange")) -eq $false) {
+        $Result | Add-Member -Name 'WaitBlockChange' -Type NoteProperty -Value $true
+    }
+    # We do not override WaitBlockChange, if it is already present
+    return $Result
+}
+
 function Process-TestBatch {
     Param(
         [System.Collections.ArrayList]$Batch
@@ -125,13 +161,7 @@ function Process-TestBatch {
             Write-Host -ForegroundColor Yellow "-> $($td.Name)"
             [void]$FailedTestNames.Add($td.Name)
         }
-        $test_return | Add-Member -Name 'Name' -Type NoteProperty -Value $td.Name
-        $test_return | Add-Member -Name 'BH' -Type NoteProperty -Value (Get-CurrentBlockHeight -APIPort $APIStartPort)
-        $test_return | Add-Member -Name 'Steps' -Type NoteProperty -Value $td.Steps
-        $test_return | Add-Member -Name 'CurrentStep' -Type NoteProperty -Value 0
-        if(([bool]($test_return.PSObject.Properties.name -match "WaitBlockChange")) -eq $false) {
-            $test_return | Add-Member -Name 'WaitBlockChange' -Type NoteProperty -Value $true
-        }
+        $test_return = Fill-ResultMembers -Result $test_return -Name $td.Name -BH (Get-CurrentBlockHeight -APIPort $APIStartPort) -Steps $td.Steps -CurrentStep 0
         [void]$RemainingTests.Add($test_return)
         Write-Host -ForegroundColor Green "-> $($td.Name)"
     }
@@ -146,20 +176,42 @@ function Process-TestBatch {
         for($i = 0; $i -lt $RemainingTests.Count; $i++) {
             $tr1 = $RemainingTests[$i]
             if($tr1.CurrentStep -lt $tr1.Steps) {
-                # Test has more steps to run
+                # Test has more intermediate steps to run
                 if($tr1.WaitBlockChange -eq $false -or $tr1.BH -lt (Get-CurrentBlockHeight -APIPort $APIStartPort)) {
                     # it can be run right away
                     $tests_were_run = $true
                     $tr2 = & "Step$($tr1.CurrentStep)-$($tr1.Name)" -Data $tr1
+                    $delayed = $false
+                    # a "DELAY" result means we repeat this step
+                    if(([bool]($tr2.PSObject.Properties.name -match "DELAY")) -eq $true) {
+                        $delayed = $true
+                        # if $tr1 already has a delay, we decrement it
+                        if(([bool]($tr1.PSObject.Properties.name -match "DELAY")) -eq $true) {
+                            $tr1.DELAY--
+                            if($tr1.DELAY -le 0) {
+                                #time is up, so we fail the test
+                                $tr2 = null
+                            }
+                        } else {
+                            # this is the first time this step was delayed
+                            $tr1 | Add-Member -Name 'DELAY' -Type NoteProperty -Value $tr2.DELAY
+                        }
+                    }
                     # null return means a failure
                     if($tr2 -eq $null) {
                         Write-Host -ForegroundColor Yellow " -X $($tr1.Name)"
+                        # remove failed test from the queue
+                        $RemainingTests.RemoveAt($i)
+                        $i--
                         [void]$FailedTestNames.Add($tr1.Name)
+                    } elseif($delayed -eq $true) {
+                        # basically do nothing, just go another circle - because a test was run, we'll wait for the next block automatically
+                        Write-Host -ForegroundColor White " -> $($tr1.Name) DELAYED($($tr1.DELAY))"
                     } else {
                         Write-Host -ForegroundColor Green " -> $($tr1.Name), Step $($tr1.CurrentStep)"
-                        # check if there are more steps
+                        $tr2 = Fill-ResultMembers -Result $tr2 -Name $tr1.Name -BH (Get-CurrentBlockHeight -APIPort $APIStartPort) -Steps $tr1.Steps -CurrentStep $tr1.CurrentStep
                         $tr2.CurrentStep++
-                        $tr2.BH = Get-CurrentBlockHeight -APIPort $APIStartPort
+                        $RemainingTests[$i] = $tr2
                     }
                 }
             } else {
@@ -177,6 +229,7 @@ function Process-TestBatch {
             }
         }
     }
+    # Wait block?
 
     Write-Host -ForegroundColor Cyan "-> Performing final check..."
     foreach($tr1 in $DoneSteps) {
@@ -197,10 +250,7 @@ function Process-TestBatch {
 
 Write-Host -ForegroundColor White "Preparing tests..."
 
-Add-Test -TestName "DummyTestSimple" -Batch 0 -NumExtraSteps 0
-Add-Test -TestName "DummyTestExtraStepsNoWait" -Batch 0 -NumExtraSteps 2
-Add-Test -TestName "DummyTestExtraStepsWait" -Batch 0 -NumExtraSteps 1
-Add-Test -TestName "DummyTestFailing" -Batch 0 -NumExtraSteps 0
+Add-Test -TestName "MSAddKeyByOwner" -Batch 0 -NumExtraSteps 2
 
 if($InitError) {
     Write-Host -ForegroundColor Magenta "Initialization error occured. Aborting."

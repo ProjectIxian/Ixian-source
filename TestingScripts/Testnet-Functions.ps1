@@ -34,7 +34,7 @@ function Invoke-DLTApi {
     # DEBUG
     #Write-Host -ForegroundColor Gray "Invoking DLT Api: $($url)"
     try {
-        $r = Invoke-RestMethod -Method Get -Uri $url
+        $r = Invoke-RestMethod -Method Get -Uri $url -TimeoutSec 5
         if($r.error -ne $null) {
             Write-Host -ForegroundColor Red "Invoke-DLTApi: Error returned from API: $($r.error)"
             return $null
@@ -279,4 +279,25 @@ function Get-WalletBalance {
         Write-Host -ForegroundColor Red "Error retrieving balance for wallet $($address)."
     }
     return $balance
+}
+
+function Check-TXExecuted {
+    Param(
+        [int]$APIPort,
+        [string]$TXID
+    )
+    $transactions = Invoke-DLTApi -APIPort $APIPort -Command "tx"
+    if($transactions -eq $null) {
+        Write-Host -ForegroundColor Red "Error while attempting to fetch transaction list from node $($APIPort)"
+        return $false
+    }
+    $txids = $transactions.PSObject.Properties | foreach { $_.Name }
+    if(($txids.Contains($TXID)) -eq $false) {
+        return $false
+    }
+    if($transactions."$TXID".applied -gt 0) {
+        return $true
+    } else {
+        return $false
+    }
 }
