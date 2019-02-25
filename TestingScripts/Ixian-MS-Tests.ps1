@@ -7,13 +7,13 @@ $global:multiSigData = $null
 $global:multiSigSelectedNode = 'A'
 
 # global task related multisig cache vars
-[float] $global:multiSigTaskInitialBalance = 0
+[decimal] $global:multiSigTaskInitialBalance = 0
 $global:multiSigTaskInitialAllowedSigners = $null
 [int] $global:multiSigTaskInitialRequiredSigs = 1
 $global:multiSigLastOrigTXID = $null
 $global:multiSigLastTxType = $null
 $global:multiSigLastTxData = $null
-[float] $global:multiSigTotalSignerFee = 0
+[decimal] $global:multiSigTotalSignerFee = 0
 
 function Init-MSGenerateSecondaryWallets { # Generate new wallets on which we'll test
     $global:multiSigTotalSignerFee = 0
@@ -222,18 +222,17 @@ function Check-MSAddKey { # Check that the wallet is now a multisig wallet with 
     {
         $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
     }
-    if(([float]$txData.'totalAmount') -eq 0) {
+    if(([decimal]$txData.'totalAmount') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction total amount should be bigger than 0, but is '$($txData.'totalAmount')'."
         return $null
     }
-    if(([float]$txData.'fee') -eq 0) {
+    if(([decimal]$txData.'fee') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction fee should be bigger than 0, but is '$($txData.'fee')'."
         return $null
     }
 
-    [float] $newExpBalance = ($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee)
-
-    if(([float]$wallet.'balance') -ne $newExpBalance) {
+    [decimal] $newExpBalance = [math]::round(($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee), 8)
+    if(([decimal]$wallet.'balance') -ne $newExpBalance) {
         Write-Host -ForegroundColor Red "Wallet $($global:multiSigData.Wallet_A) should have '$($newExpBalance)' Ixis, but has '$($wallet.'balance')'."
         return $null
     }
@@ -362,23 +361,18 @@ function Check-MSDelKey { # Check that the wallet is now a multisig wallet with 
         $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
     }
 
-    if(([float]$txData.'totalAmount') -eq 0) {
+    if(([decimal]$txData.'totalAmount') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction total amount should be bigger than 0, but is '$($txData.'totalAmount')'."
         return $null
     }
-    if(([float]$txData.'fee') -eq 0) {
+    if(([decimal]$txData.'fee') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction fee should be bigger than 0, but is '$($txData.'fee')'."
         return $null
     }
 
-    if($Data.SigTXID -ne $null)
-    {
-        $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
-    }
+    [decimal] $newExpBalance = [math]::round(($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee), 8)
 
-    [float] $newExpBalance = ($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee)
-
-    if(([float]$wallet.'balance') -ne $newExpBalance) {
+    if(([decimal]$wallet.'balance') -ne $newExpBalance) {
         Write-Host -ForegroundColor Red "Wallet $($global:multiSigData.Wallet_A) should have '$($newExpBalance)' Ixis, but has '$($wallet.'balance')'."
         return $null
     }
@@ -492,23 +486,18 @@ function Check-MSChangeReqSigs { # Check that the wallet is now a multisig walle
         $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
     }
 
-    if(([float]$txData.'totalAmount') -eq 0) {
+    if(([decimal]$txData.'totalAmount') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction total amount should be bigger than 0, but is '$($txData.'totalAmount')'."
         return $null
     }
-    if(([float]$txData.'fee') -eq 0) {
+    if(([decimal]$txData.'fee') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction fee should be bigger than 0, but is '$($txData.'fee')'."
         return $null
     }
 
-    if($Data.SigTXID -ne $null)
-    {
-        $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
-    }
+    [decimal] $newExpBalance = [math]::round(($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee), 8)
 
-    [float] $newExpBalance = ($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee)
-
-    if(([float]$wallet.'balance') -ne $newExpBalance) {
+    if(([decimal]$wallet.'balance') -ne $newExpBalance) {
         Write-Host -ForegroundColor Red "Wallet $($global:multiSigData.Wallet_A) should have '$($newExpBalance)' Ixis, but has '$($wallet.'balance')'."
         return $null
     }
@@ -585,6 +574,17 @@ function Check-MSAddSignature { # Check that the wallet is now a multisig wallet
     )
     $lastTxData = $global:multiSigLastTxData
     $lastTxData.SigTXID = $Data.TXID
+
+    $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
+    if(([decimal]$txData.'totalAmount') -eq 0) {
+        Write-Host -ForegroundColor Red "Transaction total amount should be bigger than 0, but is '$($txData.'totalAmount')'."
+        return $null
+    }
+    if(([decimal]$txData.'fee') -eq 0) {
+        Write-Host -ForegroundColor Red "Transaction fee should be bigger than 0, but is '$($txData.'fee')'."
+        return $null
+    }
+    
     if($global:multiSigLastTxType -eq "AddKey")
     {
         return Check-MSAddKey -Data $lastTxData
@@ -642,7 +642,7 @@ function Init-MSSendTxSimple {  # Execute the command to add Wallet_B as a signe
         return $null
     }
 
-    if(([float]$result.'amount') -eq 0) {
+    if(([decimal]$result.'amount') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction amount should be bigger than 0, but is '$($result.'amount')'."
         return $null
     }
@@ -710,23 +710,18 @@ function Check-MSSendTxSimple { # Check that the wallet is now a multisig wallet
         $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
     }
 
-    if(([float]$txData.'totalAmount') -eq 0) {
+    if(([decimal]$txData.'totalAmount') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction total amount should be bigger than 0, but is '$($txData.'totalAmount')'."
         return $null
     }
-    if(([float]$txData.'fee') -eq 0) {
+    if(([decimal]$txData.'fee') -eq 0) {
         Write-Host -ForegroundColor Red "Transaction fee should be bigger than 0, but is '$($txData.'fee')'."
         return $null
     }
 
-    if($Data.SigTXID -ne $null)
-    {
-        $txData = Get-Transaction -APIPort $APIStartPort -TXID $Data.TXID
-    }
+    [decimal] $newExpBalance = [math]::round(($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee), 8)
 
-    [float] $newExpBalance = ($global:multiSigTaskInitialBalance - $global:multiSigTotalSignerFee)
-
-    if(([float]$wallet.'balance') -ne $newExpBalance) {
+    if(([decimal]$wallet.'balance') -ne $newExpBalance) {
         Write-Host -ForegroundColor Red "Wallet $($global:multiSigData.Wallet_A) should have '$($newExpBalance)' Ixis, but has '$($wallet.'balance')'."
         return $null
     }
