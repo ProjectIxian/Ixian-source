@@ -64,7 +64,7 @@ function Send-TransactionTN {
     }
     $targetAddr = $ToAddr
     if($ToClient -lt 0 -or $ToClient -ge $Clients.Count) {
-        Write-Host -ForegroundColor Magenta "Send-Transactin: ToClient index $($ToClient) is invalid. Possible clients are: 0 - $($Clients.Count)"
+        Write-Host -ForegroundColor Magenta "Send-Transaction: ToClient index $($ToClient) is invalid. Possible clients are: 0 - $($Clients.Count)"
         return $null       
     } else {
         $targetAddr = $clients[$ToClient].Address
@@ -279,6 +279,21 @@ function Get-WalletBalance {
         Write-Host -ForegroundColor Red "Error retrieving balance for wallet $($address)."
     }
     return $balance
+}
+
+function Get-Transaction {
+    Param(
+        [int]$APIPort,
+        [string]$TXID
+    )
+    $cmdArgs = @{
+        "id" = $TXID
+    }
+    $transaction = Invoke-DLTApi -APIPort $APIPort -Command "gettransaction" -CmdArgs $cmdArgs
+    if($transaction -eq $null) {
+        Write-Host -ForegroundColor Red "Error retrieving transaction with id $($TXID)."
+    }
+    return $transaction
 }
 
 function Check-TXExecuted {

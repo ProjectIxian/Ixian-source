@@ -4,7 +4,7 @@ Param(
 
 ###### Libraries ######
 . .\Testnet-Functions.ps1
-. .\Ixian-Tests.ps1
+. .\Ixian-MS-Tests.ps1
 
 
 # Global stuff
@@ -190,7 +190,7 @@ function Process-TestBatch {
                             $tr1.DELAY--
                             if($tr1.DELAY -le 0) {
                                 #time is up, so we fail the test
-                                $tr2 = null
+                                $tr2 = $null
                             }
                         } else {
                             # this is the first time this step was delayed
@@ -250,7 +250,24 @@ function Process-TestBatch {
 
 Write-Host -ForegroundColor White "Preparing tests..."
 
-Add-Test -TestName "MSAddKeyByOwner" -Batch 0 -NumExtraSteps 2
+Add-Test -TestName "MSGenerateSecondaryWallets" -Batch 0 -NumExtraSteps 1
+Add-Test -TestName "MSSetOwner" -Batch 1 -NumExtraSteps 0
+Add-Test -TestName "MSAddKey" -Batch 2 -NumExtraSteps 1
+Add-Test -TestName "MSDelKey" -Batch 3 -NumExtraSteps 1
+Add-Test -TestName "MSAddKey" -Batch 4 -NumExtraSteps 1
+Add-Test -TestName "MSChangeReqSigs" -Batch 5 -NumExtraSteps 1
+Add-Test -TestName "MSSetSigner1" -Batch 6 -NumExtraSteps 0
+Add-Test -TestName "MSAddKey" -Batch 7 -NumExtraSteps 1
+Add-Test -TestName "MSSetOwner" -Batch 8 -NumExtraSteps 0
+Add-Test -TestName "MSAddSignature" -Batch 9 -NumExtraSteps 1
+Add-Test -TestName "MSSendTxSimple" -Batch 10 -NumExtraSteps 1
+Add-Test -TestName "MSSetSigner1" -Batch 11 -NumExtraSteps 0
+Add-Test -TestName "MSAddSignature" -Batch 12 -NumExtraSteps 1
+#Add-Test -TestName "MSSetOwner" -Batch 14 -NumExtraSteps 0
+#Add-Test -TestName "MSSendTxMultiOut" -Batch 15 -NumExtraSteps 1
+#Add-Test -TestName "MSSetSigner1" -Batch 16 -NumExtraSteps 0
+#Add-Test -TestName "MSAddSig" -Batch 17 -NumExtraSteps 1
+
 
 if($InitError) {
     Write-Host -ForegroundColor Magenta "Initialization error occured. Aborting."
@@ -261,6 +278,8 @@ $i = 0
 foreach($Batch in $TestBatches) {
     Write-Host -ForegroundColor Cyan "Processing batch $($i)"
     Process-TestBatch -Batch $Batch
+    $i++
+    Start-Sleep -Seconds 2
 }
 
 Write-Host -ForegroundColor White -NoNewline "Results: Succeeded: "
