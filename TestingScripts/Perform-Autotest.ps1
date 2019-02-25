@@ -279,7 +279,7 @@ foreach($Batch in $TestBatches) {
     Write-Host -ForegroundColor Cyan "Processing batch $($i)"
     Process-TestBatch -Batch $Batch
     $i++
-    Start-Sleep -Seconds 2
+    Start-Sleep -Seconds 5
 }
 
 Write-Host -ForegroundColor White -NoNewline "Results: Succeeded: "
