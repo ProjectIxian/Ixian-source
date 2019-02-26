@@ -248,12 +248,14 @@ function Get-NumMasterNodes {
 
 function Choose-RandomNode {
     Param(
-        [int]$APIPort
+        [int]$APIPort,
+        [int]$Offset = 0
     )
+    $APIPort = $APIPort + $Offset
     $numMasterNodes = Get-NumMasterNodes -APIPort $APIPort
     $tries = 0
     while($true) {
-        $r_apiport = Get-Random -Minimum $APIPort -Maximum ($APIPort + $numMasterNodes)
+        $r_apiport = Get-Random -Minimum $APIPort -Maximum ($APIPort + $numMasterNodes - $Offset)
         $ns = Invoke-DLTApi -APIPort $r_apiport -Command "status"
         if($ns -ne $null) {
             return $r_apiport

@@ -250,7 +250,8 @@ function Process-TestBatch {
 
 Write-Host -ForegroundColor White "Preparing tests..."
 
-Add-Test -TestName "MSGenerateSecondaryWallets" -Batch 0 -NumExtraSteps 1
+#Add-Test -TestName "MSGenerateSecondaryWallets" -Batch 0 -NumExtraSteps 1
+Add-Test -TestName "MSPreparePrimaryWallets" -Batch 0 -NumExtraSteps 1
 Add-Test -TestName "MSSetOwner" -Batch 1 -NumExtraSteps 0
 Add-Test -TestName "MSAddKey" -Batch 2 -NumExtraSteps 1
 Add-Test -TestName "MSDelKey" -Batch 3 -NumExtraSteps 1
@@ -263,10 +264,10 @@ Add-Test -TestName "MSAddSignature" -Batch 9 -NumExtraSteps 1
 Add-Test -TestName "MSSendTxSimple" -Batch 10 -NumExtraSteps 1
 Add-Test -TestName "MSSetSigner1" -Batch 11 -NumExtraSteps 0
 Add-Test -TestName "MSAddSignature" -Batch 12 -NumExtraSteps 1
-#Add-Test -TestName "MSSetOwner" -Batch 14 -NumExtraSteps 0
-#Add-Test -TestName "MSSendTxMultiOut" -Batch 15 -NumExtraSteps 1
-#Add-Test -TestName "MSSetSigner1" -Batch 16 -NumExtraSteps 0
-#Add-Test -TestName "MSAddSig" -Batch 17 -NumExtraSteps 1
+Add-Test -TestName "MSSetOwner" -Batch 13 -NumExtraSteps 0
+Add-Test -TestName "MSSendTxMulti" -Batch 14 -NumExtraSteps 1
+Add-Test -TestName "MSSetSigner1" -Batch 15 -NumExtraSteps 0
+Add-Test -TestName "MSAddSignature" -Batch 16 -NumExtraSteps 1
 
 
 if($InitError) {

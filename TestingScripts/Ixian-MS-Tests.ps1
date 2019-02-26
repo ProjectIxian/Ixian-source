@@ -1,3 +1,8 @@
+# Warning: functions in this file can be used only one function per batch
+# Minimum 6 master nodes are required to perform this test
+# MSPreparePrimaryWallets must be used on by block #13
+# After using MSPreparePrimaryWallets, network has to be restarted from genesis
+
 $DELAY = [PSCustomObject]@{
     DELAY = 2
 }
@@ -14,6 +19,108 @@ $global:multiSigLastOrigTXID = $null
 $global:multiSigLastTxType = $null
 $global:multiSigLastTxData = $null
 [decimal] $global:multiSigTotalSignerFee = 0
+
+function Init-MSPreparePrimaryWallets { # Prepare existing primary wallets on which we'll test
+    $global:multiSigTotalSignerFee = 0
+    $node_a = Choose-RandomNode -APIPort $APIStartPort -Offset 2
+    $node_b = Choose-RandomNode -APIPort $APIStartPort -Offset 2
+    $node_c = Choose-RandomNode -APIPort $APIStartPort -Offset 2
+    while($node_b -eq $node_a) {
+        $node_b = Choose-RandomNode -APIPort $APIStartPort -Offset 2
+    }
+    while(($node_c -eq $node_b) -or ($node_c -eq $node_a)) {
+        $node_c = Choose-RandomNode -APIPort $APIStartPort -Offset 2
+    }
+
+    # Generate a new wallet for both a and b
+    $node_wallet_a = Invoke-DLTApi -APIPort $node_a -Command "mywallet"
+    $node_wallet_b = Invoke-DLTApi -APIPort $node_b -Command "mywallet"
+    $node_wallet_c = Invoke-DLTApi -APIPort $node_c -Command "mywallet"
+    $new_wallet_c = Invoke-DLTApi -APIPort $node_c -Command "generatenewaddress"
+
+    $primary_wallet_a = $($node_wallet_a.psobject.properties | Select -First 1).Name
+    $primary_wallet_b = $($node_wallet_b.psobject.properties | Select -First 1).Name
+    $primary_wallet_c = $($node_wallet_c.psobject.properties | Select -First 1).Name
+
+    # Move funds to a different address to avoid becoming a master node
+    $cmdargs = @{
+        "to" = "$($new_wallet_c)_81000"
+    }
+    $initial_funds_tx = Invoke-DLTApi -APIPort $node_a -Command "addtransaction" -CmdArgs $cmdargs
+    if($initial_funds_tx -eq $null) {
+        Write-Host -ForegroundColor Red "Error creating initial funds transaction."
+        return $null
+    }
+
+    $cmdargs = @{
+        "to" = "$($new_wallet_c)_81000"
+    }
+    $initial_funds_tx2 = Invoke-DLTApi -APIPort $node_b -Command "addtransaction" -CmdArgs $cmdargs
+    if($initial_funds_tx2 -eq $null) {
+        Write-Host -ForegroundColor Red "Error creating initial funds transaction."
+        return $null
+    }
+
+    $cmdargs = @{
+        "to" = "$($new_wallet_c)_81000"
+    }
+    $initial_funds_tx3 = Invoke-DLTApi -APIPort $node_c -Command "addtransaction" -CmdArgs $cmdargs
+    if($initial_funds_tx3 -eq $null) {
+        Write-Host -ForegroundColor Red "Error creating initial funds transaction."
+        return $null
+    }
+
+    $global:multiSigData = [PSCustomObject]@{
+        Node_A = $node_a
+        Wallet_A = $primary_wallet_a
+        Node_B = $node_b
+        Wallet_B = $primary_wallet_b
+        Node_C = $node_c
+        Wallet_C = $primary_wallet_c
+        NewWallet_C = $new_wallet_c
+        Funds_TXID1 = ($initial_funds_tx.'id')
+        Funds_TXID2 = ($initial_funds_tx2.'id')
+        Funds_TXID3 = ($initial_funds_tx3.'id')
+        WaitBlockChange = $true
+    }
+    return 1
+}
+
+function Step0-MSPreparePrimaryWallets {
+    $Data = $global:multiSigData
+
+    # make sure the TX was executed
+    if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.Funds_TXID1) -eq $false) {
+        Write-Host -ForegroundColor Gray "Initial funds were not transferred to the new wallet yet."
+        return $DELAY
+    }
+    if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.Funds_TXID2) -eq $false) {
+        Write-Host -ForegroundColor Gray "Initial funds were not transferred to the new wallet yet."
+        return $DELAY
+    }
+    if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.Funds_TXID3) -eq $false) {
+        Write-Host -ForegroundColor Gray "Initial funds were not transferred to the new wallet yet."
+        return $DELAY
+    }
+    return $Data
+}
+
+function Check-MSPreparePrimaryWallets {
+    Param(
+        [PSCustomObject]$Data
+    )
+
+    $cmdargs = @{
+        "id" = $Data.Wallet_A
+    }
+    $wallet = Invoke-DLTApi -APIPort $APIStartPort -Command "getwallet" -CmdArgs $cmdargs
+    if($wallet -eq $null) {
+        Write-Host -ForegroundColor Red "Error while attempting to get wallet information from node $($APIStartPort)"
+        return $null
+    }
+
+    return 1
+}
 
 function Init-MSGenerateSecondaryWallets { # Generate new wallets on which we'll test
     $global:multiSigTotalSignerFee = 0
@@ -623,17 +730,17 @@ function Init-MSSendTxSimple {  # Execute the command to add Wallet_B as a signe
     # Add Wallet B as a signer for Wallet A
     $cmdArgs = @{
         "from" = $Data.Wallet_A
-        "to" = "$($Data.Wallet_C)_1000"
+        "to" = "$($Data.Wallet_C)_100"
     }
     $node = $Data.Node_A
     if($global:multiSigSelectedNode -eq 'B')
     {
-        $cmdArgs.'to' = "$($Data.Wallet_B)_1000"
+        $cmdArgs.'to' = "$($Data.Wallet_B)_100"
         $node = $Data.Node_B
     }
     if($global:multiSigSelectedNode -eq 'C')
     {
-        $cmdArgs.'signer' = "$($Data.Wallet_A)_1000"
+        $cmdArgs.'signer' = "$($Data.Wallet_A)_100"
         $node = $Data.Node_C
     }
     $result = Invoke-DLTApi -APIPort $node -Command "addmultisigtransaction" -CmdArgs $cmdargs
@@ -642,8 +749,8 @@ function Init-MSSendTxSimple {  # Execute the command to add Wallet_B as a signe
         return $null
     }
 
-    if(([decimal]$result.'amount') -eq 0) {
-        Write-Host -ForegroundColor Red "Transaction amount should be bigger than 0, but is '$($result.'amount')'."
+    if(([decimal]$result.'amount') -lt 100) {
+        Write-Host -ForegroundColor Red "Transaction amount should be bigger than 100, but is '$($result.'amount')'."
         return $null
     }
 
@@ -730,4 +837,76 @@ function Check-MSSendTxSimple { # Check that the wallet is now a multisig wallet
 
     # all checks pass - it doesn't matter what we return, as long as it is not $null
     return 1
+}
+
+function Init-MSSendTxMulti {  # Execute the command to add Wallet_B as a signer to Wallet_A
+    $Data = $global:multiSigData
+
+    $cmdargs = @{
+        "id" = $Data.Wallet_A
+    }
+    $wallet = Invoke-DLTApi -APIPort $APIStartPort -Command "getwallet" -CmdArgs $cmdargs
+    if($wallet -eq $null) {
+        Write-Host -ForegroundColor Red "Error while attempting to get wallet information from node $($APIStartPort)"
+        return $null
+    }
+
+    $global:multiSigTaskInitialBalance = $wallet.'balance'
+    $global:multiSigTaskInitialAllowedSigners = $wallet.'allowedSigners'
+    $global:multiSigTaskInitialRequiredSigs = $wallet.'requiredSigs'
+
+    # Add Wallet B as a signer for Wallet A
+    $cmdArgs = @{
+        "from" = $Data.Wallet_A
+        "to" = "$($Data.Wallet_B)_100-$($Data.Wallet_C)_50"
+    }
+    $node = $Data.Node_A
+    if($global:multiSigSelectedNode -eq 'B')
+    {
+        $cmdArgs.'to' = "$($Data.Wallet_B)_100-$($Data.Wallet_A)_50"
+        $node = $Data.Node_B
+    }
+    if($global:multiSigSelectedNode -eq 'C')
+    {
+        $cmdArgs.'to' = "$($Data.Wallet_C)_50-$($Data.Wallet_A)_100"
+        $node = $Data.Node_C
+    }
+    $result = Invoke-DLTApi -APIPort $node -Command "addmultisigtransaction" -CmdArgs $cmdargs
+    if($result -eq $null) {
+        Write-Host -ForegroundColor Red " Error sending simple tx."
+        return $null
+    }
+
+    if(([decimal]$result.'amount') -lt 150) {
+        Write-Host -ForegroundColor Red "Transaction amount should be bigger than 150, but is '$($result.'amount')'."
+        return $null
+    }
+
+    $global:multiSigTotalSignerFee = $result.'totalAmount'
+    $global:multiSigLastOrigTXID = $result.'id'
+    $global:multiSigLastTxType = "SimpleTx"
+
+    # if there was success, result will have a transaction object
+    $global:multiSigLastTxData = [PSCustomObject]@{
+        TXID = $result.'id'
+        Wallet = $Data.Wallet_A
+        SignerWallet = $cmdArgs.'signer'
+        WaitBlockChange = $true
+        SigTXID = $null
+    }
+    return $global:multiSigLastTxData
+}
+
+function Step0-MSSendTxMulti { # Check that the transaction was completed
+    Param(
+        [PSCustomObject]$Data
+    )
+    return Step0-MSSendTxSimple -Data $Data
+}
+
+function Check-MSSendTxMulti { # Check that the wallet is now a multisig wallet with both keys
+    Param(
+        [PSCustomObject]$Data
+    )
+    return Check-MSSendTxSimple -Data $Data
 }
