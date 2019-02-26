@@ -1,6 +1,6 @@
 # Warning: functions in this file can be used only one function per batch
 # Minimum 6 master nodes are required to perform this test
-# MSPreparePrimaryWallets must be used on by block #13
+# MSPreparePrimaryWallets must be used on block #12
 # After using MSPreparePrimaryWallets, network has to be restarted from genesis
 
 $DELAY = [PSCustomObject]@{
