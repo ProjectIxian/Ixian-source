@@ -5,6 +5,7 @@
 
 $DELAY = [PSCustomObject]@{
     DELAY = 2
+    DELAY_Sleep = 2
 }
 
 # global multisig vars

@@ -5,6 +5,7 @@ Param(
 ###### Libraries ######
 . .\Testnet-Functions.ps1
 . .\Ixian-MS-Tests.ps1
+. .\Dummy-Tests.ps1
 
 
 # Global stuff
@@ -20,6 +21,7 @@ $SucceededTestNames = New-Object System.Collections.ArrayList
 # [PSCustomObject]@{
 #     Name = [String]
 #     Steps = [Number]
+#     InitParams = [PSCustomObject]
 # }
 # Functions which must exist:
 # `Init-Name`  , step initialization
@@ -71,7 +73,8 @@ function Add-Test {
     Param(
         [string]$TestName,
         [int]$Batch,
-        [int]$NumExtraSteps
+        [int]$NumExtraSteps,
+        [PSCustomObject]$InitParams = $null
     )
     Extend-TestBatches -Batch $Batch
     # Check if all required functions exist
@@ -97,6 +100,7 @@ function Add-Test {
     $td = [PSCustomObject]@{
         Name = $TestName
         Steps = $NumExtraSteps
+        InitParams = $InitParams
     }
     [void]$TestBatches[$Batch].Add($td)
 }
@@ -156,7 +160,12 @@ function Process-TestBatch {
     Write-Host -ForegroundColor Cyan "-> Initializing..."
     $RemainingTests = New-Object System.Collections.ArrayList
     foreach($td in $Batch) {
-        $test_return = & "Init-$($td.Name)"
+        $test_return = $null
+        if($td.InitParams -eq $null) {
+            $test_return = & "Init-$($td.Name)"
+        } else {
+            $test_return = & "Init-$($td.Name)" $td.InitParams
+        }
         if($test_return -eq $null) {
             Write-Host -ForegroundColor Yellow "-> $($td.Name)"
             [void]$FailedTestNames.Add($td.Name)
@@ -180,6 +189,7 @@ function Process-TestBatch {
                 if($tr1.WaitBlockChange -eq $false -or $tr1.BH -lt (Get-CurrentBlockHeight -APIPort $APIStartPort)) {
                     # it can be run right away
                     $tests_were_run = $true
+                    $force_wait_next_block = $false
                     $tr2 = & "Step$($tr1.CurrentStep)-$($tr1.Name)" -Data $tr1
                     $delayed = $false
                     # a "DELAY" result means we repeat this step
@@ -192,9 +202,23 @@ function Process-TestBatch {
                                 #time is up, so we fail the test
                                 $tr2 = $null
                             }
+                            # Write reduced delay value back into the test data
+                            $RemainingTests[$i].DELAY = $tr1.DELAY
                         } else {
                             # this is the first time this step was delayed
                             $tr1 | Add-Member -Name 'DELAY' -Type NoteProperty -Value $tr2.DELAY
+                        }
+                        # Check if DELAY also has a sleep defined
+                        if(([bool]($tr2.PSObject.Properties.name -match "DELAY_Sleep")) -ne $null) {
+                            if($tr2.DELAY_Sleep -lt 0) {
+                                # Negative sleep means we wait for the next block
+                                # Use the force_wait flag
+                                Write-Host -ForegroundColor Gray "Test $($tr1.Name) requires a delay until the next block..."
+                                $force_wait_next_block = $true
+                            } else {
+                                Write-Host -ForegroundColor Gray "Test $($tr1.Name) requires a sleep of $($tr2.DELAY_Sleep) seconds..."
+                                Start-Sleep -Seconds $tr2.DELAY_Sleep
+                            }
                         }
                     }
                     # null return means a failure
@@ -222,7 +246,7 @@ function Process-TestBatch {
             }
         }
         # if no tests were run, we probably need to wait for the next block
-        if($tests_were_run -eq $false) {
+        if($tests_were_run -eq $false -or $force_wait_next_block) {
             if($RemainingTests.Count -gt 0) {
                 Write-Host -ForegroundColor Gray " -> Waiting for next block..."
                 WaitFor-NextBlock
@@ -317,7 +341,9 @@ Add-Test -TestName "MSAddKey" -Batch 55 -NumExtraSteps 1
 Add-Test -TestName "MSSetSigner2" -Batch 56 -NumExtraSteps 0
 Add-Test -TestName "MSAddSignature" -Batch 57 -NumExtraSteps 1
 
-
+#Add-Test -TestName "Dummy" -Batch 0 -NumExtraSteps 0 -InitParams ([PSCustomObject]@{ SampleValue = 1 })
+#Add-Test -TestName "DummySleep" -Batch 0 -NumExtraSteps 1
+#Add-Test -TestName "DummySleepForce" -Batch 1 -NumExtraSteps 1
 
 
 if($InitError) {
