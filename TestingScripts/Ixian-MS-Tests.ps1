@@ -106,6 +106,11 @@ function Step0-MSPreparePrimaryWallets {
     return $Data
 }
 
+function Step1-MSPreparePrimaryWallets {
+    $Data = $global:multiSigData
+    return $Data
+}
+
 function Check-MSPreparePrimaryWallets {
     Param(
         [PSCustomObject]$Data
@@ -225,6 +230,10 @@ function Check-MSSetSigner2 {
 
 
 function Init-MSAddKey {  # Execute the command to add Wallet_B as a signer to Wallet_A
+    Param(
+        [PSCustomObject]$InputParams
+    )
+
     $Data = $global:multiSigData
 
     $cmdargs = @{
@@ -271,6 +280,7 @@ function Init-MSAddKey {  # Execute the command to add Wallet_B as a signer to W
         SignerWallet = $cmdArgs.'signer'
         WaitBlockChange = $true
         SigTXID = $null
+        Fail = $InputParams.Fail
         }
     # if there was success, result will have a transaction object
     return $global:multiSigLastTxData
@@ -283,6 +293,10 @@ function Step0-MSAddKey { # Check that the transaction was completed
     )
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "AddMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
+        if($Data.Fail -eq "WaitForSig")
+        {
+            return $Data
+        }
         return $DELAY
     }
     # transaction was performed
@@ -293,6 +307,16 @@ function Check-MSAddKey { # Check that the wallet is now a multisig wallet with 
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "WaitForSig")
+    {
+        if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
+        {
+            Write-Host -ForegroundColor Gray "AddMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
+            return $Data
+        }
+    }
+
     $cmdargs = @{
         "id" = $Data.Wallet
     }
@@ -350,6 +374,10 @@ function Check-MSAddKey { # Check that the wallet is now a multisig wallet with 
 }
 
 function Init-MSDelKey {  # Execute the command to del Wallet_B as a signer from Wallet_A
+    Param(
+        [PSCustomObject]$InputParams
+    )
+
     $Data = $global:multiSigData
 
     $cmdargs = @{
@@ -398,6 +426,7 @@ function Init-MSDelKey {  # Execute the command to del Wallet_B as a signer from
         SignerWallet = $cmdArgs.'signer'
         WaitBlockChange = $true
         SigTXID = $null
+        Fail = $InputParams.Fail
     }
     return $global:multiSigLastTxData
 }
@@ -408,6 +437,10 @@ function Step0-MSDelKey { # Check that the transaction was completed
     )
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "DelMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
+        if($Data.Fail -eq "WaitForSig")
+        {
+            return $Data
+        }
         return $DELAY
     }
     # transaction was performed
@@ -418,6 +451,16 @@ function Check-MSDelKey { # Check that the wallet is now a multisig wallet with 
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "WaitForSig")
+    {
+        if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
+        {
+            Write-Host -ForegroundColor Gray "DelMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
+            return $Data
+        }
+    }
+
     $cmdargs = @{
         "id" = $Data.Wallet
     }
@@ -490,6 +533,10 @@ function Check-MSDelKey { # Check that the wallet is now a multisig wallet with 
 }
 
 function Init-MSChangeReqSigs {  # Execute the command to change required sigs
+    Param(
+        [PSCustomObject]$InputParams
+    )
+
     $Data = $global:multiSigData
 
     $cmdargs = @{
@@ -540,6 +587,7 @@ function Init-MSChangeReqSigs {  # Execute the command to change required sigs
         Sigs = $cmdArgs.'sigs'
         WaitBlockChange = $true
         SigTXID = $null
+        Fail = $InputParams.Fail
     }
     return $global:multiSigLastTxData
 }
@@ -550,6 +598,10 @@ function Step0-MSChangeReqSigs { # Check that the transaction was completed
     )
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "ChangeReqSigs Transaction (ID: $($Data.TXID)) was not executed yet!"
+        if($Data.Fail -eq "WaitForSig")
+        {
+            return $Data
+        }
         return $DELAY
     }
     # transaction was performed
@@ -560,6 +612,16 @@ function Check-MSChangeReqSigs { # Check that the wallet is now a multisig walle
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "WaitForSig")
+    {
+        if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
+        {
+            Write-Host -ForegroundColor Gray "ChangeReqSigs Transaction (ID: $($Data.TXID)) was not executed yet!"
+            return $Data
+        }
+    }
+
     $cmdargs = @{
         "id" = $Data.Wallet
     }
@@ -615,6 +677,10 @@ function Check-MSChangeReqSigs { # Check that the wallet is now a multisig walle
 }
 
 function Init-MSAddSignature {  # Execute the command to add signature to a tx
+    Param(
+        [PSCustomObject]$InputParams
+    )
+
     $Data = $global:multiSigData
 
     $cmdargs = @{
@@ -661,6 +727,7 @@ function Init-MSAddSignature {  # Execute the command to add signature to a tx
         TXID = $result.'id'
         Wallet = $Data.Wallet_A
         WaitBlockChange = $true
+        Fail = $InputParams.Fail
     }
 }
 
@@ -670,6 +737,10 @@ function Step0-MSAddSignature { # Check that the transaction was completed
     )
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "AddSignature Transaction (ID: $($Data.TXID)) was not executed yet!"
+        if($Data.Fail -eq "WaitForSig")
+        {
+            return $Data
+        }
         return $DELAY
     }
     # transaction was performed
@@ -680,6 +751,16 @@ function Check-MSAddSignature { # Check that the wallet is now a multisig wallet
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "WaitForSig")
+    {
+        if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
+        {
+            Write-Host -ForegroundColor Gray "AddSignature Transaction (ID: $($Data.TXID)) was not executed yet!"
+            return $Data
+        }
+    }
+
     $lastTxData = $global:multiSigLastTxData
     $lastTxData.SigTXID = $Data.TXID
 
@@ -713,6 +794,10 @@ function Check-MSAddSignature { # Check that the wallet is now a multisig wallet
 }
 
 function Init-MSSendTxSimple {  # Execute the command to add Wallet_B as a signer to Wallet_A
+    Param(
+        [PSCustomObject]$InputParams
+    )
+
     $Data = $global:multiSigData
 
     $cmdargs = @{
@@ -766,6 +851,7 @@ function Init-MSSendTxSimple {  # Execute the command to add Wallet_B as a signe
         SignerWallet = $cmdArgs.'signer'
         WaitBlockChange = $true
         SigTXID = $null
+        Fail = $InputParams.Fail
     }
     return $global:multiSigLastTxData
 }
@@ -776,6 +862,10 @@ function Step0-MSSendTxSimple { # Check that the transaction was completed
     )
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "Simple multisig Transaction (ID: $($Data.TXID)) was not executed yet!"
+        if($Data.Fail -eq "WaitForSig")
+        {
+            return $Data
+        }
         return $DELAY
     }
     # transaction was performed
@@ -786,6 +876,16 @@ function Check-MSSendTxSimple { # Check that the wallet is now a multisig wallet
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "WaitForSig")
+    {
+        if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
+        {
+            Write-Host -ForegroundColor Gray "Simple multisig Transaction (ID: $($Data.TXID)) was not executed yet!"
+            return $Data
+        }
+    }
+
     $cmdargs = @{
         "id" = $Data.Wallet
     }
@@ -841,6 +941,10 @@ function Check-MSSendTxSimple { # Check that the wallet is now a multisig wallet
 }
 
 function Init-MSSendTxMulti {  # Execute the command to add Wallet_B as a signer to Wallet_A
+    Param(
+        [PSCustomObject]$InputParams
+    )
+
     $Data = $global:multiSigData
 
     $cmdargs = @{
@@ -894,6 +998,7 @@ function Init-MSSendTxMulti {  # Execute the command to add Wallet_B as a signer
         SignerWallet = $cmdArgs.'signer'
         WaitBlockChange = $true
         SigTXID = $null
+        Fail = $InputParams.Fail
     }
     return $global:multiSigLastTxData
 }

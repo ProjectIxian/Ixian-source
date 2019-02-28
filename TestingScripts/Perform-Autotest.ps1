@@ -269,77 +269,89 @@ function Process-TestBatch {
     }
 }
 
+function Add-MS-Tests()
+{
+    Param(
+        [int]$StartBatch
+    )
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 1) -NumExtraSteps 0
+    Add-Test -TestName "MSAddKey" -Batch ($startBatch + 2) -NumExtraSteps 1
+    Add-Test -TestName "MSSendTxSimple" -Batch ($startBatch + 3) -NumExtraSteps 1
+    Add-Test -TestName "MSSendTxMulti" -Batch ($startBatch + 4) -NumExtraSteps 1
+    Add-Test -TestName "MSDelKey" -Batch ($startBatch + 5) -NumExtraSteps 1
+    Add-Test -TestName "MSAddKey" -Batch ($startBatch + 6) -NumExtraSteps 1
+    Add-Test -TestName "MSChangeReqSigs" -Batch ($startBatch + 7) -NumExtraSteps 1
+    Add-Test -TestName "MSSetSigner1" -Batch ($startBatch + 8) -NumExtraSteps 0
+    Add-Test -TestName "MSAddKey" -Batch ($startBatch + 9) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 10) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 11) -NumExtraSteps 1
+    Add-Test -TestName "MSSendTxSimple" -Batch ($startBatch + 12) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner1" -Batch ($startBatch + 13) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 14) -NumExtraSteps 1
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 15) -NumExtraSteps 0
+    Add-Test -TestName "MSSendTxMulti" -Batch ($startBatch + 16) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner1" -Batch ($startBatch + 17) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 18) -NumExtraSteps 1
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 19) -NumExtraSteps 0
+    Add-Test -TestName "MSChangeReqSigs" -Batch ($startBatch + 20) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner1" -Batch ($startBatch + 21) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 22) -NumExtraSteps 1
+    Add-Test -TestName "MSSendTxSimple" -Batch ($startBatch + 23) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 24) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 25) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 26) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 27) -NumExtraSteps 1
+    Add-Test -TestName "MSSendTxMulti" -Batch ($startBatch + 28) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 29) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 30) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner1" -Batch ($startBatch + 31) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 32) -NumExtraSteps 1
+    Add-Test -TestName "MSDelKey" -Batch ($startBatch + 33) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 34) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 35) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 36) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 37) -NumExtraSteps 1
+
+    # test from here must totally fail
+    Add-Test -TestName "MSSendTxMulti" -Batch ($startBatch + 38) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+    Add-Test -TestName "MSDelKey" -Batch ($startBatch + 39) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+    Add-Test -TestName "MSAddKey" -Batch ($startBatch + 40) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+    Add-Test -TestName "MSChangeReqSigs" -Batch ($startBatch + 41) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+
+    # test from here - first two in set must pass, second two must fail
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 42) -NumExtraSteps 0
+    Add-Test -TestName "MSSendTxMulti" -Batch ($startBatch + 43) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 44) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 45) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 46) -NumExtraSteps 0
+    Add-Test -TestName "MSChangeReqSigs" -Batch ($startBatch + 47) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 48) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 49) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+
+    Add-Test -TestName "MSSetOwner" -Batch ($startBatch + 50) -NumExtraSteps 0
+    Add-Test -TestName "MSDelKey" -Batch ($startBatch + 51) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 52) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 53) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+
+    Add-Test -TestName "MSSetSigner1" -Batch ($startBatch + 54) -NumExtraSteps 0
+    Add-Test -TestName "MSAddKey" -Batch ($startBatch + 55) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "WaitForSig" })
+    Add-Test -TestName "MSSetSigner2" -Batch ($startBatch + 56) -NumExtraSteps 0
+    Add-Test -TestName "MSAddSignature" -Batch ($startBatch + 57) -NumExtraSteps 1 -InitParams ([PSCustomObject]@{ Fail = "InvalidSigner" })
+
+    return $StartBatch + 57
+}
+
 
 ###### Main ######
 
 Write-Host -ForegroundColor White "Preparing tests..."
 
-#Add-Test -TestName "MSGenerateSecondaryWallets" -Batch 0 -NumExtraSteps 1
-Add-Test -TestName "MSPreparePrimaryWallets" -Batch 0 -NumExtraSteps 1
-Add-Test -TestName "MSSetOwner" -Batch 1 -NumExtraSteps 0
-Add-Test -TestName "MSAddKey" -Batch 2 -NumExtraSteps 1
-Add-Test -TestName "MSSendTxSimple" -Batch 3 -NumExtraSteps 1
-Add-Test -TestName "MSSendTxMulti" -Batch 4 -NumExtraSteps 1
-Add-Test -TestName "MSDelKey" -Batch 5 -NumExtraSteps 1
-Add-Test -TestName "MSAddKey" -Batch 6 -NumExtraSteps 1
-Add-Test -TestName "MSChangeReqSigs" -Batch 7 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner1" -Batch 8 -NumExtraSteps 0
-Add-Test -TestName "MSAddKey" -Batch 9 -NumExtraSteps 1
-Add-Test -TestName "MSSetOwner" -Batch 10 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 11 -NumExtraSteps 1
-Add-Test -TestName "MSSendTxSimple" -Batch 12 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner1" -Batch 13 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 14 -NumExtraSteps 1
-Add-Test -TestName "MSSetOwner" -Batch 15 -NumExtraSteps 0
-Add-Test -TestName "MSSendTxMulti" -Batch 16 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner1" -Batch 17 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 18 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 19 -NumExtraSteps 0
-Add-Test -TestName "MSChangeReqSigs" -Batch 20 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner1" -Batch 21 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 22 -NumExtraSteps 1
-Add-Test -TestName "MSSendTxSimple" -Batch 23 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 24 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 25 -NumExtraSteps 1
-Add-Test -TestName "MSSetOwner" -Batch 26 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 27 -NumExtraSteps 1
-Add-Test -TestName "MSSendTxMulti" -Batch 28 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 29 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 30 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner1" -Batch 31 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 32 -NumExtraSteps 1
-Add-Test -TestName "MSDelKey" -Batch 33 -NumExtraSteps 1
-Add-Test -TestName "MSSetOwner" -Batch 34 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 35 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 36 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 37 -NumExtraSteps 1
+Add-Test -TestName "MSPreparePrimaryWallets" -Batch 0 -NumExtraSteps 2
+$batchId = Add-MS-Tests -StartBatch 0
+Add-Test -TestName "MSGenerateSecondaryWallets" -Batch ($batchId + 1) -NumExtraSteps 1
+$batchId = Add-MS-Tests -StartBatch ($batchId + 1)
 
-# test from here must totally fail
-Add-Test -TestName "MSSendTxMulti" -Batch 38 -NumExtraSteps 1
-Add-Test -TestName "MSDelKey" -Batch 39 -NumExtraSteps 1
-Add-Test -TestName "MSAddKey" -Batch 40 -NumExtraSteps 1
-Add-Test -TestName "MSChangeReqSigs" -Batch 41 -NumExtraSteps 1
-
-# test from here - first two in set must pass, second two must fail
-Add-Test -TestName "MSSetOwner" -Batch 42 -NumExtraSteps 0
-Add-Test -TestName "MSSendTxMulti" -Batch 43 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 44 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 45 -NumExtraSteps 1
-
-Add-Test -TestName "MSSetOwner" -Batch 46 -NumExtraSteps 0
-Add-Test -TestName "MSChangeReqSigs" -Batch 47 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 48 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 49 -NumExtraSteps 1
-
-Add-Test -TestName "MSSetOwner" -Batch 50 -NumExtraSteps 0
-Add-Test -TestName "MSDelKey" -Batch 51 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 52 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 53 -NumExtraSteps 1
-
-Add-Test -TestName "MSSetSigner1" -Batch 54 -NumExtraSteps 0
-Add-Test -TestName "MSAddKey" -Batch 55 -NumExtraSteps 1
-Add-Test -TestName "MSSetSigner2" -Batch 56 -NumExtraSteps 0
-Add-Test -TestName "MSAddSignature" -Batch 57 -NumExtraSteps 1
 
 #Add-Test -TestName "Dummy" -Batch 0 -NumExtraSteps 0 -InitParams ([PSCustomObject]@{ SampleValue = 1 })
 #Add-Test -TestName "DummySleep" -Batch 0 -NumExtraSteps 1

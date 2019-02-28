@@ -441,6 +441,7 @@ if($ClearState.IsPresent) {
                         if($idx -eq 1) {
                             Write-Host -ForegroundColor Cyan "Waiting for genesis node to complete a few blocks..."
                             Write-Host ""
+                            Start-Sleep -Seconds 2
                             while($true) {
                                 $ns = Get-DLTNodeStatus -Clients $DLTProcesses -NodeIdx 0
                                 if($ns -eq $null) {
