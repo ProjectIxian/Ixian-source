@@ -268,6 +268,14 @@ function Init-MSAddKey {  # Execute the command to add Wallet_B as a signer to W
     $result = Invoke-DLTApi -APIPort $node -Command "addmultisigkey" -CmdArgs $cmdargs
     if($result -eq $null) {
         Write-Host -ForegroundColor Red " Error adding a multisig key $($cmdArgs.'signer') to wallet $($Data.Wallet_A)."
+        if($InputParams.Fail -eq "InvalidSigner")
+        {
+            return $InputParams
+        }
+        return $null
+    }elseif($InputParams.Fail -eq "InvalidSigner")
+    {
+        Write-Host -ForegroundColor Red " Expecting invalid signer for wallet $($Data.Wallet_A)."
         return $null
     }
 
@@ -291,6 +299,12 @@ function Step0-MSAddKey { # Check that the transaction was completed
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "AddMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
         if($Data.Fail -eq "WaitForSig")
@@ -299,6 +313,7 @@ function Step0-MSAddKey { # Check that the transaction was completed
         }
         return $DELAY
     }
+
     # transaction was performed
     return $Data
 }
@@ -308,12 +323,21 @@ function Check-MSAddKey { # Check that the wallet is now a multisig wallet with 
         [PSCustomObject]$Data
     )
 
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if($Data.Fail -eq "WaitForSig")
     {
         if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
         {
             Write-Host -ForegroundColor Gray "AddMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
             return $Data
+        }else
+        {
+            Write-Host -ForegroundColor Red " Expecting wait for sig but transaction got processed anyway $($Data.Wallet)."
+            return $null
         }
     }
 
@@ -412,6 +436,14 @@ function Init-MSDelKey {  # Execute the command to del Wallet_B as a signer from
     $result = Invoke-DLTApi -APIPort $node -Command "delmultisigkey" -CmdArgs $cmdargs
     if($result -eq $null) {
         Write-Host -ForegroundColor Red " Error deleting a multisig key $($cmdArgs.'signer') from wallet $($Data.Wallet_A)."
+        if($InputParams.Fail -eq "InvalidSigner")
+        {
+            return $InputParams
+        }
+        return $null
+    }elseif($InputParams.Fail -eq "InvalidSigner")
+    {
+        Write-Host -ForegroundColor Red " Expecting invalid signer for wallet $($Data.Wallet_A)."
         return $null
     }
 
@@ -435,6 +467,12 @@ function Step0-MSDelKey { # Check that the transaction was completed
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "DelMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
         if($Data.Fail -eq "WaitForSig")
@@ -452,12 +490,21 @@ function Check-MSDelKey { # Check that the wallet is now a multisig wallet with 
         [PSCustomObject]$Data
     )
 
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if($Data.Fail -eq "WaitForSig")
     {
         if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
         {
             Write-Host -ForegroundColor Gray "DelMultisigKey Transaction (ID: $($Data.TXID)) was not executed yet!"
             return $Data
+        }else
+        {
+            Write-Host -ForegroundColor Red " Expecting wait for sig but transaction got processed anyway $($Data.Wallet)."
+            return $null
         }
     }
 
@@ -573,6 +620,14 @@ function Init-MSChangeReqSigs {  # Execute the command to change required sigs
     $result = Invoke-DLTApi -APIPort $node -Command "changemultisigs" -CmdArgs $cmdargs
     if($result -eq $null) {
         Write-Host -ForegroundColor Red " Error changing required signature on wallet $($Data.Wallet_A)."
+        if($InputParams.Fail -eq "InvalidSigner")
+        {
+            return $InputParams
+        }
+        return $null
+    }elseif($InputParams.Fail -eq "InvalidSigner")
+    {
+        Write-Host -ForegroundColor Red " Expecting invalid signer for wallet $($Data.Wallet_A)."
         return $null
     }
 
@@ -596,6 +651,12 @@ function Step0-MSChangeReqSigs { # Check that the transaction was completed
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "ChangeReqSigs Transaction (ID: $($Data.TXID)) was not executed yet!"
         if($Data.Fail -eq "WaitForSig")
@@ -613,12 +674,21 @@ function Check-MSChangeReqSigs { # Check that the wallet is now a multisig walle
         [PSCustomObject]$Data
     )
 
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if($Data.Fail -eq "WaitForSig")
     {
         if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
         {
             Write-Host -ForegroundColor Gray "ChangeReqSigs Transaction (ID: $($Data.TXID)) was not executed yet!"
             return $Data
+        }else
+        {
+            Write-Host -ForegroundColor Red " Expecting wait for sig but transaction got processed anyway $($Data.Wallet)."
+            return $null
         }
     }
 
@@ -716,10 +786,21 @@ function Init-MSAddSignature {  # Execute the command to add signature to a tx
     $result = Invoke-DLTApi -APIPort $node -Command "addmultisigtxsignature" -CmdArgs $cmdargs
     if($result -eq $null) {
         Write-Host -ForegroundColor Red " Error adding signature on txid $($global:multiSigLastOrigTXID)."
+        if($InputParams.Fail -eq "InvalidSigner")
+        {
+            return $InputParams
+        }
+        return $null
+    }elseif($InputParams.Fail -eq "InvalidSigner")
+    {
+        Write-Host -ForegroundColor Red " Expecting invalid signer for wallet $($Data.Wallet_A)."
         return $null
     }
 
-    $global:multiSigTotalSignerFee = $global:multiSigTotalSignerFee + $result.'fee'
+    if($InputParams.SkipWalletBalance -ne $true)
+    { 
+        $global:multiSigTotalSignerFee = $global:multiSigTotalSignerFee + $result.'fee'
+    }
 
 
     # if there was success, result will have a transaction object
@@ -735,6 +816,12 @@ function Step0-MSAddSignature { # Check that the transaction was completed
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "AddSignature Transaction (ID: $($Data.TXID)) was not executed yet!"
         if($Data.Fail -eq "WaitForSig")
@@ -752,12 +839,21 @@ function Check-MSAddSignature { # Check that the wallet is now a multisig wallet
         [PSCustomObject]$Data
     )
 
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if($Data.Fail -eq "WaitForSig")
     {
         if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
         {
             Write-Host -ForegroundColor Gray "AddSignature Transaction (ID: $($Data.TXID)) was not executed yet!"
             return $Data
+        }else
+        {
+            Write-Host -ForegroundColor Red "Expecting wait for sig but transaction got processed anyway $($Data.Wallet)."
+            return $null
         }
     }
 
@@ -773,6 +869,8 @@ function Check-MSAddSignature { # Check that the wallet is now a multisig wallet
         Write-Host -ForegroundColor Red "Transaction fee should be bigger than 0, but is '$($txData.'fee')'."
         return $null
     }
+
+    $lastTxData.Fail = $Data.Fail
     
     if($global:multiSigLastTxType -eq "AddKey")
     {
@@ -832,6 +930,14 @@ function Init-MSSendTxSimple {  # Execute the command to add Wallet_B as a signe
     $result = Invoke-DLTApi -APIPort $node -Command "addmultisigtransaction" -CmdArgs $cmdargs
     if($result -eq $null) {
         Write-Host -ForegroundColor Red " Error sending simple tx."
+        if($InputParams.Fail -eq "InvalidSigner")
+        {
+            return $InputParams
+        }
+        return $null
+    }elseif($InputParams.Fail -eq "InvalidSigner")
+    {
+        Write-Host -ForegroundColor Red " Expecting invalid signer for wallet $($Data.Wallet_A)."
         return $null
     }
 
@@ -860,6 +966,12 @@ function Step0-MSSendTxSimple { # Check that the transaction was completed
     Param(
         [PSCustomObject]$Data
     )
+
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false) {
         Write-Host -ForegroundColor Gray "Simple multisig Transaction (ID: $($Data.TXID)) was not executed yet!"
         if($Data.Fail -eq "WaitForSig")
@@ -877,12 +989,21 @@ function Check-MSSendTxSimple { # Check that the wallet is now a multisig wallet
         [PSCustomObject]$Data
     )
 
+    if($Data.Fail -eq "InvalidSigner")
+    {
+        return $Data
+    }
+
     if($Data.Fail -eq "WaitForSig")
     {
         if((Check-TXExecuted -APIPort $APIStartPort -TXID $Data.TXID) -eq $false)
         {
             Write-Host -ForegroundColor Gray "Simple multisig Transaction (ID: $($Data.TXID)) was not executed yet!"
             return $Data
+        }else
+        {
+            Write-Host -ForegroundColor Red " Expecting wait for sig but transaction got processed anyway $($Data.Wallet)."
+            return $null
         }
     }
 
@@ -979,6 +1100,14 @@ function Init-MSSendTxMulti {  # Execute the command to add Wallet_B as a signer
     $result = Invoke-DLTApi -APIPort $node -Command "addmultisigtransaction" -CmdArgs $cmdargs
     if($result -eq $null) {
         Write-Host -ForegroundColor Red " Error sending simple tx."
+        if($InputParams.Fail -eq "InvalidSigner")
+        {
+            return $InputParams
+        }
+        return $null
+    }elseif($InputParams.Fail -eq "InvalidSigner")
+    {
+        Write-Host -ForegroundColor Red " Expecting invalid signer for wallet $($Data.Wallet_A)."
         return $null
     }
 
