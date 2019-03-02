@@ -911,20 +911,26 @@ function Init-MSSendTxSimple {  # Execute the command to add Wallet_B as a signe
     $global:multiSigTaskInitialAllowedSigners = $wallet.'allowedSigners'
     $global:multiSigTaskInitialRequiredSigs = $wallet.'requiredSigs'
 
+    $amount = 100;
+    if($InputParams.Amount -ne $null)
+    {
+        $amount = $InputParams.Amount
+    }
+
     # Add Wallet B as a signer for Wallet A
     $cmdArgs = @{
         "from" = $Data.Wallet_A
-        "to" = "$($Data.Wallet_C)_100"
+        "to" = "$($Data.Wallet_C)_$($amount)"
     }
     $node = $Data.Node_A
     if($global:multiSigSelectedNode -eq 'B')
     {
-        $cmdArgs.'to' = "$($Data.Wallet_B)_100"
+        $cmdArgs.'to' = "$($Data.Wallet_B)_$($amount)"
         $node = $Data.Node_B
     }
     if($global:multiSigSelectedNode -eq 'C')
     {
-        $cmdArgs.'signer' = "$($Data.Wallet_A)_100"
+        $cmdArgs.'to' = "$($Data.Wallet_B)_$($amount)"
         $node = $Data.Node_C
     }
     $result = Invoke-DLTApi -APIPort $node -Command "addmultisigtransaction" -CmdArgs $cmdargs
