@@ -65,11 +65,11 @@ We recommend you install the **mono-complete** package.
 Now open a terminal.
 For Debian based distributions such as Ubuntu, type
 ```
-sudo apt install nuget msbuild git
+sudo apt install nuget msbuild git gcc
 ```
 or if you have a Redhat based distribution, type
 ```
-sudo yum install nuget msbuild git
+sudo yum install nuget msbuild git gcc
 ```
 
 Next you'll need to build the Ixian solution. You can do this by typing the following commands in the terminal:
@@ -91,7 +91,7 @@ git clone https://github.com/P-H-C/phc-winner-argon2.git
 cd phc-winner-argon2
 make
 ```
-Copy the resulting libargon2.so file to the IxianDLT /bin/Release/ folder.
+Copy the resulting libargon2.so file to the IxianDLT bin/Release/ folder.
 
 ## DLT Hybrid PoW Miner
 
