@@ -35,3 +35,4 @@ Debug
 Release
 /TestingScripts/state.xml
 /TestingScripts/TestClients
+*.user
