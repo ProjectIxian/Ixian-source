@@ -162,7 +162,7 @@ namespace DLT.Network
                                         Presence p = PresenceList.presences.Find(x => x.wallet.SequenceEqual(wallet));
                                         if (p != null)
                                         {
-                                            endpoint.sendData(ProtocolMessageCode.updatePresence, p.getBytes());
+                                            endpoint.sendData(ProtocolMessageCode.updatePresence, p.getBytes(), wallet);
                                         }
                                         else
                                         {
