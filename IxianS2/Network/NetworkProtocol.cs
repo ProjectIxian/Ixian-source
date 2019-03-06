@@ -107,7 +107,7 @@ namespace DLT.Network
                     case ProtocolMessageCode.newTransaction:
                         {
                             // Forward the new transaction message to the DLT network
-                            CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, data);
+                            CoreProtocolMessage.broadcastProtocolMessage(new char[] { 'M', 'H' }, ProtocolMessageCode.newTransaction, data, null);
                         }
                         break;
 
@@ -142,7 +142,7 @@ namespace DLT.Network
                             // If a presence entry was updated, broadcast this message again
                             if (updated)
                             {
-                                CoreProtocolMessage.broadcastEventBasedMessage(ProtocolMessageCode.keepAlivePresence, data, address, endpoint);
+                                CoreProtocolMessage.broadcastEventBasedMessage(ProtocolMessageCode.keepAlivePresence, data, address, address, endpoint);
                             }
 
                         }

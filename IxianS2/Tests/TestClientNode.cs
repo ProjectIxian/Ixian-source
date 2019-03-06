@@ -34,7 +34,7 @@ namespace S2
                 {
                     writer.Write(Node.walletStorage.getPrimaryAddress().Length);
                     writer.Write(Node.walletStorage.getPrimaryAddress());
-                    NetworkClientManager.broadcastData(new char[]{ 'M', 'R' }, ProtocolMessageCode.getBalance, mw.ToArray());
+                    NetworkClientManager.broadcastData(new char[]{ 'M', 'R' }, ProtocolMessageCode.getBalance, mw.ToArray(), null);
                 }
             }
         }
