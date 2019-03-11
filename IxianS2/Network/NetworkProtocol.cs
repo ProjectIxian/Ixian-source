@@ -166,9 +166,11 @@ namespace DLT.Network
                                         if (p != null)
                                         {
                                             byte[][] presence_chunks = p.getByteChunks();
+                                            int i = 0;
                                             foreach (byte[] presence_chunk in presence_chunks)
                                             {
-                                                endpoint.sendData(ProtocolMessageCode.updatePresence, presence_chunk, wallet);
+                                                endpoint.sendData(ProtocolMessageCode.updatePresence, presence_chunk);
+                                                i++;
                                             }
                                         }
                                         else

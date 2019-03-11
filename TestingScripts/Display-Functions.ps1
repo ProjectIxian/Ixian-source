@@ -100,6 +100,17 @@ function Render-Consensus {
     Write-Host ""
 }
 
+function Render-Presences {
+    Param(
+        [System.Collections.ArrayList]$presences
+    )
+    Write-Host -NoNewline -ForegroundColor White "PRESENCES:"
+    foreach($p in $presences) {
+        Write-Host -NoNewline -ForegroundColor Yellow $p.ToString().PadLeft(10)
+    }
+    Write-Host ""
+}
+
 function Render-Connections {
     Param(
         [System.Collections.ArrayList]$in_conn,
@@ -227,6 +238,7 @@ function Display-ClientStatus {
     $bp_statuses = New-Object System.Collections.ArrayList (13)
     $node_bhs = New-Object System.Collections.ArrayList (13)
     $consensus = New-Object System.Collections.ArrayList (13)
+    $presences = New-Object System.Collections.ArrayList (13)
     $in_connections = New-Object System.Collections.ArrayList (13)
     $out_connections = New-Object System.Collections.ArrayList (13)
     $applied_txs = New-Object System.Collections.ArrayList (13)
@@ -255,6 +267,7 @@ function Display-ClientStatus {
             [void]$bp_statuses.Add("DEAD")
             [void]$node_bhs.Add(0)
             [void]$consensus.Add(0)
+            [void]$presences.Add(0)
             [void]$in_connections.Add(0)
             [void]$out_connections.Add(0)
             [void]$applied_txs.Add(0)
@@ -273,6 +286,8 @@ function Display-ClientStatus {
             [void]$node_bhs.Add(($ns.'Block Height'))
             # Consensus
             [void]$consensus.Add(($ns.'Required Consensus'))
+            # Presences
+            [void]$presences.Add(($ns.'Presences'))
             # In / Out connections
             [void]$in_connections.Add(($ns.'Network Clients').Count)
             [void]$out_connections.Add(($ns.'Network Servers').Count)
@@ -315,6 +330,7 @@ function Display-ClientStatus {
     Render-Status $dlt_statuses $bp_statuses    
     Render-BlockHeight $node_bhs
     Render-Consensus $consensus
+    Render-Presences $presences
     Render-Connections $in_connections $out_connections
     Render-TXs $applied_txs $unapplied_txs
     Render-MinerHashrate $hashrates
