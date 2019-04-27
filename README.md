@@ -60,16 +60,16 @@ Several NuGetPackages are downloaded automatically during the build process.
 Download and install the latest Mono release for your Linux distribution. The default Mono versions shipped with most common distributions are outdated.
 
 Go to the [Mono official website](https://www.mono-project.com/download/stable/#download-lin) and follow the steps for your Linux distribution.
+
 We recommend you install the **mono-complete** package.
 
-Now open a terminal.
 For Debian based distributions such as Ubuntu, type
 ```
-sudo apt install nuget msbuild git gcc
+sudo apt install mono-complete nuget msbuild git gcc
 ```
 or if you have a Redhat based distribution, type
 ```
-sudo yum install nuget msbuild git gcc
+sudo yum install mono-complete nuget msbuild git gcc
 ```
 
 Next you'll need to build the Ixian solution. You can do this by typing the following commands in the terminal:
