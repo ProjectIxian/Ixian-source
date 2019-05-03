@@ -19,8 +19,6 @@ namespace DLT.Meta
 
         public static APIServer apiServer;
 
-        public static UPnP upnp;
-
         public static StatsConsoleScreen statsConsoleScreen = null;
 
 
@@ -59,96 +57,6 @@ namespace DLT.Meta
             walletState = new WalletState();
         }
 
-        static private void displayBackupText()
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("");
-            Console.WriteLine("!! Always remember to keep a backup of your ixian.wal file and your password.");
-            Console.WriteLine("!! In case of a lost file you will not be able to access your funds.");
-            Console.WriteLine("!! Never give your ixian.wal and/or password to anyone.");
-            Console.WriteLine("");
-            Console.ResetColor();
-        }
-
-        // Requests the user to type a new password
-        static private string requestNewPassword(string banner)
-        {
-            Console.WriteLine();
-            Console.Write(banner);
-            try
-            {
-                string pass = getPasswordInput();
-
-                if (pass.Length < 10)
-                {
-                    Console.WriteLine("Password needs to be at least 10 characters. Try again.");
-                    return "";
-                }
-
-                Console.Write("Type it again to confirm: ");
-
-                string passconfirm = getPasswordInput();
-
-                if (pass.Equals(passconfirm, StringComparison.Ordinal))
-                {
-                    return pass;
-                }
-                else
-                {
-                    Console.WriteLine("Passwords don't match, try again.");
-
-                    // Passwords don't match
-                    return "";
-                }
-
-            }
-            catch (Exception)
-            {
-                // Handle exceptions
-                return "";
-            }
-        }
-
-        // Handles console password input
-        static public string getPasswordInput()
-        {
-            StringBuilder sb = new StringBuilder();
-            while (true)
-            {
-                if (forceShutdown)
-                {
-                    return "";
-                }
-
-                if (!Console.KeyAvailable)
-                {
-                    Thread.Yield();
-                    continue;
-                }
-
-                ConsoleKeyInfo i = Console.ReadKey(true);
-                if (i.Key == ConsoleKey.Enter)
-                {
-                    Console.WriteLine();
-                    break;
-                }
-                else if (i.Key == ConsoleKey.Backspace)
-                {
-                    if (sb.Length > 0)
-                    {
-                        sb.Remove(sb.Length - 1, 1);
-                        Console.Write("\b \b");
-                    }
-                }
-                else if (i.KeyChar != '\u0000')
-                {
-                    sb.Append(i.KeyChar);
-                    Console.Write("*");
-                }
-            }
-            return sb.ToString();
-        }
-
         static public bool initWallet()
         {
             walletStorage = new WalletStorage(Config.walletFile);
@@ -157,7 +65,7 @@ namespace DLT.Meta
 
             if (!walletStorage.walletExists())
             {
-                displayBackupText();
+                ConsoleHelpers.displayBackupText();
 
                 // Request a password
                 // NOTE: This can only be done in testnet to enable automatic testing!
@@ -171,7 +79,7 @@ namespace DLT.Meta
                 while (password.Length < 10)
                 {
                     Logging.flush();
-                    password = requestNewPassword("Enter a password for your new wallet: ");
+                    password = ConsoleHelpers.requestNewPassword("Enter a password for your new wallet: ");
                     if (forceShutdown)
                     {
                         return false;
@@ -181,7 +89,7 @@ namespace DLT.Meta
             }
             else
             {
-                displayBackupText();
+                ConsoleHelpers.displayBackupText();
 
                 bool success = false;
                 while (!success)
@@ -198,7 +106,7 @@ namespace DLT.Meta
                     {
                         Logging.flush();
                         Console.Write("Enter wallet password: ");
-                        password = getPasswordInput();
+                        password = ConsoleHelpers.getPasswordInput();
                     }
                     if (forceShutdown)
                     {
@@ -242,7 +150,7 @@ namespace DLT.Meta
                 string new_password = "";
                 while (new_password.Length < 10)
                 {
-                    new_password = requestNewPassword("Enter a new password for your wallet: ");
+                    new_password = ConsoleHelpers.requestNewPassword("Enter a new password for your wallet: ");
                     if (forceShutdown)
                     {
                         return false;
@@ -257,63 +165,10 @@ namespace DLT.Meta
             return true;
         }
 
-        static private void configureNetwork()
-        {
-            // Network configuration
-            upnp = new UPnP();
-            if (Config.externalIp != "" && IPAddress.TryParse(Config.externalIp, out _))
-            {
-                Config.publicServerIP = Config.externalIp;
-            }
-            else
-            {
-                Config.publicServerIP = "";
-                List<IPAndMask> local_ips = CoreNetworkUtils.GetAllLocalIPAddressesAndMasks();
-                foreach (IPAndMask local_ip in local_ips)
-                {
-                    if (IPv4Subnet.IsPublicIP(local_ip.Address))
-                    {
-                        Logging.info(String.Format("Public IP detected: {0}, mask {1}.", local_ip.Address.ToString(), local_ip.SubnetMask.ToString()));
-                        Config.publicServerIP = local_ip.Address.ToString();
-                    }
-                }
-                if (Config.publicServerIP == "")
-                {
-                    IPAddress primary_local = CoreNetworkUtils.GetPrimaryIPAddress();
-                    if (primary_local == null)
-                    {
-                        Logging.warn("Unable to determine primary IP address.");
-                    }
-                    else
-                    {
-                        Logging.warn(String.Format("None of the locally configured IP addresses are public. Attempting UPnP..."));
-                        Task<IPAddress> public_ip = upnp.GetExternalIPAddress();
-                        if (public_ip.Wait(1000))
-                        {
-                            if (public_ip.Result != null)
-                            {
-                                Logging.info(String.Format("UPNP-determined public IP: {0}. Attempting to configure a port-forwarding rule.", public_ip.Result.ToString()));
-                                if (upnp.MapPublicPort(Config.serverPort, primary_local))
-                                {
-                                    Config.publicServerIP = public_ip.Result.ToString(); //upnp.getMappedIP();
-                                    Logging.info(string.Format("Network configured. Public IP is: {0}", Config.publicServerIP));
-                                }
-                            }
-                            else
-                            {
-                                Logging.warn("UPnP configuration failed.");
-                            }
-                        }
-
-                    }
-                }
-            }
-        }
-
         static public void start(bool verboseConsoleOutput)
         {
             // Network configuration
-            configureNetwork();
+            NetworkUtils.configureNetwork();
 
             PresenceList.generatePresenceList(Config.publicServerIP, 'R');
 
@@ -371,6 +226,13 @@ namespace DLT.Meta
 
         static public void stop()
         {
+            Program.noStart = true;
+            forceShutdown = true;
+            ConsoleHelpers.forceShutdown = true;
+
+            // Stop the keepalive thread
+            PresenceList.stopKeepAlive();
+
             // Stop the API server
             if (apiServer != null)
             {
@@ -378,14 +240,13 @@ namespace DLT.Meta
                 apiServer = null;
             }
 
-            // Stop the keepalive thread
-            PresenceList.stopKeepAlive();
-
             if (maintenanceThread != null)
             {
                 maintenanceThread.Abort();
                 maintenanceThread = null;
             }
+
+            ActivityStorage.stopStorage();
 
             // Stop the network queue
             NetworkQueue.stop();
@@ -402,8 +263,6 @@ namespace DLT.Meta
 
             // Stop the network server
             NetworkServer.stopNetworkOperations();
-
-            ActivityStorage.stopStorage();
 
             // Stop the console stats screen
             // Console screen has a thread running even if we are in verbose mode
