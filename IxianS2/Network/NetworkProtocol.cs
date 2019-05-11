@@ -222,34 +222,49 @@ namespace DLT.Network
                                     bool byeV1 = false;
                                     try
                                     {
-                                        int byeCode = reader.ReadInt32();
+                                        ProtocolByeCode byeCode = (ProtocolByeCode)reader.ReadInt32();
                                         string byeMessage = reader.ReadString();
                                         string byeData = reader.ReadString();
 
                                         byeV1 = true;
 
-                                        if (byeCode != 200)
+                                        switch (byeCode)
                                         {
-                                            Logging.warn(string.Format("Disconnected with message: {0} {1}", byeMessage, byeData));
-                                        }
+                                            case ProtocolByeCode.bye: // all good
+                                                break;
 
-                                        if (byeCode == 600)
-                                        {
-                                            if (IxiUtils.validateIPv4(byeData))
-                                            {
-                                                if (NetworkClientManager.getConnectedClients().Length < 2)
+                                            case ProtocolByeCode.forked: // forked node disconnected
+                                                Logging.info(string.Format("Disconnected with message: {0} {1}", byeMessage, byeData));
+                                                break;
+
+                                            case ProtocolByeCode.deprecated: // deprecated node disconnected
+                                                Logging.info(string.Format("Disconnected with message: {0} {1}", byeMessage, byeData));
+                                                break;
+
+                                            case ProtocolByeCode.incorrectIp: // incorrect IP
+                                                if (IxiUtils.validateIPv4(byeData))
                                                 {
-                                                    Config.publicServerIP = byeData;
-                                                    Logging.info("Changed internal IP Address to " + byeData + ", reconnecting");
+                                                    if (NetworkClientManager.getConnectedClients().Length < 2)
+                                                    {
+                                                        Config.publicServerIP = byeData;
+                                                        Logging.info("Changed internal IP Address to " + byeData + ", reconnecting");
+                                                    }
                                                 }
-                                            }
-                                        }
-                                        else if (byeCode == 601)
-                                        {
-                                            Logging.error("This node must be connectable from the internet, to connect to the network.");
-                                            Logging.error("Please setup uPNP and/or port forwarding on your router for port " + Config.serverPort + ".");
-                                        }
+                                                break;
 
+                                            case ProtocolByeCode.notConnectable: // not connectable from the internet
+                                                Logging.error("This node must be connectable from the internet, to connect to the network.");
+                                                Logging.error("Please setup uPNP and/or port forwarding on your router for port " + Config.serverPort + ".");
+                                                NetworkServer.connectable = false;
+                                                break;
+
+                                            case ProtocolByeCode.insufficientFunds:
+                                                break;
+
+                                            default:
+                                                Logging.warn(string.Format("Disconnected with message: {0} {1}", byeMessage, byeData));
+                                                break;
+                                        }
                                     }
                                     catch (Exception)
                                     {

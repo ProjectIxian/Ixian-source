@@ -85,14 +85,30 @@ namespace DLT.Meta
             // Node status
             string dltStatus = "active       ";
 
-            int connectionsIn = NetworkServer.getConnectedClients().Count();
+            int connectionsIn = 0;
+
+            string connectionsInStr = "-";  // Default to no inbound connections accepted
+            if (NetworkServer.isRunning())
+            {
+                // If the server is running, show the number of inbound connections
+                connectionsIn = NetworkServer.getConnectedClients().Count();
+                if (!NetworkServer.isConnectable())
+                {
+                    connectionsInStr = "Not connectable";
+                }
+                else
+                {
+                    connectionsInStr = String.Format("{0}", connectionsIn);
+                }
+            }
+
             int connectionsOut = NetworkClientManager.getConnectedClients().Count();
             if (connectionsIn + connectionsOut < 1)
                 dltStatus = "connecting   ";
 
 
             writeLine("\tStatus:\t\t{0}\n", dltStatus);
-            writeLine("\tConnections (I/O):\t{0}", connectionsIn + "/" + connectionsOut);
+            writeLine("\tConnections (I/O):\t{0}", connectionsInStr + "/" + connectionsOut);
             writeLine("\tPresences:\t\t{0}", PresenceList.getTotalPresences());
 
             writeLine("\n──────────────────────────────────────────────────");
