@@ -1,58 +1,30 @@
-using IXICore;
-using Newtonsoft.Json;
-using SQLite;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using SQLite;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
 using System.Numerics;
-using System.Threading;
 
 namespace DLT
 {
     namespace Meta
     {
-        public class Storage
+        public class SQLiteStorage : IStorage
         {
-            public static string path = Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks";
-
             // Sql connections
-            private static SQLiteConnection sqlConnection = null;
-            private static readonly object storageLock = new object(); // This should always be placed when performing direct sql operations
+            private SQLiteConnection sqlConnection = null;
+            private readonly object storageLock = new object(); // This should always be placed when performing direct sql operations
 
-            private static SQLiteConnection superBlocksSqlConnection = null;
-            private static readonly object superBlockStorageLock = new object(); // This should always be placed when performing direct sql operations
+            private SQLiteConnection superBlocksSqlConnection = null;
+            private readonly object superBlockStorageLock = new object(); // This should always be placed when performing direct sql operations
 
-            private static Dictionary<string, object[]> connectionCache = new Dictionary<string, object[]>();
-
-            // Threading
-            private static Thread thread = null;
-            private static bool running = false;
-            private static ThreadLiveCheck TLC;
+            private Dictionary<string, object[]> connectionCache = new Dictionary<string, object[]>();
 
             // Storage cache
-            private static ulong cached_lastBlockNum = 0;
-            private static ulong current_seek = 1;
-
-            public static bool upgrading = false;
-            public static ulong upgradeProgress = 0;
-            public static ulong upgradeMaxBlockNum = 0;
-
-            private enum QueueStorageCode
-            {
-                insertTransaction,
-                insertBlock,
-                updateTxAppliedFlag
-
-            }
-            private struct QueueStorageMessage
-            {
-                public QueueStorageCode code;
-                public object data;
-            }
-
-            // Maintain a queue of sql statements
-            private static List<QueueStorageMessage> queueStatements = new List<QueueStorageMessage>();
+            private ulong cached_lastBlockNum = 0;
+            private ulong current_seek = 1;
 
             public class _storage_Block
             {
@@ -93,67 +65,31 @@ namespace DLT
                 public int version { get; set; }
             }
 
-            // Creates the storage file if not found
-            public static bool prepareStorage()
+            public SQLiteStorage(string path_base) : base(path_base) { }
+
+            // Escape and execute an sql command
+            private bool executeSQL(string sql, params object[] sqlParameters)
             {
-                var files = Directory.EnumerateFiles(path + Path.DirectorySeparatorChar + "0000", "*.dat-shm");
-                foreach (var file in files)
+                return executeSQL(sqlConnection, sql, sqlParameters);
+            }
+
+            // Escape and execute an sql command
+            private bool executeSQL(SQLiteConnection connection, string sql, params object[] sqlParameters)
+            {
+                try
                 {
-                    File.Delete(file);
+                    connection.Execute(sql, sqlParameters);
                 }
-
-                files = Directory.EnumerateFiles(path + Path.DirectorySeparatorChar + "0000", "*.dat-wal");
-                foreach (var file in files)
+                catch (Exception e)
                 {
-                    File.Delete(file);
+                    Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
+                    // TODO TODO TODO TODO this may indicate a corrupt database, usually exception message is simply Corrupt, probably in this case we should delete the file and re-create it
+                    return false;
                 }
-
-                string db_path = path + Path.DirectorySeparatorChar + "superblocks.dat";
-
-                // Bind the connection
-                superBlocksSqlConnection = getSQLiteConnection(db_path, false);
-
-
-                // Get latest block number to initialize the cache as well
-                ulong last_block = getLastBlockNum();
-                Logging.info(string.Format("Last storage block number is: #{0}", last_block));
-
-                // Start thread
-                TLC = new ThreadLiveCheck();
-                running = true;
-                thread = new Thread(new ThreadStart(threadLoop));
-                thread.Name = "Storage_Thread";
-                thread.Start();
-
                 return true;
             }
 
-            // Shutdown storage thread
-            public static void stopStorage()
-            {
-                running = false;
-            }
-
-            private static void cleanConnectionCache()
-            {
-                long curTime = Clock.getTimestamp();
-                Dictionary<string, object[]> tmpConnectionCache = new Dictionary<string, object[]>(connectionCache);
-                foreach (var entry in tmpConnectionCache)
-                {
-                    if (curTime - (long)entry.Value[1] > 60)
-                    {
-                        if(entry.Value[0] == sqlConnection)
-                        {
-                            // never close the currently used sqlConnection
-                            continue;
-                        }
-                        ((SQLiteConnection)entry.Value[0]).Close();
-                        connectionCache.Remove(entry.Key);
-                    }
-                }
-            }
-
-            private static SQLiteConnection getSQLiteConnection(string path, bool cache = false)
+            private SQLiteConnection getSQLiteConnection(string path, bool cache = false)
             {
                 lock (connectionCache)
                 {
@@ -162,7 +98,7 @@ namespace DLT
                         if (cache)
                         {
                             connectionCache[path][1] = Clock.getTimestamp();
-                            cleanConnectionCache();
+                            cleanupCache();
                         }
                         return (SQLiteConnection)connectionCache[path][0];
                     }
@@ -195,7 +131,8 @@ namespace DLT
                         executeSQL(connection, sql);
                         sql = "CREATE INDEX `applied` ON `transactions` (`applied`);";
                         executeSQL(connection, sql);
-                    } else if (!tableInfo.Exists(x => x.Name == "fromList"))
+                    }
+                    else if (!tableInfo.Exists(x => x.Name == "fromList"))
                     {
                         string sql = "ALTER TABLE `transactions` ADD COLUMN `fromList` TEXT;";
                         executeSQL(connection, sql);
@@ -224,7 +161,7 @@ namespace DLT
             }
 
             // Returns true if connection to matching blocknum range database is established
-            public static bool seekDatabase(ulong blocknum = 0, bool cache = false)
+            public bool seekDatabase(ulong blocknum = 0, bool cache = false)
             {
                 lock (storageLock)
                 {
@@ -239,7 +176,7 @@ namespace DLT
                     // Update the current seek number
                     current_seek = db_blocknum;
 
-                    string db_path = path + Path.DirectorySeparatorChar + "0000" + Path.DirectorySeparatorChar + db_blocknum + ".dat";
+                    string db_path = pathBase + Path.DirectorySeparatorChar + db_blocknum + ".dat";
 
                     // Bind the connection
                     sqlConnection = getSQLiteConnection(db_path, cache);
@@ -250,14 +187,14 @@ namespace DLT
             // Go through all database files until we discover the latest consecutive one
             // Doing it this way prevents skipping over inexistent databases
             // returns 1 on failure
-            public static ulong seekLatestDatabase()
+            public ulong seekLatestDatabase()
             {
                 ulong db_blocknum = 0;
                 bool found = false;
 
                 while (!found)
                 {
-                    string db_path = path + Path.DirectorySeparatorChar + "0000" + Path.DirectorySeparatorChar + db_blocknum + ".dat";
+                    string db_path = pathBase + Path.DirectorySeparatorChar + db_blocknum + ".dat";
                     if (File.Exists(db_path))
                     {
                         db_blocknum += Config.maxBlocksPerDatabase;
@@ -279,289 +216,21 @@ namespace DLT
                 return 1;
             }
 
-            public static ulong getLastBlockNum()
+            // Shuffle data storage bytes
+            public static byte[] shuffleStorageBytes(byte[] bytes)
             {
-                if (cached_lastBlockNum == 0)
-                {
-                    lock (storageLock)
-                    {
-                        ulong db_block_num = seekLatestDatabase();
-
-                        _storage_Block[] _storage_block = null;
-                        if (db_block_num != 1)
-                        {
-                            string sql = string.Format("SELECT * FROM `blocks` ORDER BY `blockNum` DESC LIMIT 1");
-                            _storage_block = sqlConnection.Query<_storage_Block>(sql).ToArray();
-                        }
-
-                        if (_storage_block == null)
-                            return db_block_num;
-
-                        if (_storage_block.Length < 1)
-                            return db_block_num;
-
-                        _storage_Block blk = _storage_block[0];
-                        cached_lastBlockNum = (ulong)blk.blockNum;
-                    }
-                }
-                return cached_lastBlockNum;
+                if (bytes == null)
+                    return null;
+                return bytes.Reverse().ToArray();
             }
 
-            public static bool insertBlockInternal(Block block)
+            // Unshuffle data storage bytes
+            public static byte[] unshuffleStorageBytes(byte[] bytes)
             {
-                Block b = block;
-                string transactions = "";
-                foreach (string tx in block.transactions)
-                {
-                    transactions = string.Format("{0}||{1}", transactions, tx);
-                }
-
-                string signatures = "";
-                foreach (byte[][] sig in block.signatures)
-                {
-                    string str_sig = "0";
-                    if(sig[0] != null)
-                    {
-                        str_sig = Convert.ToBase64String(sig[0]);
-                    }
-                    signatures = string.Format("{0}||{1}:{2}", signatures, str_sig, Convert.ToBase64String(sig[1]));
-                }
-
-                if (!Node.blockProcessor.verifySigFreezedBlock(block))
-                {
-                    return false;
-                }
-
-                bool result = false;
- 
-                // prepare superBlockSegments
-                List<byte> super_block_segments = new List<byte>();
-                lock (superBlockStorageLock)
-                {
-                    if (block.lastSuperBlockChecksum != null)
-                    {
-                        // this is a superblock
-
-                        foreach(var entry in block.superBlockSegments)
-                        {
-                            super_block_segments.AddRange(BitConverter.GetBytes(entry.Value.blockNum));
-                            super_block_segments.AddRange(BitConverter.GetBytes(entry.Value.blockChecksum.Length));
-                            super_block_segments.AddRange(entry.Value.blockChecksum);
-                        }
-
-                        if (getSuperBlock(block.blockNum) == null)
-                        {
-                            string sql = "INSERT INTO `blocks`(`blockNum`,`blockChecksum`,`lastBlockChecksum`,`walletStateChecksum`,`sigFreezeChecksum`, `difficulty`, `powField`, `transactions`,`signatures`,`timestamp`,`version`,`lastSuperBlockChecksum`,`lastSuperBlockNum`,`superBlockSegments`,`compactedSigs`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-                            result = executeSQL(superBlocksSqlConnection, sql, (long)block.blockNum, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs);
-                        }
-                        else
-                        {
-                            // Likely already have the block stored, update the old entry
-                            string sql = "UPDATE `blocks` SET `blockChecksum` = ?, `lastBlockChecksum` = ?, `walletStateChecksum` = ?, `sigFreezeChecksum` = ?, `difficulty` = ?, `powField` = ?, `transactions` = ?, `signatures` = ?, `timestamp` = ?, `version` = ?, `lastSuperBlockChecksum` = ?, `lastSuperBlockNum` = ?, `superBlockSegments` = ?, `compactedSigs` = ? WHERE `blockNum` = ?";
-                            //Console.WriteLine("SQL: {0}", sql);
-                            result = executeSQL(superBlocksSqlConnection, sql, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs, (long)block.blockNum);
-                        }
-                    }
-                }
-
-                lock (storageLock)
-                {
-                    if (getBlock(block.blockNum) == null)
-                    {
-                        seekDatabase(block.blockNum, true);
-
-                        string sql = "INSERT INTO `blocks`(`blockNum`,`blockChecksum`,`lastBlockChecksum`,`walletStateChecksum`,`sigFreezeChecksum`, `difficulty`, `powField`, `transactions`,`signatures`,`timestamp`,`version`,`lastSuperBlockChecksum`,`lastSuperBlockNum`,`superBlockSegments`,`compactedSigs`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-                        result = executeSQL(sql, (long)block.blockNum, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs);
-                    }
-                    else
-                    {
-                        seekDatabase(block.blockNum, true);
-
-                        // Likely already have the block stored, update the old entry
-                        string sql = "UPDATE `blocks` SET `blockChecksum` = ?, `lastBlockChecksum` = ?, `walletStateChecksum` = ?, `sigFreezeChecksum` = ?, `difficulty` = ?, `powField` = ?, `transactions` = ?, `signatures` = ?, `timestamp` = ?, `version` = ?, `lastSuperBlockChecksum` = ?, `lastSuperBlockNum` = ?, `superBlockSegments` = ?, `compactedSigs` = ? WHERE `blockNum` = ?";
-                        //Console.WriteLine("SQL: {0}", sql);
-                        result = executeSQL(sql, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs, (long)block.blockNum);
-                    }
-                }
-
-                if (result)
-                {
-                    // Update the cached last block number if necessary
-                    if (getLastBlockNum() < block.blockNum)
-                        cached_lastBlockNum = block.blockNum;
-                }
-
-                return result;
-            }
-
-            public static bool insertTransactionInternal(Transaction transaction)
-            {
-                string toList = "";
-                foreach (var to in transaction.toList)
-                {
-                    toList = string.Format("{0}||{1}:{2}", toList, Base58Check.Base58CheckEncoding.EncodePlain(to.Key), Convert.ToBase64String(to.Value.getAmount().ToByteArray()));
-                }
-
-                string fromList = "";
-                foreach (var from in transaction.fromList)
-                {
-                    fromList = string.Format("{0}||{1}:{2}", fromList, Base58Check.Base58CheckEncoding.EncodePlain(from.Key), Convert.ToBase64String(from.Value.getAmount().ToByteArray()));
-                }
-
-                bool result = false;
-                lock (storageLock)
-                {
-                    byte[] tx_data_shuffled = shuffleStorageBytes(transaction.data);
-
-                    // Go through all databases starting from latest and search for the transaction
-                    if (getTransaction(transaction.id, transaction.applied) == null)
-                    {
-                        // Transaction was not found in any existing database, seek to the proper database
-                        seekDatabase(transaction.applied, true);
-
-                        string sql = "INSERT INTO `transactions`(`id`,`type`,`amount`,`fee`,`toList`,`fromList`,`data`,`blockHeight`, `nonce`, `timestamp`,`checksum`,`signature`, `pubKey`, `applied`, `version`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-                        result = executeSQL(sql, transaction.id, transaction.type, transaction.amount.ToString(), transaction.fee.ToString(), toList, fromList, tx_data_shuffled, (long)transaction.blockHeight, transaction.nonce, transaction.timeStamp, transaction.checksum, transaction.signature, transaction.pubKey, (long)transaction.applied, transaction.version);
-                    }
-                    else
-                    {
-                        // Transaction found. Seeked database was set by getTransaction
-                        seekDatabase(transaction.applied, true);
-
-                        // Likely already have the tx stored, update the old entry
-                        string sql = "UPDATE `transactions` SET `type` = ?,`amount` = ? ,`fee` = ?, `toList` = ?, `fromList` = ?,`data` = ?, `blockHeight` = ?, `nonce` = ?, `timestamp` = ?,`checksum` = ?,`signature` = ?, `pubKey` = ?, `applied` = ?, `version` = ? WHERE `id` = ?";
-                        result = executeSQL(sql, transaction.type, transaction.amount.ToString(), transaction.fee.ToString(), toList, fromList, tx_data_shuffled, (long)transaction.blockHeight, transaction.nonce, transaction.timeStamp, transaction.checksum, transaction.signature, transaction.pubKey, (long)transaction.applied, transaction.version, transaction.id);
-                    }
-                }
-
-                return result;
-            }
-
-            public static Block getSuperBlock(ulong blocknum)
-            {
-                if (blocknum < 1)
-                {
-                    return null;
-                }
-
-                string sql = "select * from blocks where `blocknum` = ? LIMIT 1";
-                List<_storage_Block> _storage_block = null;
-
-                lock (superBlockStorageLock)
-                {
-                    try
-                    {
-                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, (long)blocknum);
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
-                        return null;
-                    }
-                }
-
-                if (_storage_block == null)
+                if (bytes == null)
                     return null;
 
-                if (_storage_block.Count < 1)
-                    return null;
-
-                return getBlockFromStorageBlock(_storage_block[0]);
-            }
-
-            public static Block getSuperBlock(byte[] checksum)
-            {
-                if (checksum == null)
-                {
-                    return null;
-                }
-
-                string sql = "select * from blocks where `blockChecksum` = ? LIMIT 1";
-                List<_storage_Block> _storage_block = null;
-
-                lock (superBlockStorageLock)
-                {
-                    try
-                    {
-                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, checksum);
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
-                        return null;
-                    }
-                }
-
-                if (_storage_block == null)
-                    return null;
-
-                if (_storage_block.Count < 1)
-                    return null;
-
-                return getBlockFromStorageBlock(_storage_block[0]);
-            }
-
-            public static Block getNextSuperBlock(ulong blocknum)
-            {
-                if (blocknum < 1)
-                {
-                    return null;
-                }
-
-                string sql = "select * from blocks where `lastSuperBlockNum` = ? LIMIT 1";
-                List<_storage_Block> _storage_block = null;
-
-                lock (superBlockStorageLock)
-                {
-                    try
-                    {
-                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, (long)blocknum);
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
-                        return null;
-                    }
-                }
-
-                if (_storage_block == null)
-                    return null;
-
-                if (_storage_block.Count < 1)
-                    return null;
-
-                return getBlockFromStorageBlock(_storage_block[0]);
-            }
-
-            public static Block getNextSuperBlock(byte[] checksum)
-            {
-                if (checksum == null)
-                {
-                    return null;
-                }
-
-                string sql = "select * from blocks where `lastSuperBlockChecksum` = ? LIMIT 1";
-                List<_storage_Block> _storage_block = null;
-
-                lock (superBlockStorageLock)
-                {
-                    try
-                    {
-                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, checksum);
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
-                        return null;
-                    }
-                }
-
-                if (_storage_block == null)
-                    return null;
-
-                if (_storage_block.Count < 1)
-                    return null;
-
-                return getBlockFromStorageBlock(_storage_block[0]);
+                return bytes.Reverse().ToArray();
             }
 
             public static Block getBlockFromStorageBlock(_storage_Block storage_block)
@@ -644,8 +313,328 @@ namespace DLT
                 return block;
             }
 
-            // Warning: this assumes it's called with the storageLock active
-            public static Block getBlock(ulong blocknum)
+            public Block getSuperBlock(ulong blocknum)
+            {
+                if (blocknum < 1)
+                {
+                    return null;
+                }
+
+                string sql = "select * from blocks where `blocknum` = ? LIMIT 1";
+                List<_storage_Block> _storage_block = null;
+
+                lock (superBlockStorageLock)
+                {
+                    try
+                    {
+                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, (long)blocknum);
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
+                        return null;
+                    }
+                }
+
+                if (_storage_block == null)
+                    return null;
+
+                if (_storage_block.Count < 1)
+                    return null;
+
+                return getBlockFromStorageBlock(_storage_block[0]);
+            }
+
+            public Block getSuperBlock(byte[] checksum)
+            {
+                if (checksum == null)
+                {
+                    return null;
+                }
+
+                string sql = "select * from blocks where `blockChecksum` = ? LIMIT 1";
+                List<_storage_Block> _storage_block = null;
+
+                lock (superBlockStorageLock)
+                {
+                    try
+                    {
+                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, checksum);
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
+                        return null;
+                    }
+                }
+
+                if (_storage_block == null)
+                    return null;
+
+                if (_storage_block.Count < 1)
+                    return null;
+
+                return getBlockFromStorageBlock(_storage_block[0]);
+            }
+
+            protected override bool prepareStorageInternal()
+            {
+                var files = Directory.EnumerateFiles(pathBase, "*.dat-shm");
+                foreach (var file in files)
+                {
+                    File.Delete(file);
+                }
+
+                files = Directory.EnumerateFiles(pathBase, "*.dat-wal");
+                foreach (var file in files)
+                {
+                    File.Delete(file);
+                }
+
+                string db_path = pathBase + Path.DirectorySeparatorChar + "superblocks.dat";
+
+                // Bind the connection
+                superBlocksSqlConnection = getSQLiteConnection(db_path, false);
+
+
+                // Get latest block number to initialize the cache as well
+                ulong last_block = getHighestBlockInStorage();
+                Logging.info(string.Format("Last storage block number is: #{0}", last_block));
+                return true;
+            }
+
+            protected override void shutdown()
+            {
+                // nothing needs to happen here
+            }
+
+            public override ulong getHighestBlockInStorage()
+            {
+                if (cached_lastBlockNum == 0)
+                {
+                    lock (storageLock)
+                    {
+                        ulong db_block_num = seekLatestDatabase();
+
+                        _storage_Block[] _storage_block = null;
+                        if (db_block_num != 1)
+                        {
+                            string sql = string.Format("SELECT * FROM `blocks` ORDER BY `blockNum` DESC LIMIT 1");
+                            _storage_block = sqlConnection.Query<_storage_Block>(sql).ToArray();
+                        }
+
+                        if (_storage_block == null)
+                            return db_block_num;
+
+                        if (_storage_block.Length < 1)
+                            return db_block_num;
+
+                        _storage_Block blk = _storage_block[0];
+                        cached_lastBlockNum = (ulong)blk.blockNum;
+                    }
+                }
+                return cached_lastBlockNum;
+            }
+
+            protected override bool insertBlockInternal(Block block)
+            {
+                string transactions = "";
+                foreach (string tx in block.transactions)
+                {
+                    transactions = string.Format("{0}||{1}", transactions, tx);
+                }
+
+                string signatures = "";
+                foreach (byte[][] sig in block.signatures)
+                {
+                    string str_sig = "0";
+                    if (sig[0] != null)
+                    {
+                        str_sig = Convert.ToBase64String(sig[0]);
+                    }
+                    signatures = string.Format("{0}||{1}:{2}", signatures, str_sig, Convert.ToBase64String(sig[1]));
+                }
+
+                if (!Node.blockProcessor.verifySigFreezedBlock(block))
+                {
+                    return false;
+                }
+
+                bool result = false;
+
+                // prepare superBlockSegments
+                List<byte> super_block_segments = new List<byte>();
+                lock (superBlockStorageLock)
+                {
+                    if (block.lastSuperBlockChecksum != null)
+                    {
+                        // this is a superblock
+
+                        foreach (var entry in block.superBlockSegments)
+                        {
+                            super_block_segments.AddRange(BitConverter.GetBytes(entry.Value.blockNum));
+                            super_block_segments.AddRange(BitConverter.GetBytes(entry.Value.blockChecksum.Length));
+                            super_block_segments.AddRange(entry.Value.blockChecksum);
+                        }
+
+                        if (getSuperBlock(block.blockNum) == null)
+                        {
+                            string sql = "INSERT INTO `blocks`(`blockNum`,`blockChecksum`,`lastBlockChecksum`,`walletStateChecksum`,`sigFreezeChecksum`, `difficulty`, `powField`, `transactions`,`signatures`,`timestamp`,`version`,`lastSuperBlockChecksum`,`lastSuperBlockNum`,`superBlockSegments`,`compactedSigs`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                            result = executeSQL(superBlocksSqlConnection, sql, (long)block.blockNum, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs);
+                        }
+                        else
+                        {
+                            // Likely already have the block stored, update the old entry
+                            string sql = "UPDATE `blocks` SET `blockChecksum` = ?, `lastBlockChecksum` = ?, `walletStateChecksum` = ?, `sigFreezeChecksum` = ?, `difficulty` = ?, `powField` = ?, `transactions` = ?, `signatures` = ?, `timestamp` = ?, `version` = ?, `lastSuperBlockChecksum` = ?, `lastSuperBlockNum` = ?, `superBlockSegments` = ?, `compactedSigs` = ? WHERE `blockNum` = ?";
+                            //Console.WriteLine("SQL: {0}", sql);
+                            result = executeSQL(superBlocksSqlConnection, sql, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs, (long)block.blockNum);
+                        }
+                    }
+                }
+
+                lock (storageLock)
+                {
+                    if (getBlock(block.blockNum) == null)
+                    {
+                        seekDatabase(block.blockNum, true);
+
+                        string sql = "INSERT INTO `blocks`(`blockNum`,`blockChecksum`,`lastBlockChecksum`,`walletStateChecksum`,`sigFreezeChecksum`, `difficulty`, `powField`, `transactions`,`signatures`,`timestamp`,`version`,`lastSuperBlockChecksum`,`lastSuperBlockNum`,`superBlockSegments`,`compactedSigs`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                        result = executeSQL(sql, (long)block.blockNum, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs);
+                    }
+                    else
+                    {
+                        seekDatabase(block.blockNum, true);
+
+                        // Likely already have the block stored, update the old entry
+                        string sql = "UPDATE `blocks` SET `blockChecksum` = ?, `lastBlockChecksum` = ?, `walletStateChecksum` = ?, `sigFreezeChecksum` = ?, `difficulty` = ?, `powField` = ?, `transactions` = ?, `signatures` = ?, `timestamp` = ?, `version` = ?, `lastSuperBlockChecksum` = ?, `lastSuperBlockNum` = ?, `superBlockSegments` = ?, `compactedSigs` = ? WHERE `blockNum` = ?";
+                        //Console.WriteLine("SQL: {0}", sql);
+                        result = executeSQL(sql, block.blockChecksum, block.lastBlockChecksum, block.walletStateChecksum, block.signatureFreezeChecksum, (long)block.difficulty, block.powField, transactions, signatures, block.timestamp, block.version, block.lastSuperBlockChecksum, (long)block.lastSuperBlockNum, super_block_segments.ToArray(), block.compactedSigs, (long)block.blockNum);
+                    }
+                }
+
+                if (result)
+                {
+                    // Update the cached last block number if necessary
+                    if (getHighestBlockInStorage() < block.blockNum)
+                        cached_lastBlockNum = block.blockNum;
+                }
+
+                return result;
+            }
+
+            protected override bool insertTransactionInternal(Transaction transaction)
+            {
+                string toList = "";
+                foreach (var to in transaction.toList)
+                {
+                    toList = string.Format("{0}||{1}:{2}", toList, Base58Check.Base58CheckEncoding.EncodePlain(to.Key), Convert.ToBase64String(to.Value.getAmount().ToByteArray()));
+                }
+
+                string fromList = "";
+                foreach (var from in transaction.fromList)
+                {
+                    fromList = string.Format("{0}||{1}:{2}", fromList, Base58Check.Base58CheckEncoding.EncodePlain(from.Key), Convert.ToBase64String(from.Value.getAmount().ToByteArray()));
+                }
+
+                bool result = false;
+                lock (storageLock)
+                {
+                    byte[] tx_data_shuffled = shuffleStorageBytes(transaction.data);
+
+                    // Go through all databases starting from latest and search for the transaction
+                    if (getTransaction(transaction.id, transaction.applied) == null)
+                    {
+                        // Transaction was not found in any existing database, seek to the proper database
+                        seekDatabase(transaction.applied, true);
+
+                        string sql = "INSERT INTO `transactions`(`id`,`type`,`amount`,`fee`,`toList`,`fromList`,`data`,`blockHeight`, `nonce`, `timestamp`,`checksum`,`signature`, `pubKey`, `applied`, `version`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                        result = executeSQL(sql, transaction.id, transaction.type, transaction.amount.ToString(), transaction.fee.ToString(), toList, fromList, tx_data_shuffled, (long)transaction.blockHeight, transaction.nonce, transaction.timeStamp, transaction.checksum, transaction.signature, transaction.pubKey, (long)transaction.applied, transaction.version);
+                    }
+                    else
+                    {
+                        // Transaction found. Seeked database was set by getTransaction
+                        seekDatabase(transaction.applied, true);
+
+                        // Likely already have the tx stored, update the old entry
+                        string sql = "UPDATE `transactions` SET `type` = ?,`amount` = ? ,`fee` = ?, `toList` = ?, `fromList` = ?,`data` = ?, `blockHeight` = ?, `nonce` = ?, `timestamp` = ?,`checksum` = ?,`signature` = ?, `pubKey` = ?, `applied` = ?, `version` = ? WHERE `id` = ?";
+                        result = executeSQL(sql, transaction.type, transaction.amount.ToString(), transaction.fee.ToString(), toList, fromList, tx_data_shuffled, (long)transaction.blockHeight, transaction.nonce, transaction.timeStamp, transaction.checksum, transaction.signature, transaction.pubKey, (long)transaction.applied, transaction.version, transaction.id);
+                    }
+                }
+
+                return result;
+            }
+
+            public override Block getBlockByLastSuperblock(ulong last_block_number)
+            {
+                if (last_block_number < 1)
+                {
+                    return null;
+                }
+
+                string sql = "select * from blocks where `lastSuperBlockNum` = ? LIMIT 1";
+                List<_storage_Block> _storage_block = null;
+
+                lock (superBlockStorageLock)
+                {
+                    try
+                    {
+                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, (long)last_block_number);
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
+                        return null;
+                    }
+                }
+
+                if (_storage_block == null)
+                    return null;
+
+                if (_storage_block.Count < 1)
+                    return null;
+
+                return getBlockFromStorageBlock(_storage_block[0]);
+            }
+
+            public override Block getBlockByLastSBHash(byte[] checksum)
+            {
+                if (checksum == null)
+                {
+                    return null;
+                }
+
+                string sql = "select * from blocks where `lastSuperBlockChecksum` = ? LIMIT 1";
+                List<_storage_Block> _storage_block = null;
+
+                lock (superBlockStorageLock)
+                {
+                    try
+                    {
+                        _storage_block = superBlocksSqlConnection.Query<_storage_Block>(sql, checksum);
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
+                        return null;
+                    }
+                }
+
+                if (_storage_block == null)
+                    return null;
+
+                if (_storage_block.Count < 1)
+                    return null;
+
+                return getBlockFromStorageBlock(_storage_block[0]);
+            }
+
+
+            public override ulong getLowestBlockInStorage()
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Block getBlock(ulong blocknum)
             {
                 if (blocknum < 1)
                 {
@@ -681,9 +670,9 @@ namespace DLT
                 return getBlockFromStorageBlock(_storage_block[0]);
             }
 
-            public static Block getBlockByHash(byte[] hash)
+            public override Block getBlockByHash(byte[] checksum)
             {
-                if (hash == null)
+                if (checksum == null)
                 {
                     return null;
                 }
@@ -699,7 +688,7 @@ namespace DLT
 
                     try
                     {
-                        _storage_block = sqlConnection.Query<_storage_Block>(sql, hash).ToArray();
+                        _storage_block = sqlConnection.Query<_storage_Block>(sql, checksum).ToArray();
                     }
                     catch (Exception e)
                     {
@@ -711,14 +700,14 @@ namespace DLT
                         if (_storage_block.Length > 0)
                             found = true;
 
-                    ulong db_blocknum = getLastBlockNum();
+                    ulong db_blocknum = getHighestBlockInStorage();
                     while (!found)
                     {
                         // Block not found yet, seek to another database
                         seekDatabase(db_blocknum);
                         try
                         {
-                            _storage_block = sqlConnection.Query<_storage_Block>(sql, hash).ToArray();
+                            _storage_block = sqlConnection.Query<_storage_Block>(sql, checksum).ToArray();
 
                         }
                         catch (Exception)
@@ -759,8 +748,7 @@ namespace DLT
                 return getBlockFromStorageBlock(_storage_block[0]);
             }
 
-            // Retrieve a transaction from the sql database
-            public static Transaction getTransaction(string txid, ulong block_num)
+            public override Transaction getTransaction(string txid, ulong block_num = 0)
             {
                 Transaction transaction = null;
                 List<_storage_Transaction> _storage_tx = null;
@@ -774,7 +762,7 @@ namespace DLT
                     bool found = false;
                     try
                     {
-                        if(block_num > 0)
+                        if (block_num > 0)
                         {
                             seekDatabase(block_num, true);
                         }
@@ -791,12 +779,12 @@ namespace DLT
                         if (_storage_tx.Count > 0)
                             found = true;
 
-                    if(!found && block_num > 0)
+                    if (!found && block_num > 0)
                     {
                         return transaction;
                     }
 
-                    ulong db_blocknum = getLastBlockNum();
+                    ulong db_blocknum = getHighestBlockInStorage();
                     while (!found)
                     {
                         // Transaction not found yet, seek to another database
@@ -906,9 +894,7 @@ namespace DLT
                 return transaction;
             }
 
-            // Removes a block from the storage database
-            // Also removes all transactions linked to this block
-            public static bool removeBlock(Block block, bool removePreviousBlocks = false)
+            public override bool removeBlock(ulong block_num, bool remove_transactions)
             {
                 // Only remove on non-history nodes
                 if (Config.storeFullHistory == true)
@@ -918,7 +904,7 @@ namespace DLT
 
                 lock (storageLock)
                 {
-                    seekDatabase(block.blockNum, true);
+                    Block block = getBlock(block_num);
 
                     // First go through all transactions and remove them from storage
                     foreach (string txid in block.transactions)
@@ -930,245 +916,80 @@ namespace DLT
                     // Now remove the block itself from storage
                     string sql = "DELETE FROM blocks where `blockNum` = ?";
                     return executeSQL(sql, block.blockNum);
-
                 }
             }
 
-            // Removes a transaction from the storage database
-            // Warning: make sure this is called on the corresponding database (seeked to the blocknum of this transaction)
-            public static bool removeTransaction(string txid)
+            public override bool removeTransaction(string txid, ulong block_num = 0)
             {
+                // Warning: make sure this is called on the corresponding database (seeked to the blocknum of this transaction)
                 string sql = "DELETE FROM transactions where `id` = ?";
                 return executeSQL(sql, txid);
             }
 
-            // Remove all previous blocks and corresponding transactions outside the redacted window
-            // Takes the assigned blockheight and calculates the redacted window automatically
-            public static bool redactBlockStorage(ulong blockheight)
+            public override void deleteData()
             {
-                // Only redact on non-history nodes
-                if (Config.storeFullHistory == true)
-                {
-                    return false;
-                }
-
-                if (blockheight < CoreConfig.redactedWindowSize)
-                {
-                    // Nothing to redact yet
-                    return false;
-                }
-                lock (storageLock)
-                {
-                    seekDatabase(blockheight, true);
-
-                    // Calculate the window
-                    ulong redactedWindow = blockheight - CoreConfig.redactedWindowSize;
-
-                    Logging.info(string.Format("Redacting storage below block #{0}", redactedWindow));
-
-                    string sql = "select * from blocks where `blocknum` < ?";
-                    _storage_Block[] _storage_blocks = null;
-                    try
-                    {
-                        _storage_blocks = sqlConnection.Query<_storage_Block>(sql, (long)redactedWindow).ToArray();
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
-                        return false;
-                    }
-
-                    if (_storage_blocks == null)
-                        return false;
-
-                    if (_storage_blocks.Length < 1)
-                        return false;
-
-                    // Go through each block
-                    foreach (_storage_Block blk in _storage_blocks)
-                    {
-                        // Extract transactions
-                        string[] split_str = blk.transactions.Split(new string[] { "||" }, StringSplitOptions.None);
-                        int txcounter = 0;
-                        foreach (string s1 in split_str)
-                        {
-                            txcounter++;
-                            // Skip placeholder
-                            if (txcounter == 1)
-                                continue;
-
-                            // Remove this transaction
-                            removeTransaction(s1);
-                        }
-
-                        // Remove the block as well
-                        sql = "DELETE FROM blocks where `blockNum` = ?";
-                        executeSQL(sql, blk.blockNum);
-                    }
-                }
-                return true;
-            }
-
-            // Escape and execute an sql command
-            private static bool executeSQL(string sql, params object[] sqlParameters)
-            {
-                return executeSQL(sqlConnection, sql, sqlParameters);
-            }
-
-            // Escape and execute an sql command
-            private static bool executeSQL(SQLiteConnection connection, string sql, params object[] sqlParameters)
-            {
-                try
-                {
-                    connection.Execute(sql, sqlParameters);
-                }
-                catch (Exception e)
-                {
-                    Logging.error(String.Format("Exception has been thrown while executing SQL Query {0}. Exception message: {1}", sql, e.Message));
-                    // TODO TODO TODO TODO this may indicate a corrupt database, usually exception message is simply Corrupt, probably in this case we should delete the file and re-create it
-                    return false;
-                }
-                return true;
-            }
-
-            public static bool insertBlock(Block block)
-            {
-                // Make a copy of the block for the queue storage message processing
-                QueueStorageMessage message = new QueueStorageMessage
-                {
-                    code = QueueStorageCode.insertBlock,
-                    data = new Block(block)
-                };
-
-                lock (queueStatements)
-                {
-                    queueStatements.Add(message);
-                }
-                return true;
-            }
-
-
-            public static void insertTransaction(Transaction transaction)
-            {
-                // Make a copy of the transaction for the queue storage message processing
-                QueueStorageMessage message = new QueueStorageMessage
-                {
-                    code = QueueStorageCode.insertTransaction,
-                    data = new Transaction(transaction)
-                };
-
-                lock (queueStatements)
-                {
-
-                    queueStatements.Add(message);
-                }
-            }
-
-            // Storage thread
-            private static void threadLoop()
-            {
-                // Prepare an special message object to use, without locking up the queue messages
-                QueueStorageMessage active_message = new QueueStorageMessage();
-
-                bool pending_statements = false;
-
-                while (running || pending_statements == true)
-                {
-                    pending_statements = false;
-                    TLC.Report();
-                    try
-                    {
-                        bool message_found = false;
-
-                        lock (queueStatements)
-                        {
-                            int statements_count = queueStatements.Count();
-                            if (statements_count > 0)
-                            {
-                                if(statements_count > 1)
-                                {
-                                    pending_statements = true;
-                                }
-                                QueueStorageMessage candidate = queueStatements[0];
-                                active_message = candidate;
-                                queueStatements.Remove(candidate);
-                                message_found = true;
-                            }
-                        }
-
-                        if (message_found)
-                        {
-                            if (active_message.code == QueueStorageCode.insertTransaction)
-                            {
-                                insertTransactionInternal((Transaction)active_message.data);
-                            }
-                            else if (active_message.code == QueueStorageCode.insertBlock)
-                            {
-                                insertBlockInternal((Block)active_message.data);
-                            }
-                        }
-                        else
-                        {
-                            // Sleep for 10ms to prevent cpu waste
-                            Thread.Sleep(10);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Logging.error("Exception occured in storage thread loop: " + e);
-                    }
-                    Thread.Yield();
-                }
-
-                superBlocksSqlConnection.Close();
-                superBlocksSqlConnection = null;
-
-                sqlConnection = null;
-                lock (connectionCache)
-                {
-                    foreach(var entry in connectionCache)
-                    {
-                        ((SQLiteConnection)entry.Value[0]).Close();
-                    }
-                    connectionCache.Clear();
-                }
-
-                Logging.info("Storage thread stopped.");
-            }
-
-            public static int getQueuedQueryCount()
-            {
-                lock (queueStatements)
-                {
-                    return queueStatements.Count;
-                }
-            }
-
-            // Shuffle data storage bytes
-            public static byte[] shuffleStorageBytes(byte[] bytes)
-            {
-                if (bytes == null)
-                    return null;
-                return bytes.Reverse().ToArray();
-            }
-
-            // Unshuffle data storage bytes
-            public static byte[] unshuffleStorageBytes(byte[] bytes)
-            {
-                if (bytes == null)
-                    return null;
-
-                return bytes.Reverse().ToArray();
-            }
-
-            public static void deleteCache()
-            {
-                string[] fileNames = Directory.GetFiles(Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks" + Path.DirectorySeparatorChar + "0000");
-                foreach(string fileName in fileNames)
+                string[] fileNames = Directory.GetFiles(Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks");
+                foreach (string fileName in fileNames)
                 {
                     File.Delete(fileName);
                 }
                 File.Delete(Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks" + Path.DirectorySeparatorChar + "superblocks.dat");
+            }
+
+            protected override void cleanupCache()
+            {
+                long curTime = Clock.getTimestamp();
+                Dictionary<string, object[]> tmpConnectionCache = new Dictionary<string, object[]>(connectionCache);
+                foreach (var entry in tmpConnectionCache)
+                {
+                    if (curTime - (long)entry.Value[1] > 60)
+                    {
+                        if (entry.Value[0] == sqlConnection)
+                        {
+                            // never close the currently used sqlConnection
+                            continue;
+                        }
+                        ((SQLiteConnection)entry.Value[0]).Close();
+                        connectionCache.Remove(entry.Key);
+                    }
+                }
+            }
+
+
+
+            public override IEnumerable<Block> getBlocksByRange(ulong from, ulong to)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IEnumerable<Transaction> getTransactionsByType(Transaction.Type type, ulong block_from = 0, ulong block_to = 0)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IEnumerable<Transaction> getTransactionsFromAddress(byte[] from_addr, ulong block_from = 0, ulong block_to = 0)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IEnumerable<Transaction> getTransactionsToAddress(byte[] to_addr, ulong block_from = 0, ulong block_to = 0)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IEnumerable<Transaction> getTransactionsInBlock(ulong block_num)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IEnumerable<Transaction> getTransactionsByTime(long time_from, long time_to)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override IEnumerable<Transaction> getTransactionsApplied(ulong block_from, ulong block_to)
+            {
+                throw new NotImplementedException();
             }
         }
     }

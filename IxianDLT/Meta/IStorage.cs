@@ -10,7 +10,7 @@ namespace DLT
     {
         public abstract class IStorage
         {
-            public string pathBase;
+            public string pathBase { get; private set; }
             // Threading
             private Thread thread = null;
             private bool running = false;
@@ -32,9 +32,9 @@ namespace DLT
             // Maintain a queue of sql statements
             protected readonly List<QueueStorageMessage> queueStatements = new List<QueueStorageMessage>();
 
-            protected IStorage()
+            protected IStorage(string path_base)
             {
-                pathBase = Config.dataFolderBlocks;
+                pathBase = path_base;
             }
 
 
@@ -57,7 +57,24 @@ namespace DLT
             public virtual void stopStorage()
             {
                 running = false;
+                Logging.info(String.Format("Waiting for storage thread ({0}) to exit... (max 10 seconds)", thread.ManagedThreadId));
+                if (thread != null)
+                {
+                    try
+                    {
+                        thread.Join(10000);
+                        if (thread.ThreadState != ThreadState.Stopped)
+                        {
+                            thread.Abort();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Logging.warn(String.Format("Storage thread did not exit within 10 seconds and was aborted... (Error: {0})", e.Message));
+                    }
+                }
             }
+
             protected virtual void threadLoop()
             {
                 QueueStorageMessage active_message = new QueueStorageMessage();
@@ -198,10 +215,18 @@ namespace DLT
             public abstract Block getBlockByHash(byte[] checksum);
             /// <summary>
             /// Retrieves a SuperBlock which has the specified lastSuperblockChecksum from the underlying storage (database).
+            /// /// An alternative name for this method would be "GetNextSuperblock(current_block).
             /// </summary>
             /// <param name="checksum">Block checksum of the previous Superblock.</param>
             /// <returns>Null if the bloud could not be found in storage.</returns>
-            public abstract Block getBlocksByLastSBHash(byte[] checksum);
+            public abstract Block getBlockByLastSBHash(byte[] checksum);
+            /// <summary>
+            /// Retrieves a SuperBlock which has the specified lastSuperblockNum from the underlying storage (database).
+            /// An alternative name for this method would be "GetNextSuperblock(current_block).
+            /// </summary>
+            /// <param name="last_block_number">Block number of the previous Superblock.</param>
+            /// <returns>Null if the bloud could not be found in storage.</returns>
+            public abstract Block getBlockByLastSuperblock(ulong last_block_number);
             /// <summary>
             /// Retrieves all Blocks between two block heights, inclusive on both ends.
             /// Note: If `from` is larger than `to`, or both parameters are 0, an empty collection is returned.
@@ -284,13 +309,19 @@ namespace DLT
 
 
             // instantiation for the proper implementation class
-            public static IStorage create(string name)
+            public static IStorage create(string name, string path_base = "")
             {
                 Logging.info("Block storage provider: {0}", name);
-                switch(name)
+                if (path_base == "")
+                {
+                    path_base = Config.dataFolderBlocks;
+                }
+                Logging.info(String.Format("Storage path base: {0}", path_base));
+                switch (name)
                 {
                     //case "SQLite": return new SQLiteStorage();
-                    case "RocksDB": return new RocksDBStorage();
+                    case "RocksDB": return new RocksDBStorage(path_base);
+                    case "SQLite": return new SQLiteStorage(path_base);
                     default: throw new Exception(String.Format("Unknown blocks storage provider: {0}", name));
                 }
             }

@@ -75,7 +75,7 @@ namespace DLT.Meta
 
         public void drawScreen()
         {
-            if (Storage.upgrading)
+            if (Node.storage.isUpgrading())
                 Console.Clear();
 
             Console.SetCursorPosition(0, 0);
@@ -93,9 +93,9 @@ namespace DLT.Meta
             writeLine(" For help please visit https://www.ixian.io      ");
             writeLine("─────────────────────────────────────────────────");
 
-            if (Storage.upgrading)
+            if (Node.storage.isUpgrading())
             {
-                writeLine("Upgrading database: " + Storage.upgradeProgress + "/" + Storage.upgradeMaxBlockNum);
+                writeLine("Upgrading database: " + Node.storage.upgradePercentage() + "/" + Node.storage.upgradeBlockNum());
             }
 
             if (Node.serverStarted == false)

@@ -362,7 +362,6 @@ namespace DLT
                 cmd_parser.Parse(args);
 
 
-                Storage.path = dataFolderPath + Path.DirectorySeparatorChar + "blocks";
                 WalletStateStorage.path = dataFolderPath + Path.DirectorySeparatorChar + "ws";
 
                 if (start_clean)

@@ -309,7 +309,11 @@ namespace DLT.Meta
             PresenceList.generatePresenceList(Config.publicServerIP, node_type);
 
             // Initialize storage
-            Storage.prepareStorage();
+            if(storage == null)
+            {
+                storage = IStorage.create(Config.blockStorageProvider);
+            }
+            storage.prepareStorage();
 
             ActivityStorage.prepareStorage();
 
@@ -374,7 +378,7 @@ namespace DLT.Meta
                     Block genesis = new Block(Crypto.stringToHash(File.ReadAllText(Config.genesisFile)));
                     blockChain.setGenesisBlock(genesis);
                 }
-                ulong lastLocalBlockNum = Meta.Storage.getLastBlockNum();
+                ulong lastLocalBlockNum = storage.getHighestBlockInStorage();
                 if(lastLocalBlockNum > 6)
                 {
                     lastLocalBlockNum = lastLocalBlockNum - 6;
@@ -396,7 +400,7 @@ namespace DLT.Meta
 
                 if (Config.recoverFromFile)
                 {
-                    Block b = Meta.Storage.getBlock(lastLocalBlockNum);
+                    Block b = storage.getBlock(lastLocalBlockNum);
                     blockSync.onHelloDataReceived(b.blockNum, b.blockChecksum, b.version, b.walletStateChecksum, b.getUniqueSignatureCount(), lastLocalBlockNum);
                 }
                 else
@@ -558,7 +562,7 @@ namespace DLT.Meta
             }
 
             // Stop the block storage
-            Storage.stopStorage();
+            storage.stopStorage();
 
             // stop activity storage
             ActivityStorage.stopStorage();
@@ -744,10 +748,10 @@ namespace DLT.Meta
 
             // deleting block storage is a special case
             // we have to instantiate whatever implementation we are using and remove its data files
-            /*storage = IStorage.create(Config.blockStorageProvider);
-            storage.deleteData();*/
-
-            Storage.deleteCache();
+            if (storage == null) {
+                storage = IStorage.create(Config.blockStorageProvider);
+            }
+            storage.deleteData();
 
             WalletStateStorage.deleteCache();
 
@@ -891,11 +895,6 @@ namespace DLT.Meta
             if (!Directory.Exists(Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks"))
             {
                 Directory.CreateDirectory(Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks");
-            }
-
-            if (!Directory.Exists(Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks" + Path.DirectorySeparatorChar + "0000"))
-            {
-                Directory.CreateDirectory(Config.dataFolderPath + Path.DirectorySeparatorChar + "blocks" + Path.DirectorySeparatorChar + "0000");
             }
         }
 

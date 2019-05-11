@@ -56,7 +56,7 @@ namespace DLT
                     // Check if this is a full history node
                     if (Config.storeFullHistory == false)
                     {
-                        Storage.removeBlock(block); // Remove from storage
+                        Node.storage.removeBlock(block.blockNum, true);
                     }
                     lock (blocksDictionary)
                     {
@@ -102,7 +102,7 @@ namespace DLT
                     {
                         blocksDictionary.Add(b.blockNum, b);
                     }
-                    Storage.insertBlock(b);
+                    Node.storage.insertBlock(b);
                     return true;
                 }
                 // check for invalid block appending
@@ -133,7 +133,7 @@ namespace DLT
             if (add_to_storage)
             {
                 // Add block to storage
-                Storage.insertBlock(b);
+                Node.storage.insertBlock(b);
             }
 
             CoreConfig.redactedWindowSize = CoreConfig.getRedactedWindowSize(b.version);
@@ -191,7 +191,7 @@ namespace DLT
             // Search storage
             if (search_in_storage || compacted_block)
             {
-                block = Storage.getBlock(blocknum);
+                block = Node.storage.getBlock(blocknum);
                 if (block != null && compacted_block)
                 {
                     block.powField = pow_field;
@@ -261,7 +261,7 @@ namespace DLT
             // Search storage
             if (search_in_storage || compacted_block)
             {
-                block = Storage.getBlockByHash(hash);
+                block = Node.storage.getBlockByHash(hash);
                 if (block != null && compacted_block)
                 {
                     block.powField = pow_field;
@@ -610,7 +610,7 @@ namespace DLT
                 block.pruneSignatures();
             }
 
-            Meta.Storage.insertBlock(block);
+            Node.storage.insertBlock(block);
 
             if (compacted)
             {

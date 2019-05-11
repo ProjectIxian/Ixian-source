@@ -89,7 +89,7 @@ namespace DLT
                     Logging.warn("Unable to create WalletState snapshot, because a snapshot already exists.");
                     return false;
                 }
-                Logging.info("Creating a WalletState snapshot.");
+                //Logging.info("Creating a WalletState snapshot.");
                 wsDelta = new Dictionary<byte[], Wallet>(new ByteArrayComparer());
                 return true;
             }
@@ -101,7 +101,7 @@ namespace DLT
             {
                 if (wsDelta != null)
                 {
-                    Logging.info(String.Format("Reverting WalletState snapshot ({0} wallets).", wsDelta.Count));
+                    //Logging.info(String.Format("Reverting WalletState snapshot ({0} wallets).", wsDelta.Count));
                     wsDelta = null;
                     cachedDeltaChecksum = null;
                 }

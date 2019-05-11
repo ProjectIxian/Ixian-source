@@ -71,7 +71,10 @@ namespace DLT
                     {
                         b.signatures.Add(new byte[2][] { sig[0], sig[1] });
                     }
-                    b.transactions = transactions.ToList();
+                    if (transactions != null)
+                    {
+                        b.transactions = transactions.ToList();
+                    }
                     b.timestamp = timestamp;
                     b.version = version;
                     // special flag:
@@ -663,6 +666,7 @@ namespace DLT
             // block
             private _storage_Index idxBlocksChecksum;
             private _storage_Index idxBlocksLastSBChecksum;
+            private _storage_Index idxBlocksLastSuperblock;
             // transaction
             private _storage_Index idxTXType;
             private _storage_Index idxTXFrom;
@@ -698,6 +702,7 @@ namespace DLT
                 {
                     throw new Exception(String.Format("Rocks Database '{0}' is already open.", dbPath));
                 }
+                Logging.info(String.Format("Opening RocksDB database: {0}.", dbPath));
                 lock (rockLock)
                 {
                     rocksOptions = new DbOptions();
@@ -711,6 +716,7 @@ namespace DLT
                     // index column families
                     columnFamilies.Add("index_block_checksum", new ColumnFamilyOptions());
                     columnFamilies.Add("index_block_last_sb_checksum", new ColumnFamilyOptions());
+                    columnFamilies.Add("index_block_last_superblock", new ColumnFamilyOptions());
                     columnFamilies.Add("index_tx_type", new ColumnFamilyOptions());
                     columnFamilies.Add("index_tx_from", new ColumnFamilyOptions());
                     columnFamilies.Add("index_tx_to", new ColumnFamilyOptions());
@@ -718,7 +724,7 @@ namespace DLT
                     columnFamilies.Add("index_tx_timestamp", new ColumnFamilyOptions());
                     columnFamilies.Add("index_tx_applied", new ColumnFamilyOptions());
                     //
-                    database = RocksDb.Open(rocksOptions, dbPath);
+                    database = RocksDb.Open(rocksOptions, dbPath, columnFamilies);
                     // initialize column family handles
                     rocksCFBlocks = database.GetColumnFamily("blocks");
                     rocksCFTransactions = database.GetColumnFamily("transactions");
@@ -726,6 +732,7 @@ namespace DLT
                     // initialize indexes - this also loads them in memory
                     idxBlocksChecksum = new _storage_Index("index_block_checksum", database);
                     idxBlocksLastSBChecksum = new _storage_Index("index_block_last_sb_checksum", database);
+                    idxBlocksLastSuperblock = new _storage_Index("index_block_last_superblock", database);
                     idxTXType = new _storage_Index("index_tx_type", database);
                     idxTXFrom = new _storage_Index("index_tx_from", database);
                     idxTXTo = new _storage_Index("index_tx_to", database);
@@ -778,6 +785,7 @@ namespace DLT
                     // free all indexes
                     idxBlocksChecksum = null;
                     idxBlocksLastSBChecksum = null;
+                    idxBlocksLastSuperblock = null;
                     idxTXType = null;
                     idxTXFrom = null;
                     idxTXTo = null;
@@ -796,6 +804,11 @@ namespace DLT
                 {
                     idxBlocksLastSBChecksum.addIndexEntry(sb.lastSuperblockChecksum, block_num_bytes);
                     idxBlocksLastSBChecksum.updateDBIndex(database);
+                }
+                if(sb.lastSuperblockNum > 0)
+                {
+                    idxBlocksLastSuperblock.addIndexEntry(BitConverter.GetBytes(sb.lastSuperblockNum), block_num_bytes);
+                    idxBlocksLastSuperblock.updateDBIndex(database);
                 }
                 lastUsedTime = DateTime.Now;
             }
@@ -927,6 +940,20 @@ namespace DLT
                     lastUsedTime = DateTime.Now;
                     var e = idxBlocksLastSBChecksum.getEntriesForKey(checksum);
                     if (e.Any())
+                    {
+                        return getBlockInternal(e.First());
+                    }
+                    return null;
+                }
+            }
+
+            public Block getBlockByLastSuperblock(ulong last_superblock)
+            {
+                lock(rockLock)
+                {
+                    if (database == null) return null;
+                    var e = idxBlocksLastSuperblock.getEntriesForKey(BitConverter.GetBytes(last_superblock));
+                    if(e.Any())
                     {
                         return getBlockInternal(e.First());
                     }
@@ -1150,6 +1177,7 @@ namespace DLT
             public uint closeAfterSeconds = 60;
             public ulong maxBlocksPerDB = 10000;
             
+            public RocksDBStorage(string path_base) : base(path_base) { }
 
             private RocksDBInternal getDatabase(ulong blockNum)
             {
@@ -1165,11 +1193,18 @@ namespace DLT
                     else
                     {
                         db = new RocksDBInternal(pathBase + Path.DirectorySeparatorChar + baseBlockNum.ToString());
+                        openDatabases.Add(baseBlockNum, db);
                     }
                 }
                 if (!db.isOpen)
                 {
-                    db.openDatabase();
+                    try
+                    {
+                        db.openDatabase();
+                    } catch(Exception e)
+                    {
+                        Logging.error(String.Format("Unable to open RocksDB database '{0}': {1}", blockNum, e.Message));
+                    }
                 }
                 return db;
             }
@@ -1247,50 +1282,58 @@ namespace DLT
                 }
             }
 
-            public override ulong getHighestBlockInStorage()
+            private List<ulong> enumeratePossibleDatabases()
             {
-                // find our absolute highest block db
-                ulong latest_db = 0;
-                foreach(var d in Directory.EnumerateDirectories(pathBase))
+                List<ulong> result = new List<ulong>();
+                foreach (var d in Directory.EnumerateDirectories(pathBase))
                 {
-                    string final_dir = Path.GetDirectoryName(d);
-                    if(ulong.TryParse(final_dir, out ulong db_base))
+                    int i = d.LastIndexOf(Path.DirectorySeparatorChar);
+                    if(i >= 0 && i< d.Length-1)
                     {
-                        if(db_base > latest_db)
+                        string dir_name = d.Substring(i + 1);
+                        if(ulong.TryParse(dir_name, out ulong db_start))
                         {
-                            latest_db = db_base;
+                            result.Add(db_start);
                         }
                     }
                 }
-                if (latest_db == 0) return 0; // empty db
-                lock (openDatabases)
+                return result;
+            }
+
+            public override ulong getHighestBlockInStorage()
+            {
+                var possible_databases = enumeratePossibleDatabases();
+                if(possible_databases.Count > 0)
                 {
-                    var db = getDatabase(latest_db);
-                    return db.maxBlockNumber;
+                    ulong highest_db = possible_databases.Max();
+                    lock(openDatabases)
+                    {
+                        var db = getDatabase(highest_db);
+                        if(db != null)
+                        {
+                            return db.maxBlockNumber;
+                        }
+                    }
                 }
+                return 0;
             }
 
             public override ulong getLowestBlockInStorage()
             {
-                // find our absolute highest block db
-                ulong oldest_db = 0;
-                foreach (var d in Directory.EnumerateDirectories(pathBase))
+                var possible_databases = enumeratePossibleDatabases();
+                if (possible_databases.Count > 0)
                 {
-                    string final_dir = Path.GetDirectoryName(d);
-                    if (ulong.TryParse(final_dir, out ulong db_base))
+                    ulong lowest_db = possible_databases.Min();
+                    lock (openDatabases)
                     {
-                        if (db_base > oldest_db)
+                        var db = getDatabase(lowest_db);
+                        if (db != null)
                         {
-                            oldest_db = db_base;
+                            return db.minBlockNumber;
                         }
                     }
                 }
-                if (oldest_db == 0) return 0; // empty db
-                lock (openDatabases)
-                {
-                    var db = getDatabase(oldest_db);
-                    return db.minBlockNumber;
-                }
+                return 0;
             }
 
             protected override bool insertBlockInternal(Block block)
@@ -1338,7 +1381,7 @@ namespace DLT
                 }
             }
 
-            public override Block getBlocksByLastSBHash(byte[] checksum)
+            public override Block getBlockByLastSBHash(byte[] checksum)
             {
                 lock (openDatabases)
                 {
@@ -1349,6 +1392,24 @@ namespace DLT
                             db.openDatabase();
                         }
                         Block b = db.getBlockByLastSBHash(checksum);
+                        if (b != null) return b;
+                    }
+                    //
+                    return null;
+                }
+            }
+
+            public override Block getBlockByLastSuperblock(ulong last_block_number)
+            {
+                lock(openDatabases)
+                {
+                    foreach(var db in openDatabases.Values)
+                    {
+                        if(!db.isOpen)
+                        {
+                            db.openDatabase();
+                        }
+                        Block b = db.getBlockByLastSuperblock(last_block_number);
                         if (b != null) return b;
                     }
                     //
@@ -1523,6 +1584,8 @@ namespace DLT
 
             public override bool removeBlock(ulong block_num, bool remove_transactions)
             {
+                // do not remove on full history nodes
+                if (Config.storeFullHistory == true) return true;
                 lock(openDatabases)
                 {
                     var db = getDatabase(block_num);
@@ -1532,7 +1595,9 @@ namespace DLT
 
             public override bool removeTransaction(string txid, ulong block_num = 0)
             {
-                lock(openDatabases)
+                // do not remove on full history nodes
+                if (Config.storeFullHistory == true) return true;
+                lock (openDatabases)
                 {
                     if(block_num > 0)
                     {
