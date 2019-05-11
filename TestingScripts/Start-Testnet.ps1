@@ -188,7 +188,7 @@ function Spinup-AnotherNode {
     $dltPort = $DLTStartPort + $nIndex
     $apiPort = $APIStartPort + $nIndex
     $client = $dstPaths[$nIndex]
-    $params = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
+    $params = "-t -s -cf -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
     if(-not $Miner.IsPresent) {
         $params += " --disableMiner"
     }
@@ -397,9 +397,9 @@ if($ClearState.IsPresent) {
                         $startParams = ""
                         if($idx -eq 0) {
                             # Genesis node
-                            $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) --genesis 100000000 --genesis2 $($gen2Addr) --walletPassword $($WalletPassword) --disableWebStart"
+                            $startParams = "-t -s -cf -p $($dltPort) -a $($apiPort) -i $($IPInterface) --genesis 100000000 --genesis2 $($gen2Addr) --walletPassword $($WalletPassword) --disableWebStart"
                         } else {
-                            $startParams = "-t -s -c -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
+                            $startParams = "-t -s -cf -p $($dltPort) -a $($apiPort) -i $($IPInterface) -n $($IPInterface):$($DLTStartPort) --walletPassword $($WalletPassword) --disableWebStart"
                         }
                         $mining = $true
                         if($MinerOnlyInstances -gt 0) {
