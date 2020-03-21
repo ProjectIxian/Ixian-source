@@ -1,3 +1,14 @@
+***
+
+# This repository is archived and will not be updated. Please use the following repositories:
+* [Ixian-Core](https://github.com/ProjectIxian/Ixian-Core): Functionality common to all other projects.
+* [Ixian-DLT](https://github.com/ProjectIxian/Ixian-DLT): Implementation of the blockchain-processing part (the Master Node software).
+* [Ixian-S2](https://github.com/ProjectIxian/Ixian-S2): Implementation of the streaming network (the S2 Node software).
+* [Spixi](https://github.com/ProjectIxian/Spixi): Implementation of the Spixi messaging client for Windows, Android and iOS.
+
+***
+
+
 # IXIAN Project
 
 ## About IXIAN
